@@ -33,7 +33,7 @@ private:
 template<typename Scalar> uint32_t EdgeBasic<Scalar>::global_id_ = 0;
 
 /* Class Edge declaration. */
-template <typename Scalar, int32_t VerticeNum, int32_t ResidualDim>
+template <typename Scalar, int32_t VerticeNum, int32_t ResidualDim, int32_t ... VerticeSolveDim>
 class Edge : public EdgeBasic<Scalar> {
 
 public:
@@ -55,8 +55,8 @@ private:
 };
 
 /* Class Edge Definition. */
-template <typename Scalar, int32_t VerticeNum, int32_t ResidualDim>
-Edge<Scalar, VerticeNum, ResidualDim>::Edge() : EdgeBasic<Scalar>() {
+template <typename Scalar, int32_t VerticeNum, int32_t ResidualDim, int32_t ... VerticeSolveDim>
+Edge<Scalar, VerticeNum, ResidualDim, VerticeSolveDim ...>::Edge() : EdgeBasic<Scalar>() {
     id_ = EdgeBasic<Scalar>::global_id();
     ++EdgeBasic<Scalar>::global_id();
 }
