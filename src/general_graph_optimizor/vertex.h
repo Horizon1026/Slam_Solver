@@ -5,102 +5,82 @@
 
 namespace SLAM_SOLVER {
 
-/* Class Vertex Basic declaration. */
+/* Class Vertex declaration. */
 template <typename Scalar>
-class VertexBasic {
+class Vertex {
 
 public:
-    VertexBasic() = default;
-    virtual ~VertexBasic() = default;
+    Vertex() = delete;
+    Vertex(int32_t param_dim, int32_t delta_dim);
+    virtual ~Vertex() = default;
 
     // Vertex index.
-    virtual const uint32_t GetId() = 0;
+    static uint32_t &GetGlobalId() { return global_id_; }
+    const uint32_t GetId() const { return id_; }
 
-    // Stored dimension and solve dimension can be different for Quatnion.
-    virtual const int32_t GetStoreDimension() const = 0;
-    virtual const int32_t GetSolveDimension() const = 0;
+    // Param dimension and delta param dimension can be different for Quatnion.
+    const int32_t GetParameterDimension() const { return param_dim_; }
+    const int32_t GetIncrementDimension() const { return delta_dim_; }
 
-    virtual const std::string GetType() = 0;
+    // Use string to represent vertex type.
+    virtual std::string GetType();
 
     // Param operation with scalar adaption.
-    virtual void SetParam(const Vec &param) = 0;
-    virtual Vec GetParam() = 0;
+    TVec<Scalar> &Param() { return param_; }
 
     // Update param with delta_param solved by solver.
-    virtual void UpdateParam(const Vec &delta_param) = 0;
+    virtual void UpdateParam(const TVec<Scalar> &delta_param);
 
     // Param operation, backing up and rolling back.
-    virtual void BackupParam() = 0;
-    virtual void RollbackParam() = 0;
+    void BackupParam() { param_backup_ = param_; }
+    void RollbackParam() { param_ = param_backup_; }
 
     // If vertex is fixed, solver will not make non-zero increment for this vertex.
-    virtual const bool IsFixed() const = 0;
-    virtual void SetFixed(bool fixed = true) = 0;
-
-    static uint32_t &global_id() { return global_id_; }
+    const bool IsFixed() const { return fixed_; }
+    void SetFixed(bool fixed = true) { fixed_ = fixed; }
 
 private:
     // Global index for every vertex.
     static uint32_t global_id_;
-
-};
-
-/* Class Vertex Basic Definition. */
-template<typename Scalar> uint32_t VertexBasic<Scalar>::global_id_ = 0;
-
-/* Class Vertex declaration. */
-template <typename Scalar, int32_t StoreDim, int32_t SolveDim>
-class Vertex : public VertexBasic<Scalar> {
-
-public:
-    Vertex();
-    virtual ~Vertex() = default;
-
-    // Vertex index.
-    virtual const uint32_t GetId() const { return id_; }
-
-    // Stored dimension and solve dimension can be different for Quatnion.
-    virtual const int32_t GetStoreDimension() const { return StoreDim; }
-    virtual const int32_t GetSolveDimension() const { return SolveDim; }
-
-    virtual const std::string GetType();
-
-    // Param operation with scalar adaption.
-    virtual void SetParam(const Vec &param) { param_ = param.cast<Scalar>(); }
-    virtual Vec GetParam() { return param_.template cast<float>(); }
-
-    // Update param with delta_param solved by solver.
-    virtual void UpdateParam(const Vec &delta_param) = 0;
-
-    // Param operation, backing up and rolling back.
-    virtual void BackupParam() { param_backup_ = param_; }
-    virtual void RollbackParam() { param_ = param_backup_; }
-
-    // If vertex is fixed, solver will not make non-zero increment for this vertex.
-    virtual const bool IsFixed() const { return fixed_; }
-    virtual void SetFixed(bool fixed = true) { fixed_ = fixed; }
-
-private:
     uint32_t id_ = 0;
 
+    // Param size.
+    const int32_t param_dim_;
+    const int32_t delta_dim_;
+
     // Store parameter to be solved.
-    Eigen::Matrix<Scalar, StoreDim, 1> param_ = Eigen::Matrix<Scalar, StoreDim, 1>::Zero();
-    Eigen::Matrix<Scalar, StoreDim, 1> param_backup_ = Eigen::Matrix<Scalar, StoreDim, 1>::Zero();
+    TVec<Scalar> param_ = TVec3<Scalar>::Zero();
+    TVec<Scalar> param_backup_ = TVec3<Scalar>::Zero();
 
     // Fix this vertex when solving problem or not.
     bool fixed_ = false;
 };
 
 /* Class Vertex Definition. */
-template <typename Scalar, int32_t StoreDim, int32_t SolveDim>
-Vertex<Scalar, StoreDim, SolveDim>::Vertex() : VertexBasic<Scalar>() {
-    id_ = VertexBasic<Scalar>::global_id();
-    ++VertexBasic<Scalar>::global_id();
+template <typename Scalar>
+uint32_t Vertex<Scalar>::global_id_ = 0;
+
+template <typename Scalar>
+Vertex<Scalar>::Vertex(int32_t param_dim, int32_t delta_dim) : param_dim_(param_dim), delta_dim_(delta_dim) {
+    // Resize stored param.
+    if (param_.rows() != param_dim_) {
+        param_.resize(param_dim_);
+        param_backup_.resize(param_dim_);
+    }
+
+    // Set index.
+    ++Vertex<Scalar>::global_id_;
+    id_ = Vertex<Scalar>::global_id_;
 }
 
-template <typename Scalar, int32_t StoreDim, int32_t SolveDim>
-const std::string Vertex<Scalar, StoreDim, SolveDim>::GetType() {
+template <typename Scalar>
+std::string Vertex<Scalar>::GetType() {
     return std::string("Basic Vertex");
+}
+
+template <typename Scalar>
+void Vertex<Scalar>::UpdateParam(const TVec<Scalar> &delta_param) {
+    param_ += delta_param;
 }
 
 }
