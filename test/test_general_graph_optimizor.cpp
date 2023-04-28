@@ -14,6 +14,7 @@ int main(int argc, char **argv) {
 
     Edge<Scalar> edge(3, 3);
     LogInfo("edge type is " << edge.GetType());
+    edge.SelfCheck();
 
     return 0;
 }

@@ -23,13 +23,13 @@ public:
     const int32_t GetIncrementDimension() const { return delta_dim_; }
 
     // Use string to represent vertex type.
-    virtual std::string GetType();
+    virtual std::string GetType() { return std::string("Basic Vertex"); }
 
     // Param operation with scalar adaption.
     TVec<Scalar> &Param() { return param_; }
 
     // Update param with delta_param solved by solver.
-    virtual void UpdateParam(const TVec<Scalar> &delta_param);
+    virtual void UpdateParam(const TVec<Scalar> &delta_param) { param_ += delta_param; }
 
     // Param operation, backing up and rolling back.
     void BackupParam() { param_backup_ = param_; }
@@ -71,16 +71,6 @@ Vertex<Scalar>::Vertex(int32_t param_dim, int32_t delta_dim) : param_dim_(param_
     // Set index.
     ++Vertex<Scalar>::global_id_;
     id_ = Vertex<Scalar>::global_id_;
-}
-
-template <typename Scalar>
-std::string Vertex<Scalar>::GetType() {
-    return std::string("Basic Vertex");
-}
-
-template <typename Scalar>
-void Vertex<Scalar>::UpdateParam(const TVec<Scalar> &delta_param) {
-    param_ += delta_param;
 }
 
 }

@@ -13,7 +13,12 @@ public:
     Kernel() = default;
     virtual ~Kernel() = default;
 
-    virtual void Compute(const Scalar x) = 0;
+    virtual void Compute(const Scalar x) {
+        x_ = x;
+        y_[0] = x_;
+        y_[1] = static_cast<Scalar>(1);
+        y_[2] = static_cast<Scalar>(0);
+    }
 
     const Scalar &x() const { return x_; }
     const Scalar &y(int32_t index) const { return y_[index]; }
