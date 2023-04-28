@@ -1,8 +1,9 @@
 #ifndef _GENERAL_GRAPH_OPTIMIZOR_EDGE_H_
 #define _GENERAL_GRAPH_OPTIMIZOR_EDGE_H_
 
+#include "datatype_basic.h"
 #include "vertex.h"
-#include "array"
+#include "kernel.h"
 
 namespace SLAM_SOLVER {
 
