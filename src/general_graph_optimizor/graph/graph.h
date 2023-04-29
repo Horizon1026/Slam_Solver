@@ -16,7 +16,7 @@ template <typename Scalar>
 class Graph {
 
 public:
-    Graph() = default;
+    Graph() { Graph(50); }
     explicit Graph(uint32_t reserved_vertex_num);
     virtual ~Graph() = default;
 
@@ -36,6 +36,10 @@ public:
     // Sort all vertices in incremental function.
     void SortVertices(bool statis_size_of_residual = false);
 
+    // Update and roll back all vertices.
+    void UpdateAllVertices(const TVec<Scalar> &delta_x);
+    void RollBackAllVertices();
+
     // Compute residual for all edges and jacobian for all vertices and edges.
     Scalar ComputeResidualForAllEdges();
     void ComputeJacobiansForAllEdges();
@@ -47,6 +51,17 @@ public:
     // Marginalize sparse vertices in incremental function.
     void MarginalizeSparseVerticesInHessianAndBias(TMat<Scalar> &hessian, TVec<Scalar> &bias);
     void MarginalizeSparseVerticesInJacobianAndResidual(TMat<Scalar> &jacobian, TVec<Scalar> &residual);
+
+    // Reference of member varibles.
+    const TMat<Scalar> &hessian() const { return hessian; }
+    const TVec<Scalar> &bias() const { return bias_; }
+    const TMat<Scalar> &jacobian() const { return jacobian_; }
+    const TVec<Scalar> &residual() const { return residual_; }
+    TMat<Scalar> &prior_hessian() { return *prior_hessian_; }
+    TVec<Scalar> &prior_bias() { return *prior_bias_; }
+    TMat<Scalar> &prior_jacobian() { return *prior_jacobian_; }
+    TMat<Scalar> &prior_jacobian_t_inv() { return *prior_jacobian_t_inv_; }
+    TVec<Scalar> &prior_residual() { return *prior_residual_; }
 
 private:
     // Manage vertices and edges in this graph.
@@ -63,14 +78,18 @@ private:
     // Hessian matrix and bias vector in incremantal function.
     TMat<Scalar> hessian_ = TMat3<Scalar>::Zero();
     TVec<Scalar> bias_ = TVec3<Scalar>::Zero();
-    TMat<Scalar> *prior_hessian_ = nullptr;
-    TVec<Scalar> *prior_bias_ = nullptr;
 
     // Jacobian matrix and residual vector in incremental function.
     TMat<Scalar> jacobian_ = TMat3<Scalar>::Identity();
     TVec<Scalar> residual_ = TVec3<Scalar>::Zero();
+
+    // Prior information and useful backup.
+    TMat<Scalar> *prior_hessian_ = nullptr;
+    TVec<Scalar> *prior_bias_ = nullptr;
     TMat<Scalar> *prior_jacobian_ = nullptr;
+    TMat<Scalar> *prior_jacobian_t_inv_ = nullptr;
     TVec<Scalar> *prior_residual_ = nullptr;
+
 };
 
 /* Class Graph Definition. */
@@ -93,6 +112,11 @@ void Graph<Scalar>::Clear() {
     full_size_of_dense_vertices_ = 0;
     full_size_of_sparse_vertices_ = 0;
     full_size_of_residuals_ = 0;
+
+    prior_hessian_ = nullptr;
+    prior_jacobian_ = nullptr;
+    prior_bias_ = nullptr;
+    prior_jacobian_ = nullptr;
 }
 
 // Add vertices and edges for this graph.
@@ -162,6 +186,54 @@ void Graph<Scalar>::SortVertices(bool statis_size_of_residual) {
     }
 }
 
+// Update all vertices.
+template <typename Scalar>
+void Graph<Scalar>::UpdateAllVertices(const TVec<Scalar> &delta_x) {
+    for (auto &vertex : dense_vertices_) {
+        if (vertex->IsFixed()) {
+            continue;
+        }
+
+        vertex->BackupParam();
+
+        const int32_t index = vertex->ColIndex();
+        const int32_t dim = vertex->GetIncrementDimension();
+        vertex->UpdateParam(delta_x.segment(index, dim));
+    }
+
+    for (auto &vertex : sparse_vertices_) {
+        if (vertex->IsFixed()) {
+            continue;
+        }
+
+        vertex->BackupParam();
+
+        const int32_t index = vertex->ColIndex();
+        const int32_t dim = vertex->GetIncrementDimension();
+        vertex->UpdateParam(delta_x.segment(index, dim));
+    }
+}
+
+// Roll back all vertices.
+template <typename Scalar>
+void Graph<Scalar>::RollBackAllVertices() {
+    for (auto &vertex : dense_vertices_) {
+        if (vertex->IsFixed()) {
+            continue;
+        }
+
+        vertex->RollbackParam();
+    }
+
+    for (auto &vertex : sparse_vertices_) {
+        if (vertex->IsFixed()) {
+            continue;
+        }
+
+        vertex->RollbackParam();
+    }
+}
+
 // Compute residual for all edges.
 template <typename Scalar>
 Scalar Graph<Scalar>::ComputeResidualForAllEdges() {
@@ -171,6 +243,11 @@ Scalar Graph<Scalar>::ComputeResidualForAllEdges() {
         Scalar x = edge->CalculateSquaredResidual();
         edge->kernel()->Compute(x);
         sum_cost += edge->kernel()->y(0);
+    }
+
+    // Prior information is decomposed as sqrt(S) * r, so squredNorm means r.t * S * r.
+    if (prior_residual_ != nullptr) {
+        sum_cost += prior_residual_->squaredNorm();
     }
 
     return sum_cost;
@@ -287,6 +364,11 @@ void Graph<Scalar>::MarginalizeSparseVerticesInHessianAndBias(TMat<Scalar> &hess
     // subb = br - Hrm_Hmm_inv * bm.
     hessian = hessian_.block(0, 0, reverse, reverse) - Hrm_Hmm_inv * hessian_.block(0, reverse, reverse, marg);
     bias = bias_.segment(0, reverse) - Hrm_Hmm_inv * bias_.segment(reverse, marg);
+}
+
+template <typename Scalar>
+void Graph<Scalar>::MarginalizeSparseVerticesInJacobianAndResidual(TMat<Scalar> &jacobian, TVec<Scalar> &residual) {
+
 }
 
 }
