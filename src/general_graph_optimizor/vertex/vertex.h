@@ -17,6 +17,7 @@ public:
     // Vertex index.
     static uint32_t &GetGlobalId() { return global_id_; }
     const uint32_t GetId() const { return id_; }
+    int32_t &ColIndex() { return col_id_; }
 
     // Param dimension and delta param dimension can be different for Quatnion.
     const int32_t GetParameterDimension() const { return param_dim_; }
@@ -40,9 +41,10 @@ public:
     void SetFixed(bool fixed = true) { fixed_ = fixed; }
 
 private:
-    // Global index for every vertex.
+    // Index for every vertex.
     static uint32_t global_id_;
     uint32_t id_ = 0;
+    int32_t col_id_ = 0;
 
     // Param size.
     const int32_t param_dim_;

@@ -34,6 +34,7 @@ public:
     // Set and get jacobians of each vertex of this edge.
     void SetJacobian(const TMat<Scalar> &jacobian, uint32_t index) { jacobians_[index] = jacobian; }
     const TMat<Scalar> &GetJacobian(uint32_t index) const { return jacobians_[index]; }
+    const std::vector<TMat<Scalar>> &GetJacobians() const { return jacobians_; }
 
     // Reference of residual, information and observation for this edge.
     TVec<Scalar> &residual() { return residual_; }
