@@ -38,6 +38,9 @@ private:
     // Parameters of LM solver.
     Scalar lambda_ = 0;
     Scalar v_ = 0;
+    TVec<Scalar> diagnal_of_hessian_;
+    TMat<Scalar> reverse_hessian_;
+    TVec<Scalar> reverse_bias_;
 
 };
 
@@ -45,20 +48,22 @@ private:
 template <typename Scalar>
 void SolverLm<Scalar>::InitializeSolver() {
     lambda_ = lm_options_.kInitLambda;
-    cost_at_linearized_point() = cost_at_latest_step();
+    // cost_at_linearized_point() = std::move(cost_at_latest_step());
     v_ = static_cast<Scalar>(2);
 }
 
 template <typename Scalar>
 void SolverLm<Scalar>::SolveIncrementalFunction() {
     // Add diagnal of hessian.
+    // diagnal_of_hessian_ = problem().hessian().diagonal();
+
 
     // Remove diagnal of hessian.
 }
 
 // Check if one update step is valid.
 template <typename Scalar>
-bool IsUpdateValid(Scalar min_allowed_gain_rate) {
+bool SolverLm<Scalar>::IsUpdateValid(Scalar min_allowed_gain_rate) {
 
     return true;
 }

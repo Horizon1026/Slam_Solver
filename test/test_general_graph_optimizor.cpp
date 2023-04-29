@@ -4,6 +4,7 @@
 #include "edge.h"
 #include "graph.h"
 #include "solver.h"
+#include "solver_lm.h"
 
 using Scalar = float;
 using namespace SLAM_SOLVER;
@@ -22,6 +23,11 @@ int main(int argc, char **argv) {
     Graph<Scalar> graph;
     graph.AddVertex(&vertex, true);
     graph.AddEdge(&edge);
+
+    SolverLm<Scalar> solver;
+    // solver.problem().template AddVertex(&vertex);
+    // solver.problem().template AddEdge(&edge);
+    solver.Solve();
 
     return 0;
 }

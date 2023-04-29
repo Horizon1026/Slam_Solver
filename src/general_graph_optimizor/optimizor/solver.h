@@ -30,14 +30,19 @@ public:
     virtual void SolveIncrementalFunction() = 0;
 
     // Update or rollback all vertices and prior.
-    void UpdateParameters();
-    void RollBackParameters();
+    void UpdateParameters(bool use_prior = false);
+    void RollBackParameters(bool use_prior = false);
 
     // Check if one update step is valid.
     virtual bool IsUpdateValid(Scalar min_allowed_gain_rate = 0) = 0;
 
     // Check if the iteration converged.
     bool IsConvergedAfterUpdate(int32_t iter);
+
+    // Use PCG solver to solve linearlized function.
+    void SolveLinearlizedFunction(const TMat<Scalar> &A,
+                                  const TVec<Scalar> &b,
+                                  TVec<Scalar> &x);
 
     // Reference for member varibles.
     SolverOptions<Scalar> &options() { return options_; }
@@ -110,25 +115,29 @@ bool Solver<Scalar>::Solve() {
 
 // Update or rollback all vertices and prior.
 template <typename Scalar>
-void Solver<Scalar>::UpdateParameters() {
+void Solver<Scalar>::UpdateParameters(bool use_prior) {
     // Update and backup all vertices.
     problem_.UpdateAllVertices(dx_);
 
     // Update and backup prior information.
-    prior_bias_backup_ = problem_.prior_bias();
-    prior_residual_backup_ = problem_.prior_residual();
-    problem_.prior_bias() -= problem_.prior_hessian() * dx_.head(problem_.prior_hessian().cols());
-    problem_.prior_residual() = - problem_.prior_jacobian_t_inv() * problem_.prior_bias();
+    if (use_prior && problem_.prior_hessian().size() > 0) {
+        prior_bias_backup_ = problem_.prior_bias();
+        prior_residual_backup_ = problem_.prior_residual();
+        problem_.prior_bias() -= problem_.prior_hessian() * dx_.head(problem_.prior_hessian().cols());
+        problem_.prior_residual() = - problem_.prior_jacobian_t_inv() * problem_.prior_bias();
+    }
 }
 
 template <typename Scalar>
-void Solver<Scalar>::RollBackParameters() {
+void Solver<Scalar>::RollBackParameters(bool use_prior) {
     // Roll back all vertices.
     problem_.RollBackAllVertices();
 
     // Roll back prior information.
-    problem_.prior_bias() = prior_bias_backup_;
-    problem_.prior_residual() = prior_residual_backup_;
+    if (use_prior && problem_.prior_hessian().size() > 0) {
+        problem_.prior_bias() = prior_bias_backup_;
+        problem_.prior_residual() = prior_residual_backup_;
+    }
 }
 
 // Check if the iteration converged.
@@ -139,6 +148,60 @@ bool Solver<Scalar>::IsConvergedAfterUpdate(int32_t iter) {
     }
 
     return false;
+}
+
+// Use PCG solver to solve linearlized function.
+template <typename Scalar>
+void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A,
+                                              const TVec<Scalar> &b,
+                                              TVec<Scalar> &x) {
+    const int32_t size = b.rows();
+    const int32_t maxIteration = size;
+
+    // If initial value is ok, return.
+    x.setZero(size);
+    TVec<Scalar> r0(b);  // initial r = b - A*0 = b
+    if (r0.norm() < static_cast<Scalar>(1e-6)) {
+        return;
+    }
+
+    // Compute precondition matrix.
+    TVec<Scalar> M_inv_diag = A.diagonal();
+    M_inv_diag.array() = static_cast<Scalar>(1) / M_inv_diag.array();
+    for (int32_t i = 0; i < M_inv_diag.rows(); ++i) {
+        if (std::isinf(M_inv_diag(i))) {
+            M_inv_diag(i) = 0;
+        }
+    }
+    TVec<Scalar> z0 = M_inv_diag.array() * r0.array();    // solve M * z0 = r0
+
+    // Get first basis vector, compute weight alpha, update x.
+    TVec<Scalar> p(z0);
+    TVec<Scalar> w = A * p;
+    Scalar r0z0 = r0.dot(z0);
+    Scalar alpha = r0z0 / p.dot(w);
+    x += alpha * p;
+    TVec<Scalar> r1 = r0 - alpha * w;
+
+    // Set threshold to check if converged.
+    const Scalar threshold = static_cast<Scalar>(1e-6) * r0.norm();
+
+    int32_t i = 0;
+    TVec<Scalar> z1;
+    while (r1.norm() > threshold && i < maxIteration) {
+        i++;
+        z1 = M_inv_diag.array() * r1.array();
+        const Scalar r1z1 = r1.dot(z1);
+        const Scalar belta = r1z1 / r0z0;
+        z0 = z1;
+        r0z0 = r1z1;
+        r0 = r1;
+        p = belta * p + z1;
+        w = A * p;
+        alpha = r1z1 / p.dot(w);
+        x += alpha * p;
+        r1 -= alpha * w;
+    }
 }
 
 }

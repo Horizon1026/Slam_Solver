@@ -53,15 +53,15 @@ public:
     void MarginalizeSparseVerticesInJacobianAndResidual(TMat<Scalar> &jacobian, TVec<Scalar> &residual);
 
     // Reference of member varibles.
-    const TMat<Scalar> &hessian() const { return hessian; }
+    const TMat<Scalar> &hessian() const { return hessian_; }
     const TVec<Scalar> &bias() const { return bias_; }
     const TMat<Scalar> &jacobian() const { return jacobian_; }
     const TVec<Scalar> &residual() const { return residual_; }
-    TMat<Scalar> &prior_hessian() { return *prior_hessian_; }
-    TVec<Scalar> &prior_bias() { return *prior_bias_; }
-    TMat<Scalar> &prior_jacobian() { return *prior_jacobian_; }
-    TMat<Scalar> &prior_jacobian_t_inv() { return *prior_jacobian_t_inv_; }
-    TVec<Scalar> &prior_residual() { return *prior_residual_; }
+    TMat<Scalar> &prior_hessian() { return prior_hessian_; }
+    TVec<Scalar> &prior_bias() { return prior_bias_; }
+    TMat<Scalar> &prior_jacobian() { return prior_jacobian_; }
+    TMat<Scalar> &prior_jacobian_t_inv() { return prior_jacobian_t_inv_; }
+    TVec<Scalar> &prior_residual() { return prior_residual_; }
 
 private:
     // Manage vertices and edges in this graph.
@@ -84,11 +84,11 @@ private:
     TVec<Scalar> residual_ = TVec3<Scalar>::Zero();
 
     // Prior information and useful backup.
-    TMat<Scalar> *prior_hessian_ = nullptr;
-    TVec<Scalar> *prior_bias_ = nullptr;
-    TMat<Scalar> *prior_jacobian_ = nullptr;
-    TMat<Scalar> *prior_jacobian_t_inv_ = nullptr;
-    TVec<Scalar> *prior_residual_ = nullptr;
+    TMat<Scalar> prior_hessian_;
+    TVec<Scalar> prior_bias_;
+    TMat<Scalar> prior_jacobian_;
+    TMat<Scalar> prior_jacobian_t_inv_;
+    TVec<Scalar> prior_residual_;
 
 };
 
@@ -112,11 +112,6 @@ void Graph<Scalar>::Clear() {
     full_size_of_dense_vertices_ = 0;
     full_size_of_sparse_vertices_ = 0;
     full_size_of_residuals_ = 0;
-
-    prior_hessian_ = nullptr;
-    prior_jacobian_ = nullptr;
-    prior_bias_ = nullptr;
-    prior_jacobian_ = nullptr;
 }
 
 // Add vertices and edges for this graph.
@@ -240,14 +235,14 @@ Scalar Graph<Scalar>::ComputeResidualForAllEdges() {
     Scalar sum_cost = 0;
     for (auto &edge : edges_) {
         edge->ComputeResidual();
-        Scalar x = edge->CalculateSquaredResidual();
+        const Scalar x = edge->CalculateSquaredResidual();
         edge->kernel()->Compute(x);
         sum_cost += edge->kernel()->y(0);
     }
 
     // Prior information is decomposed as sqrt(S) * r, so squredNorm means r.t * S * r.
-    if (prior_residual_ != nullptr) {
-        sum_cost += prior_residual_->squaredNorm();
+    if (prior_residual_.rows() > 0) {
+        sum_cost += prior_residual_.squaredNorm();
     }
 
     return sum_cost;
@@ -318,26 +313,26 @@ void Graph<Scalar>::ConstructFullSizeHessianAndBias(bool use_prior) {
     }
 
     // Add prior information on incremental function, if configed to use prior.
-    if (use_prior && prior_hessian_ != nullptr) {
+    if (use_prior && prior_hessian_.rows() > 0) {
         // Adjust prior information.
         for (const auto &vertex : dense_vertices_) {
             if (vertex->IsFixed()) {
                 const int32_t index = vertex->ColIndex();
                 const int32_t dim = vertex->GetIncrementDimension();
-                if (index + size > prior_hessian_->cols()) {
+                if (index + size > prior_hessian_.cols()) {
                     continue;
                 }
 
                 // If vertex is fixed, its prior information should be cleaned.
-                prior_hessian_->block(index, 0, dim, prior_hessian_->cols()).setZero();
-                prior_hessian_->block(0, index, prior_hessian_->rows(), dim).setZero();
-                prior_bias_->segment(index, dim).setZero();
+                prior_hessian_.block(index, 0, dim, prior_hessian_.cols()).setZero();
+                prior_hessian_.block(0, index, prior_hessian_.rows(), dim).setZero();
+                prior_bias_.segment(index, dim).setZero();
             }
         }
 
         // Add prior information on incremantal function.
-        hessian_.topLeftCorner(prior_hessian_->rows(), prior_hessian_->cols()).noalias() += *prior_hessian_;
-        bias_.head(prior_bias_->rows()).noalias() += *prior_bias_;
+        hessian_.topLeftCorner(prior_hessian_.rows(), prior_hessian_.cols()).noalias() += prior_hessian_;
+        bias_.head(prior_bias_.rows()).noalias() += prior_bias_;
     }
 }
 

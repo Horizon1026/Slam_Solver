@@ -51,7 +51,7 @@ public:
     bool SelfCheck();
 
     // Compute Mahalanobis distance of residual.
-    Scalar CalculateSquaredResidual() const { return residual_.transpose() * information * residual_; }
+    Scalar CalculateSquaredResidual() const { return residual_.transpose() * information_ * residual_; }
 
     // Compute residual and jacobians for each vertex. These operations should be defined by subclass.
     virtual void ComputeResidual() { residual_.setZero(); }
