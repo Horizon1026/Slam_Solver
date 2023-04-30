@@ -18,7 +18,7 @@ public:
     VertexParam(int32_t param_dim, int32_t delta_dim) : Vertex<Scalar>(param_dim, delta_dim) {}
     virtual ~VertexParam() = default;
 
-    virtual std::string GetType() override { return std::string("Vertex a, b, c"); }
+    virtual std::string GetType() override { return std::string("Vertex"); }
 };
 
 /* Class Edge r = y - (a * x^3 + b * x^2 + c * x) */
@@ -35,10 +35,9 @@ public:
         y_ = this->observation()(1, 0);
 
         // Set param to be solved.
-        auto vertex = this->GetVertex(0);
-        a_ = vertex->param().x();
-        b_ = vertex->param().y();
-        c_ = vertex->param().z();
+        a_ = this->GetVertex(0)->param()(0);
+        b_ = this->GetVertex(1)->param()(0);
+        c_ = this->GetVertex(2)->param()(0);
 
         // Compute residual.
         TVec<Scalar> res = Eigen::Matrix<Scalar, 1, 1>(a_ * x_ * x_ * x_ + b_ * x_ * x_ + c_ * x_ - y_);
@@ -47,10 +46,9 @@ public:
 
     virtual void ComputeJacobians() override {
         // Compute jacobian.
-        auto &jacobian = this->GetJacobian(0);
-        jacobian << x_ * x_ * x_,
-                    x_ * x_,
-                    x_;
+        this->GetJacobian(0) << x_ * x_ * x_;
+        this->GetJacobian(1) << x_ * x_;
+        this->GetJacobian(2) << x_;
     }
 
     virtual std::string GetType() override { return std::string("Edge r = y - (a * x^3 + b * x^2 + c * x)"); }
@@ -64,22 +62,26 @@ constexpr int32_t kMaxSampleNum = 100;
 
 int main(int argc, char **argv) {
     LogInfo(YELLOW ">> Test general graph optimizor." RESET_COLOR);
-    TVec3<Scalar> ground_truth_param = TVec3<Scalar>(2, 3, 4);
-    Scalar a = ground_truth_param(0);
-    Scalar b = ground_truth_param(1);
-    Scalar c = ground_truth_param(2);
-    LogInfo("Ground truth is a[" << a << "], b[" << b << "], c[" << c << "]");
+    TVec3<Scalar> ground_truth_param = TVec3<Scalar>(2, -3, -4);
+    const Scalar a = ground_truth_param(0);
+    const Scalar b = ground_truth_param(1);
+    const Scalar c = ground_truth_param(2);
+    LogInfo("Ground truth is " << LogVec(ground_truth_param));
 
-    std::array<std::unique_ptr<VertexParam>, 1> vertices = {};
-    vertices[0] = std::make_unique<VertexParam>(3, 3);
-    vertices[0]->param() = TVec3<Scalar>(a + 0.5, b + 0.5, c + 0.5);
+    std::array<std::unique_ptr<VertexParam>, 3> vertices = {};
+    for (int32_t i = 0; i < 3; ++i) {
+        vertices[i] = std::make_unique<VertexParam>(1, 1);
+        vertices[i]->param() = TVec1<Scalar>(0);
+    }
 
     std::array<std::unique_ptr<EdgePolynomial>, kMaxSampleNum> edges = {};
     for (int32_t i = 0; i < kMaxSampleNum; ++i) {
-        edges[i] = std::make_unique<EdgePolynomial>(1, 1);
+        edges[i] = std::make_unique<EdgePolynomial>(1, 3);
         edges[i]->SetVertex(vertices[0].get(), 0);
+        edges[i]->SetVertex(vertices[1].get(), 1);
+        edges[i]->SetVertex(vertices[2].get(), 2);
 
-        Scalar x = i - kMaxSampleNum / 2;
+        const Scalar x = i - kMaxSampleNum / 2;
         TVec2<Scalar> obv = TVec2<Scalar>(x, a * x * x * x + b * x * x + c * x);
         edges[i]->observation() = obv;
         edges[i]->SelfCheck();
@@ -90,7 +92,8 @@ int main(int argc, char **argv) {
     for (auto &edge : edges) { solver.problem().AddEdge(edge.get()); }
     solver.Solve(false);
 
-    LogInfo("Solve result is " << LogVec(vertices[0]->param()));
+    TVec3<Scalar> result = TVec3<Scalar>(vertices[0]->param()(0), vertices[1]->param()(0), vertices[2]->param()(0));
+    LogInfo("Solve result is " << LogVec(result));
 
     return 0;
 }
