@@ -3,6 +3,7 @@
 
 #include "datatype_basic.h"
 #include "graph.h"
+#include "log_api.h"
 
 namespace SLAM_SOLVER {
 
@@ -10,6 +11,8 @@ template <typename Scalar>
 struct SolverOptions {
     int32_t kMaxIteration = 20;
     Scalar kMaxConvergedSquaredStepLength = 1e-7;
+    Scalar kMaxPcgSolverCostDecreaseRate = 1e-6;
+    Scalar kMaxPcgSolverConvergedResidual = 1e-6;
 };
 
 /* Class Solver Declaration. */
@@ -21,7 +24,7 @@ public:
     virtual ~Solver() = default;
 
     // Solve graph optimization problem.
-    bool Solve();
+    bool Solve(bool use_prior = false);
 
     // Initialize solver init value with first incremental function and so on.
     virtual void InitializeSolver() = 0;
@@ -77,11 +80,13 @@ private:
 
 /* Class Solver Definition. */
 template <typename Scalar>
-bool Solver<Scalar>::Solve() {
+bool Solver<Scalar>::Solve(bool use_prior) {
+    // Sort all vertices, determine their location in incremental function.
+    problem_.SortVertices(false);
     // Linearize the non-linear problem, construct incremental function.
-    cost_at_latest_step_ = problem_.ComputeResidualForAllEdges();
+    cost_at_latest_step_ = problem_.ComputeResidualForAllEdges(use_prior);
     problem_.ComputeJacobiansForAllEdges();
-    problem_.ConstructFullSizeHessianAndBias(true);
+    problem_.ConstructFullSizeHessianAndBias(use_prior);
 
     // Initialize solver.
     InitializeSolver();
@@ -91,10 +96,10 @@ bool Solver<Scalar>::Solve() {
         SolveIncrementalFunction();
 
         // Update all parameters.
-        UpdateParameters();
+        UpdateParameters(use_prior);
 
         // Recompute residual after update.
-        cost_at_latest_step_ = problem_.ComputeResidualForAllEdges();
+        cost_at_latest_step_ = problem_.ComputeResidualForAllEdges(use_prior);
 
         // If converged, the iteration can be stopped now.
         if (IsConvergedAfterUpdate(iter)) {
@@ -103,10 +108,11 @@ bool Solver<Scalar>::Solve() {
 
         // If this step is valid, perpare for next iteration.
         if (IsUpdateValid()) {
+            cost_at_linearized_point_ = cost_at_latest_step_;
             problem_.ComputeJacobiansForAllEdges();
-            problem_.ConstructFullSizeHessianAndBias(true);
+            problem_.ConstructFullSizeHessianAndBias(use_prior);
         } else {
-            RollBackParameters();
+            RollBackParameters(use_prior);
         }
     }
 
@@ -161,7 +167,7 @@ void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A,
     // If initial value is ok, return.
     x.setZero(size);
     TVec<Scalar> r0(b);  // initial r = b - A*0 = b
-    if (r0.norm() < static_cast<Scalar>(1e-6)) {
+    if (r0.norm() < options_.kMaxPcgSolverConvergedResidual) {
         return;
     }
 
@@ -184,7 +190,7 @@ void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A,
     TVec<Scalar> r1 = r0 - alpha * w;
 
     // Set threshold to check if converged.
-    const Scalar threshold = static_cast<Scalar>(1e-6) * r0.norm();
+    const Scalar threshold = options_.kMaxPcgSolverCostDecreaseRate * r0.norm();
 
     int32_t i = 0;
     TVec<Scalar> z1;

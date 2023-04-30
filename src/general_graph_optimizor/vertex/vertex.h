@@ -26,8 +26,8 @@ public:
     // Use string to represent vertex type.
     virtual std::string GetType() { return std::string("Basic Vertex"); }
 
-    // Param operation with scalar adaption.
-    TVec<Scalar> &Param() { return param_; }
+    // Reference for member varibles.
+    TVec<Scalar> &param() { return param_; }
 
     // Update param with delta_param solved by solver.
     virtual void UpdateParam(const TVec<Scalar> &delta_param) { param_ += delta_param; }

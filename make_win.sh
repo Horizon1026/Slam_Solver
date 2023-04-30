@@ -1,5 +1,5 @@
 if [ -d "build" ]; then
     cd build/
-    make -j
+    mingw32-make.exe -j
     cd ..
 fi

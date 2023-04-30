@@ -27,13 +27,12 @@ public:
     // Set and get vertex of this edge.
     bool SetVertex(Vertex<Scalar> * vertex, uint32_t index);
     bool SetVertices(const std::vector<Vertex<Scalar> *> &vertices);
-    const Vertex<Scalar> *GetVertex(uint32_t index) const { return vertices_[index]; }
+    Vertex<Scalar> *GetVertex(uint32_t index) { return vertices_[index]; }
     const std::vector<Vertex<Scalar> *> &GetVertices() const { return vertices_; }
     uint32_t GetVertexNum() const { return vertices_.size(); }
 
     // Set and get jacobians of each vertex of this edge.
-    void SetJacobian(const TMat<Scalar> &jacobian, uint32_t index) { jacobians_[index] = jacobian; }
-    const TMat<Scalar> &GetJacobian(uint32_t index) const { return jacobians_[index]; }
+    TMat<Scalar> &GetJacobian(uint32_t index) { return jacobians_[index]; }
     const std::vector<TMat<Scalar>> &GetJacobians() const { return jacobians_; }
 
     // Reference of residual, information and observation for this edge.
@@ -74,7 +73,7 @@ private:
     TVec<Scalar> residual_ = TVec3<Scalar>::Zero();
 
     // Information matrix for residual.
-    TMat<Scalar> information_ = TMat3<Scalar>::Zero();
+    TMat<Scalar> information_ = TMat3<Scalar>::Identity();
 
     // Observation for this edge. This can be varible in ComputeResidual() by using SetObservation().
     TMat<Scalar> observation_ = TVec3<Scalar>::Zero();
