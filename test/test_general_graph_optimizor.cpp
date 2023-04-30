@@ -41,8 +41,8 @@ public:
         c_ = vertex->param().z();
 
         // Compute residual.
-        TVec<Scalar> res = Eigen::Matrix<Scalar, 1, 1>(y_ - a_ * x_ * x_ * x_ + b_ * x_ * x_ + c_ * x_);
-        this->residual() = - res;
+        TVec<Scalar> res = Eigen::Matrix<Scalar, 1, 1>(- a_ * x_ * x_ * x_ + b_ * x_ * x_ + c_ * x_ - y_);
+        this->residual() = res;
     }
 
     virtual void ComputeJacobians() override {
