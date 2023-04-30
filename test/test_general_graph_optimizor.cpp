@@ -41,16 +41,16 @@ public:
         c_ = vertex->param().z();
 
         // Compute residual.
-        TVec<Scalar> res = Eigen::Matrix<Scalar, 1, 1>(a_ * x_ * x_ * x_ + b_ * x_ * x_ + c_ * x_ - y_);
-        this->residual() = res;
+        TVec<Scalar> res = Eigen::Matrix<Scalar, 1, 1>(y_ - a_ * x_ * x_ * x_ + b_ * x_ * x_ + c_ * x_);
+        this->residual() = - res;
     }
 
     virtual void ComputeJacobians() override {
         // Compute jacobian.
         auto &jacobian = this->GetJacobian(0);
-        jacobian << static_cast<Scalar>(3) * a_ * x_ * x_,
-                    static_cast<Scalar>(2) * b_ * x_,
-                    c_;
+        jacobian << x_ * x_ * x_,
+                    x_ * x_,
+                    x_;
     }
 
     virtual std::string GetType() override { return std::string("Edge r = y - (a * x^3 + b * x^2 + c * x)"); }
@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
 
     std::array<std::unique_ptr<VertexParam>, 1> vertices = {};
     vertices[0] = std::make_unique<VertexParam>(3, 3);
-    vertices[0]->param() = TVec3<Scalar>(a, b, c + 0.5);
+    vertices[0]->param() = TVec3<Scalar>(a + 0.1, b, c);
 
     std::array<std::unique_ptr<EdgePolynomial>, kMaxSampleNum> edges = {};
     for (int32_t i = 0; i < kMaxSampleNum; ++i) {
