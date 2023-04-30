@@ -1,10 +1,8 @@
-#include "log_api.h"
 #include "datatype_basic.h"
+#include "log_api.h"
 
 #include "vertex.h"
 #include "edge.h"
-#include "graph.h"
-#include "solver.h"
 #include "solver_lm.h"
 
 using Scalar = float;
@@ -61,7 +59,7 @@ private:
 constexpr int32_t kMaxSampleNum = 100;
 
 int main(int argc, char **argv) {
-    LogInfo(YELLOW ">> Test general graph optimizor." RESET_COLOR);
+    LogInfo(YELLOW ">> Test general graph optimizor on polynomial problem." RESET_COLOR);
     TVec3<Scalar> ground_truth_param = TVec3<Scalar>(2, -3, -4);
     const Scalar a = ground_truth_param(0);
     const Scalar b = ground_truth_param(1);

@@ -10,7 +10,7 @@ namespace SLAM_SOLVER {
 template <typename Scalar>
 struct SolverOptions {
     int32_t kMaxIteration = 20;
-    Scalar kMaxConvergedSquaredStepLength = 1e-7;
+    Scalar kMaxConvergedSquaredStepLength = 1e-6;
     Scalar kMaxPcgSolverCostDecreaseRate = 1e-6;
     Scalar kMaxPcgSolverConvergedResidual = 1e-6;
 };
@@ -149,6 +149,11 @@ void Solver<Scalar>::RollBackParameters(bool use_prior) {
 // Check if the iteration converged.
 template <typename Scalar>
 bool Solver<Scalar>::IsConvergedAfterUpdate(int32_t iter) {
+    if (Eigen::isnan(dx_.array()).any()) {
+        LogError("[Solver] Incremental param is nan.");
+        return false;
+    }
+
     if (dx_.squaredNorm() < options_.kMaxConvergedSquaredStepLength) {
         return true;
     }

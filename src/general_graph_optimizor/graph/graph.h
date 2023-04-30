@@ -351,7 +351,7 @@ void Graph<Scalar>::MarginalizeSparseVerticesInHessianAndBias(TMat<Scalar> &hess
 
     // Calculate inverse of Hmm to get Hrm * Hmm_inv.
     TMat<Scalar> Hrm_Hmm_inv = TMat<Scalar>::Zero(reverse, marg);
-    for (const auto &vertex : dense_vertices_) {
+    for (const auto &vertex : sparse_vertices_) {
         const int32_t index = vertex->ColIndex();
         const int32_t dim = vertex->GetIncrementDimension();
 
@@ -363,7 +363,7 @@ void Graph<Scalar>::MarginalizeSparseVerticesInHessianAndBias(TMat<Scalar> &hess
     // Calculate schur complement.
     // subH = Hrr - Hrm_Hmm_inv * Hmr.
     // subb = br - Hrm_Hmm_inv * bm.
-    hessian = hessian_.block(0, 0, reverse, reverse) - Hrm_Hmm_inv * hessian_.block(0, reverse, reverse, marg);
+    hessian = hessian_.block(0, 0, reverse, reverse) - Hrm_Hmm_inv * hessian_.block(reverse, 0, marg, reverse);
     bias = bias_.segment(0, reverse) - Hrm_Hmm_inv * bias_.segment(reverse, marg);
 }
 

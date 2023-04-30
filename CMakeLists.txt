@@ -13,10 +13,18 @@ if ( NOT TARGET lib_general_graph_optimizor )
     add_subdirectory( ${GENERAL_GRAPH_OPTIMIZOR_PATH} ${PROJECT_SOURCE_DIR}/build/lib_general_graph_optimizor )
 endif()
 
-# Add test_general_graph_optimizor.
-add_executable( test_general_graph_optimizor
-    test/test_general_graph_optimizor.cpp
+# Add test_general_graph_optimizor_polynomial_problem.
+add_executable( test_general_graph_optimizor_polynomial_problem
+    test/test_general_graph_optimizor_polynomial_problem.cpp
 )
-target_link_libraries( test_general_graph_optimizor
+target_link_libraries( test_general_graph_optimizor_polynomial_problem
+    lib_general_graph_optimizor
+)
+
+# Add test_general_graph_optimizor_bundle_adjustment.
+add_executable( test_general_graph_optimizor_bundle_adjustment
+    test/test_general_graph_optimizor_bundle_adjustment.cpp
+)
+target_link_libraries( test_general_graph_optimizor_bundle_adjustment
     lib_general_graph_optimizor
 )
