@@ -76,7 +76,6 @@ void SolverLm<Scalar>::SolveIncrementalFunction() {
     // Solve incremental function.
     const int32_t reverse = this->problem().full_size_of_dense_vertices();
     const int32_t marg = this->problem().full_size_of_sparse_vertices();
-    LogDebug("Hx = b is\n" << hessian << "\n" << bias);
 
     if (marg == 0) {
         // Directly solve the incremental function.
@@ -101,8 +100,6 @@ void SolverLm<Scalar>::SolveIncrementalFunction() {
             this->dx().segment(index, dim) = marg_dx_;
         }
     }
-
-    LogDebug("Hx = b check " << LogVec((hessian * this->dx() - bias)));
 
     // Remove diagnal of hessian.
     hessian.diagonal() = diagnal_of_hessian_;

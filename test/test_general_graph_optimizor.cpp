@@ -41,7 +41,7 @@ public:
         c_ = vertex->param().z();
 
         // Compute residual.
-        TVec<Scalar> res = Eigen::Matrix<Scalar, 1, 1>(- a_ * x_ * x_ * x_ + b_ * x_ * x_ + c_ * x_ - y_);
+        TVec<Scalar> res = Eigen::Matrix<Scalar, 1, 1>(a_ * x_ * x_ * x_ + b_ * x_ * x_ + c_ * x_ - y_);
         this->residual() = res;
     }
 
@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
 
     std::array<std::unique_ptr<VertexParam>, 1> vertices = {};
     vertices[0] = std::make_unique<VertexParam>(3, 3);
-    vertices[0]->param() = TVec3<Scalar>(a + 0.1, b, c);
+    vertices[0]->param() = TVec3<Scalar>(a + 0.5, b + 0.5, c + 0.5);
 
     std::array<std::unique_ptr<EdgePolynomial>, kMaxSampleNum> edges = {};
     for (int32_t i = 0; i < kMaxSampleNum; ++i) {
