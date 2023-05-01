@@ -5,6 +5,7 @@
 #include "edge.h"
 #include "graph.h"
 #include "solver_lm.h"
+#include "solver_dogleg.h"
 
 using Scalar = float;
 using namespace SLAM_SOLVER;
@@ -89,7 +90,7 @@ int main(int argc, char **argv) {
     Graph<Scalar> problem;
     for (auto &vertex : vertices) { problem.AddVertex(vertex.get()); }
     for (auto &edge : edges) { problem.AddEdge(edge.get()); }
-    SolverLm<Scalar> solver;
+    SolverDogleg<Scalar> solver;
     solver.problem() = &problem;
     solver.Solve(false);
 

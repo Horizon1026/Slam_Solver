@@ -137,4 +137,4 @@ bool SolverLm<Scalar>::IsUpdateValid(Scalar min_allowed_gain_rate) {
 
 }
 
-#endif
+#endif // end of _GENERAL_GRAPH_OPTIMIZOR_SOLVER_LM_H_

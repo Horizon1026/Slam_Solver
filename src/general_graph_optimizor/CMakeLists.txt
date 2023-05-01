@@ -35,6 +35,9 @@ endif()
 if ( NOT TARGET lib_general_graph_optimizor_optimizor )
     add_subdirectory( ${GENERAL_GRAPH_OPTIMIZOR_PATH}/optimizor ${PROJECT_SOURCE_DIR}/build/lib_general_graph_optimizor_optimizor )
 endif()
+if ( NOT TARGET lib_general_graph_optimizor_marginalizor )
+    add_subdirectory( ${GENERAL_GRAPH_OPTIMIZOR_PATH}/marginalizor ${PROJECT_SOURCE_DIR}/build/lib_general_graph_optimizor_marginalizor )
+endif()
 
 # Create library.
 add_library( lib_general_graph_optimizor ${AUX_SRC_GENERAL_GRAPH_OPTIMIZOR} )
@@ -51,4 +54,5 @@ target_link_libraries( lib_general_graph_optimizor
     lib_general_graph_optimizor_edge
     lib_general_graph_optimizor_graph
     lib_general_graph_optimizor_optimizor
+    lib_general_graph_optimizor_marginalizor
 )
