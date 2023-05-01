@@ -6,6 +6,7 @@
 #include "edge.h"
 #include "math_kinematics.h"
 #include "solver_lm.h"
+#include "solver_dogleg.h"
 
 using Scalar = float;
 using namespace SLAM_SOLVER;
@@ -142,9 +143,9 @@ int main(int argc, char **argv) {
         }
     }
 
-    // Fix first camera pose.
-    all_camera_pos.front()->SetFixed(true);
-    all_camera_rot.front()->SetFixed(true);
+    // Fix first two camera pos.
+    all_camera_pos[0]->SetFixed(true);
+    all_camera_pos[1]->SetFixed(true);
 
     // Construct graph problem and solver.
     Graph<Scalar> problem;
