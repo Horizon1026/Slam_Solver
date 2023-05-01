@@ -3,6 +3,7 @@
 
 #include "vertex.h"
 #include "edge.h"
+#include "graph.h"
 #include "solver_lm.h"
 
 using Scalar = float;
@@ -85,9 +86,11 @@ int main(int argc, char **argv) {
         edges[i]->SelfCheck();
     }
 
+    Graph<Scalar> problem;
+    for (auto &vertex : vertices) { problem.AddVertex(vertex.get()); }
+    for (auto &edge : edges) { problem.AddEdge(edge.get()); }
     SolverLm<Scalar> solver;
-    for (auto &vertex : vertices) { solver.problem().AddVertex(vertex.get()); }
-    for (auto &edge : edges) { solver.problem().AddEdge(edge.get()); }
+    solver.problem() = &problem;
     solver.Solve(false);
 
     TVec3<Scalar> result = TVec3<Scalar>(vertices[0]->param()(0), vertices[1]->param()(0), vertices[2]->param()(0));

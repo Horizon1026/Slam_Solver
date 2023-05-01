@@ -62,8 +62,8 @@ void SolverLm<Scalar>::InitializeSolver() {
 
 template <typename Scalar>
 void SolverLm<Scalar>::SolveIncrementalFunction() {
-    auto &hessian = this->problem().hessian();
-    auto &bias = this->problem().bias();
+    auto &hessian = this->problem()->hessian();
+    auto &bias = this->problem()->bias();
     const int32_t hessian_size = hessian.rows();
 
     // Add diagnal of hessian.
@@ -74,8 +74,8 @@ void SolverLm<Scalar>::SolveIncrementalFunction() {
     }
 
     // Solve incremental function.
-    const int32_t reverse = this->problem().full_size_of_dense_vertices();
-    const int32_t marg = this->problem().full_size_of_sparse_vertices();
+    const int32_t reverse = this->problem()->full_size_of_dense_vertices();
+    const int32_t marg = this->problem()->full_size_of_sparse_vertices();
 
     if (marg == 0) {
         // Directly solve the incremental function.
@@ -84,14 +84,14 @@ void SolverLm<Scalar>::SolveIncrementalFunction() {
         this->dx().resize(hessian_size);
 
         // Firstly solve dense parameters.
-        this->problem().MarginalizeSparseVerticesInHessianAndBias(reverse_hessian_, reverse_bias_);
+        this->problem()->MarginalizeSparseVerticesInHessianAndBias(reverse_hessian_, reverse_bias_);
         reverse_dx_.resize(reverse);
         this->SolveLinearlizedFunction(reverse_hessian_, reverse_bias_, reverse_dx_);
         this->dx().head(reverse) = reverse_dx_;
 
         // Secondly solve sparse parameters.
         marg_bias_ = bias.tail(marg) - hessian.block(reverse, 0, marg, reverse) * reverse_dx_;
-        for (const auto &vertex : this->problem().sparse_vertices()) {
+        for (const auto &vertex : this->problem()->sparse_vertices()) {
             const int32_t index = vertex->ColIndex();
             const int32_t dim = vertex->GetIncrementDimension();
             this->SolveLinearlizedFunction(hessian.block(index, index, dim, dim),
@@ -109,7 +109,7 @@ void SolverLm<Scalar>::SolveIncrementalFunction() {
 template <typename Scalar>
 bool SolverLm<Scalar>::IsUpdateValid(Scalar min_allowed_gain_rate) {
     // Reference: The Levenberg-Marquardt method for nonlinear least squares curve-fitting problems.pdf
-    TVec<Scalar> temp_vec = lambda_ * this->dx() + this->problem().bias();
+    TVec<Scalar> temp_vec = lambda_ * this->dx() + this->problem()->bias();
     const Scalar scale = temp_vec.dot(this->dx()) + static_cast<Scalar>(1e-6);
     const Scalar rho = static_cast<Scalar>(0.5) * (
         this->cost_at_linearized_point() - this->cost_at_latest_step()

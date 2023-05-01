@@ -147,11 +147,14 @@ int main(int argc, char **argv) {
     all_camera_rot.front()->SetFixed(true);
 
     // Construct graph problem and solver.
+    Graph<Scalar> problem;
+    for (auto &vertex : all_camera_pos) { problem.AddVertex(vertex.get()); }
+    for (auto &vertex : all_camera_rot) { problem.AddVertex(vertex.get()); }
+    for (auto &vertex : all_points) { problem.AddVertex(vertex.get(), false); }
+    for (auto &edge : reprojection_edges) { problem.AddEdge(edge.get()); }
+
     SolverLm<Scalar> solver;
-    for (auto &vertex : all_camera_pos) { solver.problem().AddVertex(vertex.get()); }
-    for (auto &vertex : all_camera_rot) { solver.problem().AddVertex(vertex.get()); }
-    for (auto &vertex : all_points) { solver.problem().AddVertex(vertex.get(), false); }
-    for (auto &edge : reprojection_edges) { solver.problem().AddEdge(edge.get()); }
+    solver.problem() = &problem;
     solver.Solve(false);
 
     // Show optimization result.

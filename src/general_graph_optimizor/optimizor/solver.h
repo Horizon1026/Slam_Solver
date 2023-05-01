@@ -49,7 +49,7 @@ public:
 
     // Reference for member varibles.
     SolverOptions<Scalar> &options() { return options_; }
-    Graph<Scalar> &problem() { return problem_; }
+    Graph<Scalar> *&problem() { return problem_; }
 
     Scalar &cost_at_linearized_point() { return cost_at_linearized_point_; }
     Scalar &cost_at_latest_step() { return cost_at_latest_step_; }
@@ -63,7 +63,7 @@ private:
     SolverOptions<Scalar> options_;
 
     // The graph optimization problem to be solved.
-    Graph<Scalar> problem_;
+    Graph<Scalar> *problem_ = nullptr;
 
     // The summary of residual at linearized point.
     Scalar cost_at_linearized_point_ = 0;
@@ -81,12 +81,16 @@ private:
 /* Class Solver Definition. */
 template <typename Scalar>
 bool Solver<Scalar>::Solve(bool use_prior) {
+    if (problem_ == nullptr) {
+        return false;
+    }
+
     // Sort all vertices, determine their location in incremental function.
-    problem_.SortVertices(false);
+    problem_->SortVertices(false);
     // Linearize the non-linear problem, construct incremental function.
-    cost_at_latest_step_ = problem_.ComputeResidualForAllEdges(use_prior);
-    problem_.ComputeJacobiansForAllEdges();
-    problem_.ConstructFullSizeHessianAndBias(use_prior);
+    cost_at_latest_step_ = problem_->ComputeResidualForAllEdges(use_prior);
+    problem_->ComputeJacobiansForAllEdges();
+    problem_->ConstructFullSizeHessianAndBias(use_prior);
 
     // Initialize solver.
     InitializeSolver();
@@ -99,7 +103,7 @@ bool Solver<Scalar>::Solve(bool use_prior) {
         UpdateParameters(use_prior);
 
         // Recompute residual after update.
-        cost_at_latest_step_ = problem_.ComputeResidualForAllEdges(use_prior);
+        cost_at_latest_step_ = problem_->ComputeResidualForAllEdges(use_prior);
 
         // If converged, the iteration can be stopped now.
         if (IsConvergedAfterUpdate(iter)) {
@@ -109,8 +113,8 @@ bool Solver<Scalar>::Solve(bool use_prior) {
         // If this step is valid, perpare for next iteration.
         if (IsUpdateValid()) {
             cost_at_linearized_point_ = cost_at_latest_step_;
-            problem_.ComputeJacobiansForAllEdges();
-            problem_.ConstructFullSizeHessianAndBias(use_prior);
+            problem_->ComputeJacobiansForAllEdges();
+            problem_->ConstructFullSizeHessianAndBias(use_prior);
         } else {
             RollBackParameters(use_prior);
         }
@@ -123,26 +127,26 @@ bool Solver<Scalar>::Solve(bool use_prior) {
 template <typename Scalar>
 void Solver<Scalar>::UpdateParameters(bool use_prior) {
     // Update and backup all vertices.
-    problem_.UpdateAllVertices(dx_);
+    problem_->UpdateAllVertices(dx_);
 
     // Update and backup prior information.
-    if (use_prior && problem_.prior_hessian().size() > 0) {
-        prior_bias_backup_ = problem_.prior_bias();
-        prior_residual_backup_ = problem_.prior_residual();
-        problem_.prior_bias() -= problem_.prior_hessian() * dx_.head(problem_.prior_hessian().cols());
-        problem_.prior_residual() = - problem_.prior_jacobian_t_inv() * problem_.prior_bias();
+    if (use_prior && problem_->prior_hessian().size() > 0) {
+        prior_bias_backup_ = problem_->prior_bias();
+        prior_residual_backup_ = problem_->prior_residual();
+        problem_->prior_bias() -= problem_->prior_hessian() * dx_.head(problem_->prior_hessian().cols());
+        problem_->prior_residual() = - problem_->prior_jacobian_t_inv() * problem_->prior_bias();
     }
 }
 
 template <typename Scalar>
 void Solver<Scalar>::RollBackParameters(bool use_prior) {
     // Roll back all vertices.
-    problem_.RollBackAllVertices();
+    problem_->RollBackAllVertices();
 
     // Roll back prior information.
-    if (use_prior && problem_.prior_hessian().size() > 0) {
-        problem_.prior_bias() = prior_bias_backup_;
-        problem_.prior_residual() = prior_residual_backup_;
+    if (use_prior && problem_->prior_hessian().size() > 0) {
+        problem_->prior_bias() = prior_bias_backup_;
+        problem_->prior_residual() = prior_residual_backup_;
     }
 }
 
