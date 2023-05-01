@@ -28,3 +28,11 @@ add_executable( test_general_graph_optimizor_bundle_adjustment
 target_link_libraries( test_general_graph_optimizor_bundle_adjustment
     lib_general_graph_optimizor
 )
+
+# Add test_general_graph_optimizor_marginalization.
+add_executable( test_general_graph_optimizor_marginalization
+    test/test_general_graph_optimizor_marginalization.cpp
+)
+target_link_libraries( test_general_graph_optimizor_marginalization
+    lib_general_graph_optimizor
+)

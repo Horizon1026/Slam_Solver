@@ -53,9 +53,9 @@ public:
     void MarginalizeSparseVerticesInJacobianAndResidual(TMat<Scalar> &jacobian, TVec<Scalar> &residual);
 
     // Reference of member varibles.
-    const std::vector<Vertex<Scalar> *> &dense_vertices() const { return dense_vertices_; }
-    const std::vector<Vertex<Scalar> *> &sparse_vertices() const { return sparse_vertices_; }
-    const std::vector<Edge<Scalar> *> &edges() const { return edges_; }
+    std::vector<Vertex<Scalar> *> &dense_vertices() { return dense_vertices_; }
+    std::vector<Vertex<Scalar> *> &sparse_vertices() { return sparse_vertices_; }
+    std::vector<Edge<Scalar> *> &edges() { return edges_; }
     const int32_t &full_size_of_dense_vertices() const { return full_size_of_dense_vertices_; }
     const int32_t &full_size_of_sparse_vertices() const { return full_size_of_sparse_vertices_; }
     const int32_t &full_size_of_residuals() const { return full_size_of_residuals_; }

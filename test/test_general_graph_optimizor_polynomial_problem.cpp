@@ -92,7 +92,7 @@ int main(int argc, char **argv) {
     for (auto &edge : edges) { problem.AddEdge(edge.get()); }
     SolverDogleg<Scalar> solver;
     solver.problem() = &problem;
-    solver.Solve(false);
+    solver.Solve(true);
 
     TVec3<Scalar> result = TVec3<Scalar>(vertices[0]->param()(0), vertices[1]->param()(0), vertices[2]->param()(0));
     LogInfo("Solve result is " << LogVec(result));
