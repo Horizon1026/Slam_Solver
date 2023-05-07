@@ -7,7 +7,7 @@ General solver for slam problem, such as graph optimization problem solver.
     - [x] Edge template.
     - [x] Graph problem template.
     - [x] Non-linear optimization solver template.
-    - [ ] Marginalization.
+    - [x] Marginalization.
 - [ ] Square root BA problem solver.
     - [ ] Landmark block template.
     - [ ] Non-linear optimization solver template.
@@ -18,4 +18,6 @@ General solver for slam problem, such as graph optimization problem solver.
 Slam_Utility
 
 # Tips
-欢迎一起交流学习，不同意商用
+- 欢迎一起交流学习，不同意商用；
+- 仓库 owner 为 Horizon1026，暂无共同开发者，请勿 merge；
+- Slam_Utility 仓库暂时 private，如有需要可私信；
