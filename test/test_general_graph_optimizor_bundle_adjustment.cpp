@@ -144,13 +144,16 @@ int main(int argc, char **argv) {
     }
 
     // Fix first two camera pos.
+
     all_camera_pos[0]->SetFixed(true);
     all_camera_pos[1]->SetFixed(true);
 
     // Construct graph problem and solver.
     Graph<Scalar> problem;
-    for (auto &vertex : all_camera_pos) { problem.AddVertex(vertex.get()); }
-    for (auto &vertex : all_camera_rot) { problem.AddVertex(vertex.get()); }
+    for (uint32_t i = 0; i < all_camera_pos.size(); ++i) {
+        problem.AddVertex(all_camera_pos[i].get());
+        problem.AddVertex(all_camera_rot[i].get());
+    }
     for (auto &vertex : all_points) { problem.AddVertex(vertex.get(), false); }
     for (auto &edge : reprojection_edges) { problem.AddEdge(edge.get()); }
 

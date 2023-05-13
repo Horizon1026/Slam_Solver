@@ -29,6 +29,10 @@ public:
     // Initialize solver init value with first incremental function and so on.
     virtual void InitializeSolver() = 0;
 
+    // Construct incremental function, Hx = b or Jx = -r.
+    // Hx = b is default.
+    virtual void ConstructIncrementalFunction(bool use_prior = false);
+
     // Solve Hx=b, or Jx=-r, in order to get delta parameters.
     virtual void SolveIncrementalFunction() = 0;
 
@@ -90,7 +94,7 @@ bool Solver<Scalar>::Solve(bool use_prior) {
     // Linearize the non-linear problem, construct incremental function.
     cost_at_latest_step_ = problem_->ComputeResidualForAllEdges(use_prior);
     problem_->ComputeJacobiansForAllEdges();
-    problem_->ConstructFullSizeHessianAndBias(use_prior);
+    ConstructIncrementalFunction(use_prior);
 
     // Initialize solver.
     InitializeSolver();
@@ -114,13 +118,19 @@ bool Solver<Scalar>::Solve(bool use_prior) {
         if (IsUpdateValid()) {
             cost_at_linearized_point_ = cost_at_latest_step_;
             problem_->ComputeJacobiansForAllEdges();
-            problem_->ConstructFullSizeHessianAndBias(use_prior);
+            ConstructIncrementalFunction(use_prior);
         } else {
             RollBackParameters(use_prior);
         }
     }
 
     return true;
+}
+
+// Construct incremental function, Hx = b or Jx = -r.
+template <typename Scalar>
+void Solver<Scalar>::ConstructIncrementalFunction(bool use_prior) {
+    problem_->ConstructFullSizeHessianAndBias(use_prior);
 }
 
 // Update or rollback all vertices and prior.
