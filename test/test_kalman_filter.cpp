@@ -9,16 +9,22 @@ using namespace SLAM_SOLVER;
 void TestKalmanFilter() {
     LogInfo(YELLOW ">> Test kalman filter in dimension 1." RESET_COLOR);
     constexpr Scalar kNoiseSigma = 1.0f;
-    constexpr Scalar kTruthValue = 8.0f;
+    constexpr int32_t kNumberOfData = 1000;
+
+    // Generate truth data.
+    std::vector<Scalar> truth_data;
+    truth_data.resize(kNumberOfData);
+    for (uint32_t i = 0; i < kNumberOfData; ++i) {
+        truth_data[i] = std::sin(i * 3.1415926f * 0.001f) * 5.0f;
+    }
 
     // Generate noised data.
     std::vector<Scalar> noised_data;
-    noised_data.clear();
-    noised_data.resize(1000, kTruthValue);
+    noised_data.resize(kNumberOfData);
     std::default_random_engine generator;
     std::normal_distribution<Scalar> noise(0., kNoiseSigma);
     for (uint32_t i = 0; i < noised_data.size(); ++i) {
-        noised_data[i] += noise(generator);
+        noised_data[i] = truth_data[i] + noise(generator);
     }
 
     // Construct filter for this data.
@@ -41,8 +47,8 @@ void TestKalmanFilter() {
     Scalar raw_noise = 0.0f;
     Scalar new_noise = 0.0f;
     for (uint32_t i = 0; i < noised_data.size(); ++i) {
-        raw_noise += std::fabs(noised_data[i] - kTruthValue);
-        new_noise += std::fabs(filtered_data[i] - kTruthValue);
+        raw_noise += std::fabs(noised_data[i] - truth_data[i]);
+        new_noise += std::fabs(filtered_data[i] - truth_data[i]);
         // LogInfo("[noised | filterd] data is [" << noised_data[i] << " | " << filtered_data[i] << "]");
     }
     raw_noise /= static_cast<Scalar>(noised_data.size());
