@@ -38,8 +38,8 @@ void TestKalmanFilter() {
     std::vector<Scalar> filtered_data = noised_data;
     filter.x() = TVec<Scalar, 1>(noised_data.front());
     for (uint32_t i = 0; i < noised_data.size(); ++i) {
-        filter.Propagate();
-        filter.Update(TVec<Scalar, 1>(noised_data[i]));
+        filter.PropagateState(TVec<Scalar, 1>(0));
+        filter.UpdateState(TVec<Scalar, 1>(noised_data[i]));
         filtered_data[i] = filter.x()(0);
     }
 

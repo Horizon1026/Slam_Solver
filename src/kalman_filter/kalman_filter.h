@@ -2,19 +2,20 @@
 #define _KALMAN_FILTER_SOLVER_
 
 #include "datatype_basic.h"
+#include "filter.h"
 
 namespace SLAM_SOLVER {
 
 /* Class Basic Kalman Filter Declaration. */
 template <typename Scalar, int32_t StateSize = -1, int32_t ObserveSize = -1>
-class KalmanFilter {
+class KalmanFilter : public Filter<Scalar, KalmanFilter<Scalar, StateSize, ObserveSize>> {
 
 public:
-    KalmanFilter() = default;
+    KalmanFilter() : Filter<Scalar, KalmanFilter<Scalar, StateSize, ObserveSize>>() {}
     virtual ~KalmanFilter() = default;
 
-    virtual bool Propagate();
-    virtual bool Update(const TMat<Scalar> &observation);
+    bool Propagate(const TVec<Scalar> &parameters = TVec<Scalar, 1>());
+    bool Update(const TMat<Scalar> &observation = TVec<Scalar, 1>());
 
     TVec<Scalar, StateSize> &x() { return x_; }
     TMat<Scalar, StateSize, StateSize> &P() { return P_; }
@@ -43,7 +44,7 @@ private:
 
 /* Class Basic Kalman Filter Definition. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-bool KalmanFilter<Scalar, StateSize, ObserveSize>::Propagate() {
+bool KalmanFilter<Scalar, StateSize, ObserveSize>::Propagate(const TVec<Scalar> &parameters) {
     predict_x_ = F_ * x_;
     predict_P_ = F_ * P_ * F_.transpose() + Q_;
     return true;
