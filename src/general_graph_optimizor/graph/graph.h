@@ -2,7 +2,7 @@
 #define _GENERAL_GRAPH_OPTIMIZOR_GRAPH_H_
 
 #include "datatype_basic.h"
-#include "log_api.h"
+#include "log_report.h"
 #include "vertex.h"
 #include "edge.h"
 

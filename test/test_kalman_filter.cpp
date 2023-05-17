@@ -1,4 +1,4 @@
-#include "log_api.h"
+#include "log_report.h"
 #include "kalman_filter.h"
 #include "error_kalman_filter.h"
 
@@ -35,16 +35,16 @@ void PrintFilterResult(std::vector<Scalar> &truth_data,
     for (uint32_t i = 0; i < noised_data.size(); ++i) {
         raw_noise += std::fabs(noised_data[i] - truth_data[i]);
         new_noise += std::fabs(filtered_data[i] - truth_data[i]);
-        // LogInfo("[noised | filterd] data is [" << noised_data[i] << " | " << filtered_data[i] << "]");
+        // ReportInfo("[noised | filterd] data is [" << noised_data[i] << " | " << filtered_data[i] << "]");
     }
     raw_noise /= static_cast<Scalar>(noised_data.size());
     new_noise /= static_cast<Scalar>(filtered_data.size());
-    LogInfo("Noise of raw data and new data is " << raw_noise << " / " << new_noise);
+    ReportInfo("Noise of raw data and new data is " << raw_noise << " / " << new_noise);
 }
 
 void TestKalmanFilter(std::vector<Scalar> &truth_data,
                       std::vector<Scalar> &noised_data) {
-    LogInfo(YELLOW ">> Test kalman filter in dimension 1." RESET_COLOR);
+    ReportInfo(YELLOW ">> Test kalman filter in dimension 1." RESET_COLOR);
 
 
     // Construct filter for this data.
@@ -70,7 +70,7 @@ void TestKalmanFilter(std::vector<Scalar> &truth_data,
 
 void TestErrorKalmanFilter(std::vector<Scalar> &truth_data,
                            std::vector<Scalar> &noised_data) {
-    LogInfo(YELLOW ">> Test error kalman filter in dimension 1." RESET_COLOR);
+    ReportInfo(YELLOW ">> Test error kalman filter in dimension 1." RESET_COLOR);
 
 
     // Construct filter for this data.
@@ -94,7 +94,7 @@ void TestErrorKalmanFilter(std::vector<Scalar> &truth_data,
 }
 
 int main(int argc, char **argv) {
-    LogInfo(YELLOW ">> Test kalman filter solver." RESET_COLOR);
+    ReportInfo(YELLOW ">> Test kalman filter solver." RESET_COLOR);
 
     std::vector<Scalar> truth_data;
     std::vector<Scalar> noised_data;

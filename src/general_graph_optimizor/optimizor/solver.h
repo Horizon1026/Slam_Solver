@@ -3,7 +3,7 @@
 
 #include "datatype_basic.h"
 #include "graph.h"
-#include "log_api.h"
+#include "log_report.h"
 
 namespace SLAM_SOLVER {
 
@@ -164,7 +164,7 @@ void Solver<Scalar>::RollBackParameters(bool use_prior) {
 template <typename Scalar>
 bool Solver<Scalar>::IsConvergedAfterUpdate(int32_t iter) {
     if (Eigen::isnan(dx_.array()).any()) {
-        LogError("[Solver] Incremental param is nan.");
+        ReportError("[Solver] Incremental param is nan.");
         return false;
     }
 

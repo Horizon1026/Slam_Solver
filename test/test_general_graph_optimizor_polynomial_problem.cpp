@@ -1,5 +1,5 @@
 #include "datatype_basic.h"
-#include "log_api.h"
+#include "log_report.h"
 
 #include "vertex.h"
 #include "edge.h"
@@ -61,12 +61,12 @@ private:
 constexpr int32_t kMaxSampleNum = 100;
 
 int main(int argc, char **argv) {
-    LogInfo(YELLOW ">> Test general graph optimizor on polynomial problem." RESET_COLOR);
+    ReportInfo(YELLOW ">> Test general graph optimizor on polynomial problem." RESET_COLOR);
     TVec3<Scalar> ground_truth_param = TVec3<Scalar>(2, -3, -4);
     const Scalar a = ground_truth_param(0);
     const Scalar b = ground_truth_param(1);
     const Scalar c = ground_truth_param(2);
-    LogInfo("Ground truth is " << LogVec(ground_truth_param));
+    ReportInfo("Ground truth is " << LogVec(ground_truth_param));
 
     std::array<std::unique_ptr<VertexParam>, 3> vertices = {};
     for (int32_t i = 0; i < 3; ++i) {
@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
     solver.Solve(true);
 
     TVec3<Scalar> result = TVec3<Scalar>(vertices[0]->param()(0), vertices[1]->param()(0), vertices[2]->param()(0));
-    LogInfo("Solve result is " << LogVec(result));
+    ReportInfo("Solve result is " << LogVec(result));
 
     return 0;
 }

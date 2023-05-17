@@ -1,5 +1,5 @@
 #include "datatype_basic.h"
-#include "log_api.h"
+#include "log_report.h"
 
 #include "vertex.h"
 #include "vertex_quaternion.h"
@@ -103,7 +103,7 @@ void GenerateSimulationData(std::vector<Pose<Scalar>> &cameras,
 
 int main(int argc, char **argv) {
     LogFixPercision(3);
-    LogInfo(YELLOW ">> Test general graph optimizor on bundle adjustment." RESET_COLOR);
+    ReportInfo(YELLOW ">> Test general graph optimizor on bundle adjustment." RESET_COLOR);
 
     std::vector<Pose<Scalar>> cameras;
     std::vector<TVec3<Scalar>> points;
@@ -163,13 +163,13 @@ int main(int argc, char **argv) {
 
     // Show optimization result.
     for (int32_t i = 0; i < kPointsNumber; ++i) {
-        LogInfo("[Point pos] [truth] " << LogVec(points[i]) << " | [result] " << LogVec(all_points[i]->param()));
+        ReportInfo("[Point pos] [truth] " << LogVec(points[i]) << " | [result] " << LogVec(all_points[i]->param()));
     }
     for (int32_t i = 0; i < kCameraFrameNumber; ++i) {
-        LogInfo("[Camera pos] [truth] " << LogVec(cameras[i].p_wc) << " | [result] " << LogVec(all_camera_pos[i]->param()));
+        ReportInfo("[Camera pos] [truth] " << LogVec(cameras[i].p_wc) << " | [result] " << LogVec(all_camera_pos[i]->param()));
     }
     for (int32_t i = 0; i < kCameraFrameNumber; ++i) {
-        LogInfo("[Camera quat] [truth] " << LogQuat(cameras[i].q_wc) << " | [result] " << LogVec(all_camera_rot[i]->param()));
+        ReportInfo("[Camera quat] [truth] " << LogQuat(cameras[i].q_wc) << " | [result] " << LogVec(all_camera_rot[i]->param()));
     }
 
     return 0;

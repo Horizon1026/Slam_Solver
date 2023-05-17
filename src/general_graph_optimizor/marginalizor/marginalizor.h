@@ -3,7 +3,7 @@
 
 #include "datatype_basic.h"
 #include "math_kinematics.h"
-#include "log_api.h"
+#include "log_report.h"
 
 #include "vertex.h"
 #include "graph.h"

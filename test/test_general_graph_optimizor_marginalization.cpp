@@ -1,5 +1,5 @@
 #include "datatype_basic.h"
-#include "log_api.h"
+#include "log_report.h"
 
 #include "vertex.h"
 #include "vertex_quaternion.h"
@@ -102,7 +102,7 @@ void GenerateSimulationData(std::vector<Pose<Scalar>> &cameras,
 
 int main(int argc, char **argv) {
     LogFixPercision(3);
-    LogInfo(YELLOW ">> Test general graph optimizor marginalization." RESET_COLOR);
+    ReportInfo(YELLOW ">> Test general graph optimizor marginalization." RESET_COLOR);
 
     std::vector<Pose<Scalar>> cameras;
     std::vector<TVec3<Scalar>> points;
@@ -159,11 +159,11 @@ int main(int argc, char **argv) {
     marger.Marginalize(vertices_to_be_marged, false);
 
     // Show result.
-    LogInfo("Prior hessian is\n" << marger.problem()->prior_hessian());
-    LogInfo("Prior bias is\n" << marger.problem()->prior_bias());
-    LogInfo("Prior jacobian is\n" << marger.problem()->prior_jacobian());
-    LogInfo("Prior jacobian.t.inv is\n" << marger.problem()->prior_jacobian_t_inv());
-    LogInfo("Prior residual is\n" << marger.problem()->prior_residual());
+    ReportInfo("Prior hessian is\n" << marger.problem()->prior_hessian());
+    ReportInfo("Prior bias is\n" << marger.problem()->prior_bias());
+    ReportInfo("Prior jacobian is\n" << marger.problem()->prior_jacobian());
+    ReportInfo("Prior jacobian.t.inv is\n" << marger.problem()->prior_jacobian_t_inv());
+    ReportInfo("Prior residual is\n" << marger.problem()->prior_residual());
 
     return 0;
 }

@@ -115,7 +115,7 @@ bool SolverLm<Scalar>::IsUpdateValid(Scalar min_allowed_gain_rate) {
         this->cost_at_linearized_point() - this->cost_at_latest_step()
     ) / scale;
 
-    // LogDebug("[Solver] lambda is " << lambda_ << ", rho is " << rho << ", cost is " << this->cost_at_latest_step() << "/" <<
+    // ReportDebug("[Solver] lambda is " << lambda_ << ", rho is " << rho << ", cost is " << this->cost_at_latest_step() << "/" <<
     //     this->cost_at_linearized_point() << ", dx is " << this->dx().norm());
 
     bool result = true;

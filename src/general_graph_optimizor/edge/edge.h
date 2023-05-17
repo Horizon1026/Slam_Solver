@@ -2,7 +2,7 @@
 #define _GENERAL_GRAPH_OPTIMIZOR_EDGE_H_
 
 #include "datatype_basic.h"
-#include "log_api.h"
+#include "log_report.h"
 #include "vertex.h"
 #include "kernel.h"
 
@@ -137,34 +137,34 @@ bool Edge<Scalar>::SetVertices(const std::vector<Vertex<Scalar> *> &vertices) {
 template <typename Scalar>
 bool Edge<Scalar>::SelfCheck() {
     if (vertices_.size() != jacobians_.size()) {
-        LogError("[Edge] Vertices size is not equal to jacobians size.");
+        ReportError("[Edge] Vertices size is not equal to jacobians size.");
         return false;
     }
 
     if (residual_.rows() != information_.rows() || residual_.rows() != information_.cols()) {
-        LogError("[Edge] Residual size doesn't match information matrix.");
+        ReportError("[Edge] Residual size doesn't match information matrix.");
         return false;
     }
 
     for (uint32_t i = 0; i < vertices_.size(); ++i) {
         if (vertices_[i] == nullptr) {
-            LogError("[Edge] Vertex " << i << " is nullptr.");
+            ReportError("[Edge] Vertex " << i << " is nullptr.");
             return false;
         }
 
         if (vertices_[i]->GetIncrementDimension() != jacobians_[i].cols()) {
-            LogError("[Edge] Vertex " << i << " doesn't match its jacobian.");
+            ReportError("[Edge] Vertex " << i << " doesn't match its jacobian.");
             return false;
         }
 
         if (residual_.rows() != jacobians_[i].rows()) {
-            LogError("[Edge] Residual size doesn't match jacobian.");
+            ReportError("[Edge] Residual size doesn't match jacobian.");
             return false;
         }
     }
 
     if (kernel_ == nullptr) {
-        LogError("[Edge] Kernel function is nullptr.");
+        ReportError("[Edge] Kernel function is nullptr.");
         return false;
     }
 
