@@ -13,7 +13,7 @@ using Scalar = float;
 using namespace SLAM_SOLVER;
 
 constexpr int32_t kCameraFrameNumber = 10;
-constexpr int32_t kPointsNumber = 100;
+constexpr int32_t kPointsNumber = 300;
 
 /* Class Edge reprojection. */
 template <typename Scalar>
