@@ -144,7 +144,6 @@ int main(int argc, char **argv) {
     }
 
     // Fix first two camera pos.
-
     all_camera_pos[0]->SetFixed(true);
     all_camera_pos[1]->SetFixed(true);
 
