@@ -1,5 +1,6 @@
 #include "datatype_basic.h"
 #include "log_report.h"
+#include "tick_tock.h"
 
 #include "vertex.h"
 #include "vertex_quaternion.h"
@@ -11,8 +12,8 @@
 using Scalar = float;
 using namespace SLAM_SOLVER;
 
-constexpr int32_t kCameraFrameNumber = 5;
-constexpr int32_t kPointsNumber = 50;
+constexpr int32_t kCameraFrameNumber = 10;
+constexpr int32_t kPointsNumber = 100;
 
 /* Class Edge reprojection. */
 template <typename Scalar>
@@ -158,7 +159,11 @@ int main(int argc, char **argv) {
 
     SolverLm<Scalar> solver;
     solver.problem() = &problem;
+
+    TickTock tick_tock;
+    tick_tock.TickInMillisecond();
     solver.Solve(false);
+    ReportInfo("[Ticktock] Solve cost time " << tick_tock.TickInMillisecond() << " ms");
 
     // Show optimization result.
     for (int32_t i = 0; i < kPointsNumber; ++i) {

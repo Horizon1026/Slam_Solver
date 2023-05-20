@@ -17,6 +17,9 @@ endif()
 if ( NOT TARGET lib_slam_utility_memory )
     add_subdirectory( ${SLAM_UTILITY_PATH}/memory ${PROJECT_SOURCE_DIR}/build/lib_slam_utility_memory )
 endif()
+if ( NOT TARGET lib_slam_utility_tick_tock )
+    add_subdirectory( ${SLAM_UTILITY_PATH}/tick_tock ${PROJECT_SOURCE_DIR}/build/lib_slam_utility_tick_tock )
+endif()
 
 # Add all components of general graph optimizor.
 set( GENERAL_GRAPH_OPTIMIZOR_PATH ${PROJECT_SOURCE_DIR}/src/general_graph_optimizor )
@@ -48,6 +51,7 @@ target_link_libraries( lib_general_graph_optimizor
     lib_slam_utility_operate
     lib_slam_utility_log
     lib_slam_utility_memory
+    lib_slam_utility_tick_tock
 
     lib_general_graph_optimizor_vertex
     lib_general_graph_optimizor_kernel
