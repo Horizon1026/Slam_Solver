@@ -62,19 +62,6 @@ private:
 template <typename Scalar>
 uint32_t Vertex<Scalar>::global_id_ = 0;
 
-template <typename Scalar>
-Vertex<Scalar>::Vertex(int32_t param_dim, int32_t delta_dim) : param_dim_(param_dim), delta_dim_(delta_dim) {
-    // Resize stored param.
-    if (param_.rows() != param_dim_) {
-        param_.resize(param_dim_);
-        param_backup_.resize(param_dim_);
-    }
-
-    // Set index.
-    ++Vertex<Scalar>::global_id_;
-    id_ = Vertex<Scalar>::global_id_;
-}
-
 }
 
 #endif // end of _GENERAL_GRAPH_OPTIMIZOR_VERTEX_H_
