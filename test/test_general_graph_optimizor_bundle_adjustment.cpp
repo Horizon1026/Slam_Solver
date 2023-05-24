@@ -157,7 +157,7 @@ int main(int argc, char **argv) {
     for (auto &vertex : all_points) { problem.AddVertex(vertex.get(), false); }
     for (auto &edge : reprojection_edges) { problem.AddEdge(edge.get()); }
 
-    SolverLm<Scalar> solver;
+    SolverDogleg<Scalar> solver;
     solver.problem() = &problem;
 
     TickTock tick_tock;

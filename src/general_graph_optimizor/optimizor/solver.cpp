@@ -2,9 +2,11 @@
 
 namespace SLAM_SOLVER {
 
+/* Specialized Template Class Declaration. */
+template class Solver<float>;
+template class Solver<double>;
+
 /* Class Solver Definition. */
-template bool Solver<float>::Solve(bool use_prior);
-template bool Solver<double>::Solve(bool use_prior);
 template <typename Scalar>
 bool Solver<Scalar>::Solve(bool use_prior) {
     if (problem_ == nullptr) {
@@ -50,16 +52,12 @@ bool Solver<Scalar>::Solve(bool use_prior) {
 }
 
 // Construct incremental function, Hx = b or Jx = -r.
-template void Solver<float>::ConstructIncrementalFunction(bool use_prior);
-template void Solver<double>::ConstructIncrementalFunction(bool use_prior);
 template <typename Scalar>
 void Solver<Scalar>::ConstructIncrementalFunction(bool use_prior) {
     problem_->ConstructFullSizeHessianAndBias(use_prior);
 }
 
 // Update or rollback all vertices and prior.
-template void Solver<float>::UpdateParameters(bool use_prior);
-template void Solver<double>::UpdateParameters(bool use_prior);
 template <typename Scalar>
 void Solver<Scalar>::UpdateParameters(bool use_prior) {
     // Update and backup all vertices.
@@ -74,8 +72,6 @@ void Solver<Scalar>::UpdateParameters(bool use_prior) {
     }
 }
 
-template void Solver<float>::RollBackParameters(bool use_prior);
-template void Solver<double>::RollBackParameters(bool use_prior);
 template <typename Scalar>
 void Solver<Scalar>::RollBackParameters(bool use_prior) {
     // Roll back all vertices.
@@ -89,8 +85,6 @@ void Solver<Scalar>::RollBackParameters(bool use_prior) {
 }
 
 // Check if the iteration converged.
-template bool Solver<float>::IsConvergedAfterUpdate(int32_t iter);
-template bool Solver<double>::IsConvergedAfterUpdate(int32_t iter);
 template <typename Scalar>
 bool Solver<Scalar>::IsConvergedAfterUpdate(int32_t iter) {
     if (Eigen::isnan(dx_.array()).any()) {
@@ -106,8 +100,6 @@ bool Solver<Scalar>::IsConvergedAfterUpdate(int32_t iter) {
 }
 
 // Use PCG solver to solve linearlized function.
-template void Solver<float>::SolveLinearlizedFunction(const TMat<float> &A, const TVec<float> &b, TVec<float> &x);
-template void Solver<double>::SolveLinearlizedFunction(const TMat<double> &A, const TVec<double> &b, TVec<double> &x);
 template <typename Scalar>
 void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A,
                                               const TVec<Scalar> &b,

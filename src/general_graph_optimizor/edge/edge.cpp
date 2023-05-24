@@ -2,9 +2,11 @@
 
 namespace SLAM_SOLVER {
 
+/* Specialized Template Class Declaration. */
+template class Edge<float>;
+template class Edge<double>;
+
 // Construct function.
-template Edge<float>::Edge(int32_t residual_dim, int32_t vertex_num);
-template Edge<double>::Edge(int32_t residual_dim, int32_t vertex_num);
 template <typename Scalar>
 Edge<Scalar>::Edge(int32_t residual_dim, int32_t vertex_num) {
     // Resize size of residual and jacobian.
@@ -21,8 +23,6 @@ Edge<Scalar>::Edge(int32_t residual_dim, int32_t vertex_num) {
 }
 
 // Set vertex of this edge.
-template bool Edge<float>::SetVertex(Vertex<float> * vertex, uint32_t index);
-template bool Edge<double>::SetVertex(Vertex<double> * vertex, uint32_t index);
 template <typename Scalar>
 bool Edge<Scalar>::SetVertex(Vertex<Scalar> * vertex, uint32_t index) {
     if (vertex == nullptr || index > vertices_.size() - 1) {
@@ -34,8 +34,6 @@ bool Edge<Scalar>::SetVertex(Vertex<Scalar> * vertex, uint32_t index) {
     return true;
 }
 
-template bool Edge<float>::SetVertices(const std::vector<Vertex<float> *> &vertices);
-template bool Edge<double>::SetVertices(const std::vector<Vertex<double> *> &vertices);
 template <typename Scalar>
 bool Edge<Scalar>::SetVertices(const std::vector<Vertex<Scalar> *> &vertices) {
     if (vertices_.size() != vertices.size()) {
@@ -57,8 +55,6 @@ bool Edge<Scalar>::SetVertices(const std::vector<Vertex<Scalar> *> &vertices) {
 }
 
 // Check if this edge valid.
-template bool Edge<float>::SelfCheck();
-template bool Edge<double>::SelfCheck();
 template <typename Scalar>
 bool Edge<Scalar>::SelfCheck() {
     if (vertices_.size() != jacobians_.size()) {

@@ -2,9 +2,11 @@
 
 namespace SLAM_SOLVER {
 
+/* Specialized Template Class Declaration. */
+template class Marginalizor<float>;
+template class Marginalizor<double>;
+
 /* Class Marginalizor Definition. */
-template bool Marginalizor<float>::Marginalize(std::vector<Vertex<float> *> &vertices, bool use_prior);
-template bool Marginalizor<double>::Marginalize(std::vector<Vertex<double> *> &vertices, bool use_prior);
 template <typename Scalar>
 bool Marginalizor<Scalar>::Marginalize(std::vector<Vertex<Scalar> *> &vertices,
                                        bool use_prior) {
@@ -30,8 +32,6 @@ bool Marginalizor<Scalar>::Marginalize(std::vector<Vertex<Scalar> *> &vertices,
 
 // Sort vertices to be marged to the front or back of vertices vector.
 // Keep the other vertices the same order.
-template void Marginalizor<float>::SortVerticesToBeMarged(std::vector<Vertex<float> *> &vertices);
-template void Marginalizor<double>::SortVerticesToBeMarged(std::vector<Vertex<double> *> &vertices);
 template <typename Scalar>
 void Marginalizor<Scalar>::SortVerticesToBeMarged(std::vector<Vertex<Scalar> *> &vertices) {
     auto &dense_vertices = problem_->dense_vertices();
@@ -77,8 +77,6 @@ void Marginalizor<Scalar>::SortVerticesToBeMarged(std::vector<Vertex<Scalar> *> 
 }
 
 // Construct information.
-template void Marginalizor<float>::ConstructInformation(bool use_prior);
-template void Marginalizor<double>::ConstructInformation(bool use_prior);
 template <typename Scalar>
 void Marginalizor<Scalar>::ConstructInformation(bool use_prior) {
     problem_->ComputeResidualForAllEdges(use_prior);
@@ -87,8 +85,6 @@ void Marginalizor<Scalar>::ConstructInformation(bool use_prior) {
 }
 
 // Marginalize sparse vertices in information.
-template void Marginalizor<float>::MarginalizeSparseVertices();
-template void Marginalizor<double>::MarginalizeSparseVertices();
 template <typename Scalar>
 void Marginalizor<Scalar>::MarginalizeSparseVertices() {
     const int32_t marg = this->problem()->full_size_of_sparse_vertices();
@@ -101,8 +97,6 @@ void Marginalizor<Scalar>::MarginalizeSparseVertices() {
 }
 
 // Create prior information, and store them in graph problem.
-template void Marginalizor<float>::CreatePriorInformation();
-template void Marginalizor<double>::CreatePriorInformation();
 template <typename Scalar>
 void Marginalizor<Scalar>::CreatePriorInformation() {
     const int32_t dense_size = this->problem()->full_size_of_dense_vertices();
@@ -142,10 +136,6 @@ void Marginalizor<Scalar>::CreatePriorInformation() {
 }
 
 // Compute prior information with schur complement.
-template void Marginalizor<float>::ComputePriorBySchurComplement(const TMat<float> &Hrr, const TMat<float> &Hrm,
-    const TMat<float> &Hmr, const TMat<float> &Hmm, const TVec<float> &br, const TVec<float> &bm);
-template void Marginalizor<double>::ComputePriorBySchurComplement(const TMat<double> &Hrr, const TMat<double> &Hrm,
-    const TMat<double> &Hmr, const TMat<double> &Hmm, const TVec<double> &br, const TVec<double> &bm);
 template <typename Scalar>
 void Marginalizor<Scalar>::ComputePriorBySchurComplement(const TMat<Scalar> &Hrr,
                                                          const TMat<Scalar> &Hrm,

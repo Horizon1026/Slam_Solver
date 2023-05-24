@@ -2,9 +2,11 @@
 
 namespace SLAM_SOLVER {
 
+/* Specialized Template Class Declaration. */
+template class Vertex<float>;
+template class Vertex<double>;
+
 // Construnct function.
-template Vertex<float>::Vertex(int32_t param_dim, int32_t delta_dim);
-template Vertex<double>::Vertex(int32_t param_dim, int32_t delta_dim);
 template <typename Scalar>
 Vertex<Scalar>::Vertex(int32_t param_dim, int32_t delta_dim) : param_dim_(param_dim), delta_dim_(delta_dim) {
     // Resize stored param.

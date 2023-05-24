@@ -2,11 +2,11 @@
 
 namespace SLAM_SOLVER {
 
-
+/* Specialized Template Class Declaration. */
+template class Graph<float>;
+template class Graph<double>;
 
 /* Class Graph Definition. */
-template Graph<float>::Graph(uint32_t reserved_vertex_num);
-template Graph<double>::Graph(uint32_t reserved_vertex_num);
 template <typename Scalar>
 Graph<Scalar>::Graph(uint32_t reserved_vertex_num) {
     dense_vertices_.reserve(reserved_vertex_num);
@@ -17,8 +17,6 @@ Graph<Scalar>::Graph(uint32_t reserved_vertex_num) {
 }
 
 // Clear everything of this graph.
-template void Graph<float>::Clear();
-template void Graph<double>::Clear();
 template <typename Scalar>
 void Graph<Scalar>::Clear() {
     dense_vertices_.clear();
@@ -31,8 +29,6 @@ void Graph<Scalar>::Clear() {
 }
 
 // Add vertices and edges for this graph.
-template bool Graph<float>::AddVertex(Vertex<float> *vertex, bool is_dense_vertex);
-template bool Graph<double>::AddVertex(Vertex<double> *vertex, bool is_dense_vertex);
 template <typename Scalar>
 bool Graph<Scalar>::AddVertex(Vertex<Scalar> *vertex, bool is_dense_vertex) {
     if (vertex == nullptr) {
@@ -47,8 +43,6 @@ bool Graph<Scalar>::AddVertex(Vertex<Scalar> *vertex, bool is_dense_vertex) {
     return true;
 }
 
-template bool Graph<float>::AddVertexWithCheck(Vertex<float> *vertex, bool is_dense_vertex);
-template bool Graph<double>::AddVertexWithCheck(Vertex<double> *vertex, bool is_dense_vertex);
 template <typename Scalar>
 bool Graph<Scalar>::AddVertexWithCheck(Vertex<Scalar> *vertex, bool is_dense_vertex) {
     if (std::find(dense_vertices_.cbegin(), dense_vertices_.cend(), vertex) != dense_vertices_.cend()) {
@@ -61,8 +55,6 @@ bool Graph<Scalar>::AddVertexWithCheck(Vertex<Scalar> *vertex, bool is_dense_ver
     return AddVertex(vertex, is_dense_vertex);
 }
 
-template bool Graph<float>::AddEdge(Edge<float> *edge);
-template bool Graph<double>::AddEdge(Edge<double> *edge);
 template <typename Scalar>
 bool Graph<Scalar>::AddEdge(Edge<Scalar> *edge) {
     if (edge == nullptr) {
@@ -73,8 +65,6 @@ bool Graph<Scalar>::AddEdge(Edge<Scalar> *edge) {
     return true;
 }
 
-template bool Graph<float>::AddEdgeWithCheck(Edge<float> *edge);
-template bool Graph<double>::AddEdgeWithCheck(Edge<double> *edge);
 template <typename Scalar>
 bool Graph<Scalar>::AddEdgeWithCheck(Edge<Scalar> *edge) {
     if (std::find(edges_.cbegin(), edges_.cend(), edge) == edges_.cend()) {
@@ -85,8 +75,6 @@ bool Graph<Scalar>::AddEdgeWithCheck(Edge<Scalar> *edge) {
 }
 
 // Sort all vertices in incremental function.
-template void Graph<float>::SortVertices(bool statis_size_of_residual);
-template void Graph<double>::SortVertices(bool statis_size_of_residual);
 template <typename Scalar>
 void Graph<Scalar>::SortVertices(bool statis_size_of_residual) {
     full_size_of_dense_vertices_ = 0;
@@ -111,8 +99,6 @@ void Graph<Scalar>::SortVertices(bool statis_size_of_residual) {
 }
 
 // Update all vertices.
-template void Graph<float>::UpdateAllVertices(const TVec<float> &delta_x);
-template void Graph<double>::UpdateAllVertices(const TVec<double> &delta_x);
 template <typename Scalar>
 void Graph<Scalar>::UpdateAllVertices(const TVec<Scalar> &delta_x) {
     for (auto &vertex : dense_vertices_) {
@@ -141,8 +127,6 @@ void Graph<Scalar>::UpdateAllVertices(const TVec<Scalar> &delta_x) {
 }
 
 // Roll back all vertices.
-template void Graph<float>::RollBackAllVertices();
-template void Graph<double>::RollBackAllVertices();
 template <typename Scalar>
 void Graph<Scalar>::RollBackAllVertices() {
     for (auto &vertex : dense_vertices_) {
@@ -163,8 +147,6 @@ void Graph<Scalar>::RollBackAllVertices() {
 }
 
 // Compute residual for all edges.
-template float Graph<float>::ComputeResidualForAllEdges(bool use_prior);
-template double Graph<double>::ComputeResidualForAllEdges(bool use_prior);
 template <typename Scalar>
 Scalar Graph<Scalar>::ComputeResidualForAllEdges(bool use_prior) {
     Scalar sum_cost = 0;
@@ -184,8 +166,6 @@ Scalar Graph<Scalar>::ComputeResidualForAllEdges(bool use_prior) {
 }
 
 // Compute jacobian for all vertices and edges
-template void Graph<float>::ComputeJacobiansForAllEdges();
-template void Graph<double>::ComputeJacobiansForAllEdges();
 template <typename Scalar>
 void Graph<Scalar>::ComputeJacobiansForAllEdges() {
     for (auto &edge : edges_) {
@@ -194,16 +174,12 @@ void Graph<Scalar>::ComputeJacobiansForAllEdges() {
 }
 
 // Construct incremental function with full size.
-template void Graph<float>::ConstructFullSizeJacobianAndResidual(bool use_prior);
-template void Graph<double>::ConstructFullSizeJacobianAndResidual(bool use_prior);
 template <typename Scalar>
 void Graph<Scalar>::ConstructFullSizeJacobianAndResidual(bool use_prior) {
 
 }
 
 // Construct incremental function with full size.
-template void Graph<float>::ConstructFullSizeHessianAndBias(bool use_prior);
-template void Graph<double>::ConstructFullSizeHessianAndBias(bool use_prior);
 template <typename Scalar>
 void Graph<Scalar>::ConstructFullSizeHessianAndBias(bool use_prior) {
     const int32_t size = full_size_of_dense_vertices_ + full_size_of_sparse_vertices_;
@@ -278,8 +254,6 @@ void Graph<Scalar>::ConstructFullSizeHessianAndBias(bool use_prior) {
 }
 
 // Marginalize sparse vertices in incremental function.
-template void Graph<float>::MarginalizeSparseVerticesInHessianAndBias(TMat<float> &hessian, TVec<float> &bias);
-template void Graph<double>::MarginalizeSparseVerticesInHessianAndBias(TMat<double> &hessian, TVec<double> &bias);
 template <typename Scalar>
 void Graph<Scalar>::MarginalizeSparseVerticesInHessianAndBias(TMat<Scalar> &hessian, TVec<Scalar> &bias) {
     // Dense vertices should be kept, and sparse vertices should be marginalized.
@@ -304,8 +278,6 @@ void Graph<Scalar>::MarginalizeSparseVerticesInHessianAndBias(TMat<Scalar> &hess
     bias = bias_.segment(0, reverse) - Hrm_Hmm_inv * bias_.segment(reverse, marg);
 }
 
-template void Graph<float>::MarginalizeSparseVerticesInJacobianAndResidual(TMat<float> &jacobian, TVec<float> &residual);
-template void Graph<double>::MarginalizeSparseVerticesInJacobianAndResidual(TMat<double> &jacobian, TVec<double> &residual);
 template <typename Scalar>
 void Graph<Scalar>::MarginalizeSparseVerticesInJacobianAndResidual(TMat<Scalar> &jacobian, TVec<Scalar> &residual) {
 
