@@ -18,11 +18,12 @@ public:
     KalmanFilter() : Filter<Scalar, KalmanFilter<Scalar, StateSize, ObserveSize>>() {}
     virtual ~KalmanFilter() = default;
 
-    bool Propagate(const TVec<Scalar> &parameters = TVec<Scalar, 1>());
-    bool Update(const TMat<Scalar> &observation = TVec<Scalar, 1>());
+    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TVec<Scalar, 1>());
+    bool PropagateCovarianceImpl(const TVec<Scalar> &parameters = TVec<Scalar, 1>());
+    bool UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation = TVec<Scalar, 1>());
 
+    // Reference for member variables.
     KalmanFilterOptions &options() { return options_; }
-
     TVec<Scalar, StateSize> &x() { return x_; }
     TMat<Scalar, StateSize, StateSize> &P() { return P_; }
     TMat<Scalar, StateSize, StateSize> &F() { return F_; }
@@ -52,14 +53,19 @@ private:
 
 /* Class Basic Kalman Filter Definition. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-bool KalmanFilter<Scalar, StateSize, ObserveSize>::Propagate(const TVec<Scalar> &parameters) {
+bool KalmanFilter<Scalar, StateSize, ObserveSize>::PropagateNominalStateImpl(const TVec<Scalar> &parameters) {
     predict_x_ = F_ * x_;
+    return true;
+}
+
+template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
+bool KalmanFilter<Scalar, StateSize, ObserveSize>::PropagateCovarianceImpl(const TVec<Scalar> &parameters) {
     predict_P_ = F_ * P_ * F_.transpose() + Q_;
     return true;
 }
 
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-bool KalmanFilter<Scalar, StateSize, ObserveSize>::Update(const TMat<Scalar> &observation) {
+bool KalmanFilter<Scalar, StateSize, ObserveSize>::UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation) {
     const TMat<Scalar, ObserveSize, StateSize> H_t = H_.transpose();
 
     // Compute Kalman gain.
@@ -88,6 +94,6 @@ bool KalmanFilter<Scalar, StateSize, ObserveSize>::Update(const TMat<Scalar> &ob
     return true;
 }
 
-};
+}
 
 #endif // end of _KALMAN_FILTER_SOLVER_

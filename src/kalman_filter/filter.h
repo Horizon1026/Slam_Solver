@@ -20,12 +20,16 @@ public:
     virtual ~Filter() = default;
     Filter(const Filter &filter) = delete;
 
-    bool PropagateState(const TVec<Scalar> &value = TVec<Scalar, 1>()) {
-        return reinterpret_cast<FilterType *>(this)->Propagate(value);
+    bool PropagateNominalState(const TVec<Scalar> &value = TVec<Scalar, 1>()) {
+        return reinterpret_cast<FilterType *>(this)->PropagateNominalStateImpl(value);
     }
 
-    bool UpdateState(const TMat<Scalar> &value = TVec<Scalar, 1>()) {
-        return reinterpret_cast<FilterType *>(this)->Update(value);
+    bool PropagateCovariance(const TVec<Scalar> &value = TVec<Scalar, 1>()) {
+        return reinterpret_cast<FilterType *>(this)->PropagateCovarianceImpl(value);
+    }
+
+    bool UpdateStateAndCovariance(const TMat<Scalar> &value = TVec<Scalar, 1>()) {
+        return reinterpret_cast<FilterType *>(this)->UpdateStateAndCovarianceImpl(value);
     }
 
 };

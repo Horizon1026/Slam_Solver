@@ -59,8 +59,9 @@ void TestKalmanFilter(std::vector<Scalar> &truth_data,
     std::vector<Scalar> filtered_data = noised_data;
     filter.x() = TVec<Scalar, 1>(noised_data.front());
     for (uint32_t i = 1; i < noised_data.size(); ++i) {
-        filter.PropagateState(TVec<Scalar, 1>(0));
-        filter.UpdateState(TVec<Scalar, 1>(noised_data[i]));
+        filter.PropagateNominalState();
+        filter.PropagateCovariance();
+        filter.UpdateStateAndCovariance(TVec<Scalar, 1>(noised_data[i]));
         filtered_data[i] = filter.x()(0);
     }
 
@@ -84,8 +85,9 @@ void TestErrorKalmanFilter(std::vector<Scalar> &truth_data,
     // Filter noised data.
     std::vector<Scalar> filtered_data = noised_data;
     for (uint32_t i = 1; i < noised_data.size(); ++i) {
-        filter.PropagateState(TVec<Scalar, 1>(0));
-        filter.UpdateState(TVec<Scalar, 1>(noised_data[i] - filtered_data[i - 1]));
+        filter.PropagateNominalState();
+        filter.PropagateCovariance();
+        filter.UpdateStateAndCovariance(TVec<Scalar, 1>(noised_data[i] - filtered_data[i - 1]));
         filtered_data[i] = filter.dx()(0) + filtered_data[i - 1];
     }
 
