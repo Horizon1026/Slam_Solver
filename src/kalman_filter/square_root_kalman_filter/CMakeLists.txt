@@ -1,4 +1,4 @@
-aux_source_directory( . AUX_SRC_KALMAN_FILTER )
+aux_source_directory( . AUX_SRC_SQUARE_ROOT_KALMAN_FILTER )
 
 # Add all components of general graph optimizor.
 set( SLAM_UTILITY_PATH ${PROJECT_SOURCE_DIR}/../Slam_Utility/src )
@@ -22,9 +22,12 @@ if ( NOT TARGET lib_slam_utility_tick_tock )
 endif()
 
 # Create library.
-add_library( lib_kalman_filter ${AUX_SRC_KALMAN_FILTER} )
-target_include_directories( lib_kalman_filter PUBLIC . )
-target_link_libraries( lib_kalman_filter
+add_library( lib_square_root_kalman_filter ${AUX_SRC_SQUARE_ROOT_KALMAN_FILTER} )
+target_include_directories( lib_square_root_kalman_filter PUBLIC
+    .
+    ..
+)
+target_link_libraries( lib_square_root_kalman_filter
     lib_slam_utility_datatype
     lib_slam_utility_math
     lib_slam_utility_operate

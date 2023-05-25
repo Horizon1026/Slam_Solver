@@ -14,9 +14,21 @@ if ( NOT TARGET lib_general_graph_optimizor )
 endif()
 
 # Add kalman filter.
-set( KALMAN_FILTER_PATH ${PROJECT_SOURCE_DIR}/src/kalman_filter )
+set( KALMAN_FILTER_PATH ${PROJECT_SOURCE_DIR}/src/kalman_filter/kalman_filter )
 if ( NOT TARGET lib_kalman_filter )
     add_subdirectory( ${KALMAN_FILTER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_kalman_filter )
+endif()
+
+# Add error kalman filter.
+set( ERROR_KALMAN_FILTER_PATH ${PROJECT_SOURCE_DIR}/src/kalman_filter/error_kalman_filter )
+if ( NOT TARGET lib_error_kalman_filter )
+    add_subdirectory( ${ERROR_KALMAN_FILTER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_error_kalman_filter )
+endif()
+
+# Add square root kalman filter.
+set( SQUARE_ROOT_KALMAN_FILTER_PATH ${PROJECT_SOURCE_DIR}/src/kalman_filter/square_root_kalman_filter )
+if ( NOT TARGET lib_square_root_kalman_filter )
+    add_subdirectory( ${SQUARE_ROOT_KALMAN_FILTER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_square_root_kalman_filter )
 endif()
 
 # Add test_general_graph_optimizor_polynomial_problem.
@@ -49,4 +61,6 @@ add_executable( test_kalman_filter
 )
 target_link_libraries( test_kalman_filter
     lib_kalman_filter
+    lib_error_kalman_filter
+    lib_square_root_kalman_filter
 )
