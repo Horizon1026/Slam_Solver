@@ -66,7 +66,7 @@ bool KalmanFilter<Scalar, StateSize, ObserveSize>::PropagateCovarianceImpl(const
 
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 bool KalmanFilter<Scalar, StateSize, ObserveSize>::UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation) {
-    const TMat<Scalar, ObserveSize, StateSize> H_t = H_.transpose();
+    const TMat<Scalar, StateSize, ObserveSize> H_t = H_.transpose();
 
     // Compute Kalman gain.
     predict_S_ = H_ * predict_P_ * H_t + R_;

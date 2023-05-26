@@ -1,6 +1,7 @@
 #include "log_report.h"
 #include "kalman_filter.h"
 #include "error_kalman_filter.h"
+#include "square_root_kalman_filter.h"
 
 #include <random>
 
@@ -95,6 +96,32 @@ void TestErrorKalmanFilter(std::vector<Scalar> &truth_data,
     PrintFilterResult(truth_data, noised_data, filtered_data);
 }
 
+void TestSquareRootKalmanFilter(std::vector<Scalar> &truth_data,
+                                std::vector<Scalar> &noised_data) {
+    ReportInfo(YELLOW ">> Test square root kalman filter in dimension 1." RESET_COLOR);
+
+
+    // Construct filter for this data.
+    SquareRootKalmanFilter<Scalar, 1, 1> filter;
+    filter.options().kMethod = StateCovUpdateMethod::kFull;
+    filter.F().setIdentity();
+    filter.square_R_t() = TMat<Scalar, 1, 1>(std::sqrt(kNoiseSigma));
+    filter.square_Q_t() = TMat<Scalar, 1, 1>(std::sqrt(0.01f));
+    filter.H().setIdentity();
+
+    // Filter noised data.
+    std::vector<Scalar> filtered_data = noised_data;
+    for (uint32_t i = 1; i < noised_data.size(); ++i) {
+        filter.PropagateNominalState();
+        filter.PropagateCovariance();
+        filter.UpdateStateAndCovariance(TVec<Scalar, 1>(noised_data[i] - filtered_data[i - 1]));
+        filtered_data[i] = filter.dx()(0) + filtered_data[i - 1];
+    }
+
+    // Print result.
+    PrintFilterResult(truth_data, noised_data, filtered_data);
+}
+
 int main(int argc, char **argv) {
     ReportInfo(YELLOW ">> Test kalman filter solver." RESET_COLOR);
 
@@ -104,6 +131,7 @@ int main(int argc, char **argv) {
 
     TestKalmanFilter(truth_data, noised_data);
     TestErrorKalmanFilter(truth_data, noised_data);
+    TestSquareRootKalmanFilter(truth_data, noised_data);
 
     return 0;
 }
