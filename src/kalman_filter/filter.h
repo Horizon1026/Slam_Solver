@@ -24,8 +24,8 @@ public:
         return reinterpret_cast<FilterType *>(this)->PropagateNominalStateImpl(value);
     }
 
-    bool PropagateCovariance(const TVec<Scalar> &value = TVec<Scalar, 1>()) {
-        return reinterpret_cast<FilterType *>(this)->PropagateCovarianceImpl(value);
+    bool PropagateCovariance() {
+        return reinterpret_cast<FilterType *>(this)->PropagateCovarianceImpl();
     }
 
     bool UpdateStateAndCovariance(const TMat<Scalar> &value = TVec<Scalar, 1>()) {

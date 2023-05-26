@@ -19,7 +19,7 @@ public:
     virtual ~ErrorKalmanFilter() = default;
 
     bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TVec<Scalar, 1>());
-    bool PropagateCovarianceImpl(const TVec<Scalar> &parameters = TVec<Scalar, 1>());
+    bool PropagateCovarianceImpl();
     bool UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation = TVec<Scalar, 1>());
 
     ErrorKalmanFilterOptions &options() { return options_; }
@@ -57,7 +57,7 @@ bool ErrorKalmanFilter<Scalar, StateSize, ObserveSize>::PropagateNominalStateImp
 }
 
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-bool ErrorKalmanFilter<Scalar, StateSize, ObserveSize>::PropagateCovarianceImpl(const TVec<Scalar> &parameters) {
+bool ErrorKalmanFilter<Scalar, StateSize, ObserveSize>::PropagateCovarianceImpl() {
     predict_P_ = F_ * P_ * F_.transpose() + Q_;
     return true;
 }

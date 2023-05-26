@@ -16,7 +16,7 @@ void GenerateData(std::vector<Scalar> &truth_data,
     // Generate truth data.
     truth_data.resize(kNumberOfData);
     for (uint32_t i = 0; i < kNumberOfData; ++i) {
-        truth_data[i] = std::sin(i * 3.1415926f * 0.001f) * 5.0f;
+        truth_data[i] = 5.0f;
     }
 
     // Generate noised data.
@@ -52,7 +52,7 @@ void TestKalmanFilter(std::vector<Scalar> &truth_data,
     KalmanFilter<Scalar, 1, 1> filter;
     filter.options().kMethod = StateCovUpdateMethod::kFull;
     filter.F().setIdentity();
-    filter.R() = TMat<Scalar, 1, 1>(kNoiseSigma);
+    filter.R() = TMat<Scalar, 1, 1>(kNoiseSigma * kNoiseSigma);
     filter.Q() = TMat<Scalar, 1, 1>(0.01f);
     filter.H().setIdentity();
 
@@ -79,7 +79,7 @@ void TestErrorKalmanFilter(std::vector<Scalar> &truth_data,
     ErrorKalmanFilter<Scalar, 1, 1> filter;
     filter.options().kMethod = StateCovUpdateMethod::kFull;
     filter.F().setIdentity();
-    filter.R() = TMat<Scalar, 1, 1>(kNoiseSigma);
+    filter.R() = TMat<Scalar, 1, 1>(kNoiseSigma * kNoiseSigma);
     filter.Q() = TMat<Scalar, 1, 1>(0.01f);
     filter.H().setIdentity();
 
@@ -100,12 +100,11 @@ void TestSquareRootKalmanFilter(std::vector<Scalar> &truth_data,
                                 std::vector<Scalar> &noised_data) {
     ReportInfo(YELLOW ">> Test square root kalman filter in dimension 1." RESET_COLOR);
 
-
     // Construct filter for this data.
     SquareRootKalmanFilter<Scalar, 1, 1> filter;
     filter.options().kMethod = StateCovUpdateMethod::kFull;
     filter.F().setIdentity();
-    filter.square_R_t() = TMat<Scalar, 1, 1>(std::sqrt(kNoiseSigma));
+    filter.square_R_t() = TMat<Scalar, 1, 1>(kNoiseSigma);
     filter.square_Q_t() = TMat<Scalar, 1, 1>(std::sqrt(0.01f));
     filter.H().setIdentity();
 

@@ -19,7 +19,7 @@ public:
     virtual ~SquareRootKalmanFilter() = default;
 
     bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TVec<Scalar, 1>());
-    bool PropagateCovarianceImpl(const TVec<Scalar> &parameters = TVec<Scalar, 1>());
+    bool PropagateCovarianceImpl();
     bool UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation = TVec<Scalar, 1>());
 
     // Reference for member variables.
@@ -48,7 +48,7 @@ private:
     TMat<Scalar, StateSize, StateSize> square_Q_t_ = TMat<Scalar, StateSize, StateSize>::Zero();
     TMat<Scalar, ObserveSize, ObserveSize> square_R_t_ = TMat<Scalar, ObserveSize, ObserveSize>::Zero();
 
-    TMat<Scalar, StateSize * 2, StateSize> extend_predict_S_t_ = TMat<Scalar, StateSize * 2, StateSize>::Zero();
+    TMat<Scalar, StateSize + StateSize, StateSize> extend_predict_S_t_ = TMat<Scalar, StateSize + StateSize, StateSize>::Zero();
     TMat<Scalar, StateSize, StateSize> predict_S_t_ = TMat<Scalar, StateSize, StateSize>::Zero();
     TMat<Scalar, StateSize + ObserveSize, StateSize + ObserveSize> M_ = TMat<Scalar, StateSize + ObserveSize, StateSize + ObserveSize>::Zero();
 
@@ -61,14 +61,14 @@ bool SquareRootKalmanFilter<Scalar, StateSize, ObserveSize>::PropagateNominalSta
 }
 
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-bool SquareRootKalmanFilter<Scalar, StateSize, ObserveSize>::PropagateCovarianceImpl(const TVec<Scalar> &parameters) {
+bool SquareRootKalmanFilter<Scalar, StateSize, ObserveSize>::PropagateCovarianceImpl() {
     /*  extend_predict_S_t_ = [ S.t * F.t ]
                               [   Q.t/2   ] */
     extend_predict_S_t_.template block<StateSize, StateSize>(0, 0) = S_t_ * F_.transpose();
     extend_predict_S_t_.template block<StateSize, StateSize>(StateSize, 0) = square_Q_t_;
 
     // After QR decomposing of extend_predict_S_t_, the top matrix of the upper triangular matrix becomes predict_S_t_.
-    Eigen::HouseholderQR<TMat<Scalar, StateSize * 2, StateSize>> qr_solver(extend_predict_S_t_);
+    Eigen::HouseholderQR<TMat<Scalar, StateSize + StateSize, StateSize>> qr_solver(extend_predict_S_t_);
     extend_predict_S_t_ = qr_solver.matrixQR().template triangularView<Eigen::Upper>();
     predict_S_t_ = extend_predict_S_t_.template block<StateSize, StateSize>(0, 0);
     return true;
