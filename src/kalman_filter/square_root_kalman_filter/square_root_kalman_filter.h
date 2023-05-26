@@ -22,7 +22,7 @@ public:
     bool PropagateCovarianceImpl(const TVec<Scalar> &parameters = TVec<Scalar, 1>());
     bool UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation = TVec<Scalar, 1>());
 
-	// Reference for member variables.
+    // Reference for member variables.
     SquareRootKalmanFilterOptions &options() { return options_; }
 
     TVec<Scalar, StateSize> &dx() { return dx_; }
@@ -36,6 +36,7 @@ private:
     SquareRootKalmanFilterOptions options_;
 
     TVec<Scalar, StateSize> dx_ = TVec<Scalar, StateSize>::Zero();
+    // P is represent as P = S * S.t.
     TMat<Scalar, StateSize, StateSize> S_t_ = TMat<Scalar, StateSize, StateSize>::Zero();
 
     // Process function F and measurement function H.
@@ -61,12 +62,12 @@ bool SquareRootKalmanFilter<Scalar, StateSize, ObserveSize>::PropagateNominalSta
 
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 bool SquareRootKalmanFilter<Scalar, StateSize, ObserveSize>::PropagateCovarianceImpl(const TVec<Scalar> &parameters) {
-    // P is represent as P = S * S.t.
-    /*  predict_S_t = [S.t * F.t]
-                      [  Q.t/2  ].QR and get upper triangular matrix.
-    */
+    /*  extend_predict_S_t_ = [ S.t * F.t ]
+                              [   Q.t/2   ] */
     extend_predict_S_t_.template block<StateSize, StateSize>(0, 0) = S_t_ * F_.transpose();
     extend_predict_S_t_.template block<StateSize, StateSize>(StateSize, 0) = square_Q_t_;
+
+    // After QR decomposing of extend_predict_S_t_, the top matrix of the upper triangular matrix becomes predict_S_t_.
     Eigen::HouseholderQR<TMat<Scalar, StateSize * 2, StateSize>> qr_solver(extend_predict_S_t_);
     extend_predict_S_t_ = qr_solver.matrixQR().template triangularView<Eigen::Upper>();
     predict_S_t_ = extend_predict_S_t_.template block<StateSize, StateSize>(0, 0);
@@ -78,7 +79,7 @@ bool SquareRootKalmanFilter<Scalar, StateSize, ObserveSize>::UpdateStateAndCovar
     // Construct matrix M, do QR decompose on it.
     /*  M = [ R.t/2             0    ] = T * [ (H * pre_P * H.t + R).t/2  hat_K.t ]
             [ pre_S.t * H.t  pre_S.t ]       [             0                S.t   ]
-    */
+        T is a exist unit orthogonal matrix. */
     M_.template block<ObserveSize, ObserveSize>(0, 0) = square_R_t_;
     M_.template block<ObserveSize, StateSize>(0, ObserveSize).setZero();
     M_.template block<StateSize, ObserveSize>(ObserveSize, 0) = predict_S_t_ * H_.transpose();
@@ -89,8 +90,8 @@ bool SquareRootKalmanFilter<Scalar, StateSize, ObserveSize>::UpdateStateAndCovar
     // Commpute Kalman gain.
     // hat_K = (H * pre_P * H.t + R).t/2 * K.
     const TMat<Scalar, StateSize, ObserveSize> K_
-    	= M_.template block<ObserveSize, StateSize>(0, ObserveSize).transpose()
-    	* M_.template block<ObserveSize, ObserveSize>(0, 0).inverse();
+        = M_.template block<ObserveSize, StateSize>(0, ObserveSize).transpose()
+        * M_.template block<ObserveSize, ObserveSize>(0, 0).inverse();
 
     // Update error state.
     dx_ = K_ * residual;
