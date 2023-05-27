@@ -10,15 +10,55 @@ struct ErrorKalmanFilterOptions {
     StateCovUpdateMethod kMethod = StateCovUpdateMethod::kSimple;
 };
 
-/* Class Basic Kalman Filter Declaration. */
+/* Class Error State Kalman Filter Declaration. */
+template <typename Scalar>
+class ErrorKalmanFilterDynamic : public Filter<Scalar, ErrorKalmanFilterDynamic<Scalar>> {
+
+public:
+    ErrorKalmanFilterDynamic() : Filter<Scalar, ErrorKalmanFilterDynamic<Scalar>>() {}
+    virtual ~ErrorKalmanFilterDynamic() = default;
+
+    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TVec1<Scalar>());
+    bool PropagateCovarianceImpl();
+    bool UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation = TVec1<Scalar>());
+
+    ErrorKalmanFilterOptions &options() { return options_; }
+
+    TVec<Scalar> &dx() { return dx_; }
+    TMat<Scalar> &P() { return P_; }
+    TMat<Scalar> &F() { return F_; }
+    TMat<Scalar> &H() { return H_; }
+    TMat<Scalar> &Q() { return Q_; }
+    TMat<Scalar> &R() { return R_; }
+
+private:
+    ErrorKalmanFilterOptions options_;
+
+    TVec<Scalar> dx_ = TVec1<Scalar>::Zero();
+    TMat<Scalar> P_ = TMat1<Scalar>::Zero();
+
+    TMat<Scalar> predict_P_ = TMat1<Scalar>::Zero();
+    TMat<Scalar> predict_S_ = TMat1<Scalar>::Zero();
+
+    // Process function F and measurement function H.
+    TMat<Scalar> F_ = TMat1<Scalar>::Identity();
+    TMat<Scalar> H_ = TMat1<Scalar>::Identity();
+
+    // Process noise Q and measurement noise R.
+    TMat<Scalar> Q_ = TMat1<Scalar>::Zero();
+    TMat<Scalar> R_ = TMat1<Scalar>::Zero();
+
+};
+
+/* Class Error State Kalman Filter Declaration. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-class ErrorKalmanFilter : public Filter<Scalar, ErrorKalmanFilter<Scalar, StateSize, ObserveSize>> {
+class ErrorKalmanFilterStatic : public Filter<Scalar, ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>> {
 
 static_assert(StateSize > 0 && ObserveSize > 0, "Size of state and observe must be larger than 0.");
 
 public:
-    ErrorKalmanFilter() : Filter<Scalar, ErrorKalmanFilter<Scalar, StateSize, ObserveSize>>() {}
-    virtual ~ErrorKalmanFilter() = default;
+    ErrorKalmanFilterStatic() : Filter<Scalar, ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>>() {}
+    virtual ~ErrorKalmanFilterStatic() = default;
 
     bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TVec<Scalar, 1>());
     bool PropagateCovarianceImpl();
@@ -52,23 +92,22 @@ private:
 
 };
 
-/* Class Basic Kalman Filter Definition. */
+/* Class Error State Kalman Filter Definition. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-bool ErrorKalmanFilter<Scalar, StateSize, ObserveSize>::PropagateNominalStateImpl(const TVec<Scalar> &parameters) {
+bool ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>::PropagateNominalStateImpl(const TVec<Scalar> &parameters) {
     return true;
 }
 
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-bool ErrorKalmanFilter<Scalar, StateSize, ObserveSize>::PropagateCovarianceImpl() {
+bool ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>::PropagateCovarianceImpl() {
     predict_P_ = F_ * P_ * F_.transpose() + Q_;
     return true;
 }
 
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-bool ErrorKalmanFilter<Scalar, StateSize, ObserveSize>::UpdateStateAndCovarianceImpl(const TMat<Scalar> &residual) {
-    const TMat<Scalar, ObserveSize, StateSize> H_t = H_.transpose();
-
+bool ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAndCovarianceImpl(const TMat<Scalar> &residual) {
     // Compute Kalman gain.
+    const TMat<Scalar, ObserveSize, StateSize> H_t = H_.transpose();
     predict_S_ = H_ * predict_P_ * H_t + R_;
     const TMat<Scalar, StateSize, ObserveSize> K_ = predict_P_ * H_t * predict_S_.inverse();
 

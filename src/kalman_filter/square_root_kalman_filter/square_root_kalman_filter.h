@@ -10,15 +10,59 @@ struct SquareRootKalmanFilterOptions {
     StateCovUpdateMethod kMethod = StateCovUpdateMethod::kSimple;
 };
 
-/* Class Basic Kalman Filter Declaration. */
+/* Class Square Root Error State Kalman Filter Declaration. */
+template <typename Scalar>
+class SquareRootKalmanFilterDynamic : public Filter<Scalar, SquareRootKalmanFilterDynamic<Scalar>> {
+
+public:
+    SquareRootKalmanFilterDynamic() : Filter<Scalar, SquareRootKalmanFilterDynamic<Scalar>>() {}
+    virtual ~SquareRootKalmanFilterDynamic() = default;
+
+    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TVec1<Scalar>());
+    bool PropagateCovarianceImpl();
+    bool UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation = TVec1<Scalar>());
+
+    // Reference for member variables.
+    SquareRootKalmanFilterOptions &options() { return options_; }
+
+    TVec<Scalar> &dx() { return dx_; }
+    TMat<Scalar> &S_t() { return S_t_; }
+    TMat<Scalar> &F() { return F_; }
+    TMat<Scalar> &H() { return H_; }
+    TMat<Scalar> &square_Q_t() { return square_Q_t_; }
+    TMat<Scalar> &square_R_t() { return square_R_t_; }
+
+private:
+    SquareRootKalmanFilterOptions options_;
+
+    TVec<Scalar> dx_ = TVec1<Scalar>::Zero();
+    // P is represent as P = S * S.t.
+    TMat<Scalar> S_t_ = TMat1<Scalar>::Zero();
+
+    // Process function F and measurement function H.
+    TMat<Scalar> F_ = TMat1<Scalar>::Identity();
+    TMat<Scalar> H_ = TMat1<Scalar>::Identity();
+
+    // Process noise Q and measurement noise R.
+    // Define Q^(T/2) and R^(T/2) here.
+    TMat<Scalar> square_Q_t_ = TMat1<Scalar>::Zero();
+    TMat<Scalar> square_R_t_ = TMat1<Scalar>::Zero();
+
+    TMat<Scalar> extend_predict_S_t_ = TVec2<Scalar>::Zero();
+    TMat<Scalar> predict_S_t_ = TMat1<Scalar>::Zero();
+    TMat<Scalar> M_ = TMat2<Scalar>::Zero();
+
+};
+
+/* Class Square Root Error State Kalman Filter Declaration. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-class SquareRootKalmanFilter : public Filter<Scalar, SquareRootKalmanFilter<Scalar, StateSize, ObserveSize>> {
+class SquareRootKalmanFilterStatic : public Filter<Scalar, SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>> {
 
 static_assert(StateSize > 0 && ObserveSize > 0, "Size of state and observe must be larger than 0.");
 
 public:
-    SquareRootKalmanFilter() : Filter<Scalar, SquareRootKalmanFilter<Scalar, StateSize, ObserveSize>>() {}
-    virtual ~SquareRootKalmanFilter() = default;
+    SquareRootKalmanFilterStatic() : Filter<Scalar, SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>>() {}
+    virtual ~SquareRootKalmanFilterStatic() = default;
 
     bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TVec<Scalar, 1>());
     bool PropagateCovarianceImpl();
@@ -56,14 +100,14 @@ private:
 
 };
 
-/* Class Basic Kalman Filter Definition. */
+/* Class Square Root Error State Kalman Filter Definition. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-bool SquareRootKalmanFilter<Scalar, StateSize, ObserveSize>::PropagateNominalStateImpl(const TVec<Scalar> &parameters) {
+bool SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>::PropagateNominalStateImpl(const TVec<Scalar> &parameters) {
     return true;
 }
 
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-bool SquareRootKalmanFilter<Scalar, StateSize, ObserveSize>::PropagateCovarianceImpl() {
+bool SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>::PropagateCovarianceImpl() {
     /*  extend_predict_S_t_ = [ S.t * F.t ]
                               [   Q.t/2   ] */
     extend_predict_S_t_.template block<StateSize, StateSize>(0, 0) = S_t_ * F_.transpose();
@@ -77,7 +121,7 @@ bool SquareRootKalmanFilter<Scalar, StateSize, ObserveSize>::PropagateCovariance
 }
 
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-bool SquareRootKalmanFilter<Scalar, StateSize, ObserveSize>::UpdateStateAndCovarianceImpl(const TMat<Scalar> &residual) {
+bool SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAndCovarianceImpl(const TMat<Scalar> &residual) {
     // Construct matrix M, do QR decompose on it.
     /*  M = [ R.t/2             0    ] = T * [ (H * pre_P * H.t + R).t/2  hat_K.t ]
             [ pre_S.t * H.t  pre_S.t ]       [             0                S.t   ]

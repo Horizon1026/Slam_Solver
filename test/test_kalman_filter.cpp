@@ -43,26 +43,26 @@ void PrintFilterResult(std::vector<Scalar> &truth_data,
     ReportInfo("Noise of raw data and new data is " << raw_noise << " / " << new_noise);
 }
 
-void TestKalmanFilter(std::vector<Scalar> &truth_data,
+void TestKalmanFilterStatic(std::vector<Scalar> &truth_data,
                       std::vector<Scalar> &noised_data) {
-    ReportInfo(YELLOW ">> Test kalman filter in dimension 1." RESET_COLOR);
-
+    ReportInfo(YELLOW ">> Test kalman filter (static) in dimension 1." RESET_COLOR);
 
     // Construct filter for this data.
-    KalmanFilter<Scalar, 1, 1> filter;
+    KalmanFilterStatic<Scalar, 1, 1> filter;
     filter.options().kMethod = StateCovUpdateMethod::kFull;
-    filter.F().setIdentity();
-    filter.R() = TMat<Scalar, 1, 1>(kNoiseSigma * kNoiseSigma);
-    filter.Q() = TMat<Scalar, 1, 1>(0.01f);
-    filter.H().setIdentity();
+    filter.P().setZero(1, 1);
+    filter.F().setIdentity(1, 1);
+    filter.H().setIdentity(1, 1);
+    filter.R() = TMat1<Scalar>(kNoiseSigma * kNoiseSigma);
+    filter.Q() = TMat1<Scalar>(0.01f);
 
     // Filter noised data.
     std::vector<Scalar> filtered_data = noised_data;
-    filter.x() = TVec<Scalar, 1>(noised_data.front());
+    filter.x() = TVec1<Scalar>(noised_data.front());
     for (uint32_t i = 1; i < noised_data.size(); ++i) {
         filter.PropagateNominalState();
         filter.PropagateCovariance();
-        filter.UpdateStateAndCovariance(TVec<Scalar, 1>(noised_data[i]));
+        filter.UpdateStateAndCovariance(TVec1<Scalar>(noised_data[i]));
         filtered_data[i] = filter.x()(0);
     }
 
@@ -70,25 +70,25 @@ void TestKalmanFilter(std::vector<Scalar> &truth_data,
     PrintFilterResult(truth_data, noised_data, filtered_data);
 }
 
-void TestErrorKalmanFilter(std::vector<Scalar> &truth_data,
+void TestErrorKalmanFilterStatic(std::vector<Scalar> &truth_data,
                            std::vector<Scalar> &noised_data) {
-    ReportInfo(YELLOW ">> Test error kalman filter in dimension 1." RESET_COLOR);
-
+    ReportInfo(YELLOW ">> Test error kalman filter (static) in dimension 1." RESET_COLOR);
 
     // Construct filter for this data.
-    ErrorKalmanFilter<Scalar, 1, 1> filter;
+    ErrorKalmanFilterStatic<Scalar, 1, 1> filter;
     filter.options().kMethod = StateCovUpdateMethod::kFull;
-    filter.F().setIdentity();
-    filter.R() = TMat<Scalar, 1, 1>(kNoiseSigma * kNoiseSigma);
-    filter.Q() = TMat<Scalar, 1, 1>(0.01f);
-    filter.H().setIdentity();
+    filter.P().setZero(1, 1);
+    filter.F().setIdentity(1, 1);
+    filter.H().setIdentity(1, 1);
+    filter.R() = TMat1<Scalar>(kNoiseSigma * kNoiseSigma);
+    filter.Q() = TMat1<Scalar>(0.01f);
 
     // Filter noised data.
     std::vector<Scalar> filtered_data = noised_data;
     for (uint32_t i = 1; i < noised_data.size(); ++i) {
         filter.PropagateNominalState();
         filter.PropagateCovariance();
-        filter.UpdateStateAndCovariance(TVec<Scalar, 1>(noised_data[i] - filtered_data[i - 1]));
+        filter.UpdateStateAndCovariance(TVec1<Scalar>(noised_data[i] - filtered_data[i - 1]));
         filtered_data[i] = filter.dx()(0) + filtered_data[i - 1];
     }
 
@@ -96,24 +96,104 @@ void TestErrorKalmanFilter(std::vector<Scalar> &truth_data,
     PrintFilterResult(truth_data, noised_data, filtered_data);
 }
 
-void TestSquareRootKalmanFilter(std::vector<Scalar> &truth_data,
+void TestSquareRootKalmanFilterStatic(std::vector<Scalar> &truth_data,
                                 std::vector<Scalar> &noised_data) {
-    ReportInfo(YELLOW ">> Test square root kalman filter in dimension 1." RESET_COLOR);
+    ReportInfo(YELLOW ">> Test square root kalman filter (static) in dimension 1." RESET_COLOR);
 
     // Construct filter for this data.
-    SquareRootKalmanFilter<Scalar, 1, 1> filter;
+    SquareRootKalmanFilterStatic<Scalar, 1, 1> filter;
     filter.options().kMethod = StateCovUpdateMethod::kFull;
-    filter.F().setIdentity();
-    filter.square_R_t() = TMat<Scalar, 1, 1>(kNoiseSigma);
-    filter.square_Q_t() = TMat<Scalar, 1, 1>(std::sqrt(0.01f));
-    filter.H().setIdentity();
+    filter.S_t().setZero(1, 1);
+    filter.F().setIdentity(1, 1);
+    filter.H().setIdentity(1, 1);
+    filter.square_R_t() = TMat1<Scalar>(kNoiseSigma);
+    filter.square_Q_t() = TMat1<Scalar>(std::sqrt(0.01f));
 
     // Filter noised data.
     std::vector<Scalar> filtered_data = noised_data;
     for (uint32_t i = 1; i < noised_data.size(); ++i) {
         filter.PropagateNominalState();
         filter.PropagateCovariance();
-        filter.UpdateStateAndCovariance(TVec<Scalar, 1>(noised_data[i] - filtered_data[i - 1]));
+        filter.UpdateStateAndCovariance(TVec1<Scalar>(noised_data[i] - filtered_data[i - 1]));
+        filtered_data[i] = filter.dx()(0) + filtered_data[i - 1];
+    }
+
+    // Print result.
+    PrintFilterResult(truth_data, noised_data, filtered_data);
+}
+
+void TestKalmanFilterDynamic(std::vector<Scalar> &truth_data,
+                             std::vector<Scalar> &noised_data) {
+    ReportInfo(YELLOW ">> Test kalman filter (dynamic) in dimension 1." RESET_COLOR);
+
+    // Construct filter for this data.
+    KalmanFilterDynamic<Scalar> filter;
+    filter.options().kMethod = StateCovUpdateMethod::kFull;
+    filter.P().setZero(1, 1);
+    filter.F().setIdentity(1, 1);
+    filter.H().setIdentity(1, 1);
+    filter.R() = TMat1<Scalar>(kNoiseSigma * kNoiseSigma);
+    filter.Q() = TMat1<Scalar>(0.01f);
+
+    // Filter noised data.
+    std::vector<Scalar> filtered_data = noised_data;
+    filter.x() = TVec1<Scalar>(noised_data.front());
+    for (uint32_t i = 1; i < noised_data.size(); ++i) {
+        filter.PropagateNominalState();
+        filter.PropagateCovariance();
+        filter.UpdateStateAndCovariance(TVec1<Scalar>(noised_data[i]));
+        filtered_data[i] = filter.x()(0);
+    }
+
+    // Print result.
+    PrintFilterResult(truth_data, noised_data, filtered_data);
+}
+
+void TestErrorKalmanFilterDynamic(std::vector<Scalar> &truth_data,
+                                  std::vector<Scalar> &noised_data) {
+    ReportInfo(YELLOW ">> Test error kalman filter (dynamic) in dimension 1." RESET_COLOR);
+
+    // Construct filter for this data.
+    ErrorKalmanFilterDynamic<Scalar> filter;
+    filter.options().kMethod = StateCovUpdateMethod::kFull;
+    filter.P().setZero(1, 1);
+    filter.F().setIdentity(1, 1);
+    filter.H().setIdentity(1, 1);
+    filter.R() = TMat1<Scalar>(kNoiseSigma * kNoiseSigma);
+    filter.Q() = TMat1<Scalar>(0.01f);
+
+    // Filter noised data.
+    std::vector<Scalar> filtered_data = noised_data;
+    for (uint32_t i = 1; i < noised_data.size(); ++i) {
+        filter.PropagateNominalState();
+        filter.PropagateCovariance();
+        filter.UpdateStateAndCovariance(TVec1<Scalar>(noised_data[i] - filtered_data[i - 1]));
+        filtered_data[i] = filter.dx()(0) + filtered_data[i - 1];
+    }
+
+    // Print result.
+    PrintFilterResult(truth_data, noised_data, filtered_data);
+}
+
+void TestSquareRootKalmanFilterDynamic(std::vector<Scalar> &truth_data,
+                                       std::vector<Scalar> &noised_data) {
+    ReportInfo(YELLOW ">> Test square root kalman filter (dynamic) in dimension 1." RESET_COLOR);
+
+    // Construct filter for this data.
+    SquareRootKalmanFilterDynamic<Scalar> filter;
+    filter.options().kMethod = StateCovUpdateMethod::kFull;
+    filter.S_t().setZero(1, 1);
+    filter.F().setIdentity(1, 1);
+    filter.H().setIdentity(1, 1);
+    filter.square_R_t() = TMat1<Scalar>(kNoiseSigma);
+    filter.square_Q_t() = TMat1<Scalar>(std::sqrt(0.01f));
+
+    // Filter noised data.
+    std::vector<Scalar> filtered_data = noised_data;
+    for (uint32_t i = 1; i < noised_data.size(); ++i) {
+        filter.PropagateNominalState();
+        filter.PropagateCovariance();
+        filter.UpdateStateAndCovariance(TVec1<Scalar>(noised_data[i] - filtered_data[i - 1]));
         filtered_data[i] = filter.dx()(0) + filtered_data[i - 1];
     }
 
@@ -128,9 +208,13 @@ int main(int argc, char **argv) {
     std::vector<Scalar> noised_data;
     GenerateData(truth_data, noised_data);
 
-    TestKalmanFilter(truth_data, noised_data);
-    TestErrorKalmanFilter(truth_data, noised_data);
-    TestSquareRootKalmanFilter(truth_data, noised_data);
+    TestKalmanFilterStatic(truth_data, noised_data);
+    TestErrorKalmanFilterStatic(truth_data, noised_data);
+    TestSquareRootKalmanFilterStatic(truth_data, noised_data);
+
+    TestKalmanFilterDynamic(truth_data, noised_data);
+    TestErrorKalmanFilterDynamic(truth_data, noised_data);
+    TestSquareRootKalmanFilterDynamic(truth_data, noised_data);
 
     return 0;
 }
