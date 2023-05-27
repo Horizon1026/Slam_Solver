@@ -107,7 +107,7 @@ void TestKalmanFilterStatic(std::vector<Scalar> &truth_data,
 }
 
 void TestErrorKalmanFilterStatic(std::vector<Scalar> &truth_data,
-                           std::vector<Scalar> &noised_data) {
+                                 std::vector<Scalar> &noised_data) {
     ReportInfo(YELLOW ">> Test error kalman filter (static) in dimension 1." RESET_COLOR);
 
     // Construct filter for this data.
@@ -123,7 +123,7 @@ void TestErrorKalmanFilterStatic(std::vector<Scalar> &truth_data,
 }
 
 void TestSquareRootKalmanFilterStatic(std::vector<Scalar> &truth_data,
-                                std::vector<Scalar> &noised_data) {
+                                      std::vector<Scalar> &noised_data) {
     ReportInfo(YELLOW ">> Test square root kalman filter (static) in dimension 1." RESET_COLOR);
 
     // Construct filter for this data.
