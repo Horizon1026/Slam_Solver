@@ -157,7 +157,7 @@ int main(int argc, char **argv) {
     for (auto &vertex : all_points) { problem.AddVertex(vertex.get(), false); }
     for (auto &edge : reprojection_edges) { problem.AddEdge(edge.get()); }
 
-    SolverDogleg<Scalar> solver;
+    SolverLm<Scalar> solver;
     solver.problem() = &problem;
 
     TickTock tick_tock;
@@ -166,7 +166,8 @@ int main(int argc, char **argv) {
     ReportInfo("[Ticktock] Solve cost time " << tick_tock.TickInMillisecond() << " ms");
 
     // Show optimization result.
-    for (int32_t i = 0; i < kPointsNumber; ++i) {
+    const int32_t max_points_num_to_print = std::min(10, kPointsNumber);
+    for (int32_t i = 0; i < max_points_num_to_print; ++i) {
         ReportInfo("[Point pos] [truth] " << LogVec(points[i]) << " | [result] " << LogVec(all_points[i]->param()));
     }
     for (int32_t i = 0; i < kCameraFrameNumber; ++i) {
