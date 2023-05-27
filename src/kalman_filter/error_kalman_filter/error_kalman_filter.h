@@ -11,7 +11,7 @@ struct ErrorKalmanFilterOptions {
 };
 
 /* Class Basic Kalman Filter Declaration. */
-template <typename Scalar, int32_t StateSize = 1, int32_t ObserveSize = 1>
+template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 class ErrorKalmanFilter : public Filter<Scalar, ErrorKalmanFilter<Scalar, StateSize, ObserveSize>> {
 
 static_assert(StateSize > 0 && ObserveSize > 0, "Size of state and observe must be larger than 0.");
