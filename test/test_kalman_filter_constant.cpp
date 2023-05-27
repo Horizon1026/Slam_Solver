@@ -43,21 +43,24 @@ void PrintFilterResult(std::vector<Scalar> &truth_data,
     ReportInfo("Noise of raw data and new data is " << raw_noise << " / " << new_noise);
 }
 
-void TestKalmanFilterStatic(std::vector<Scalar> &truth_data,
-                      std::vector<Scalar> &noised_data) {
-    ReportInfo(YELLOW ">> Test kalman filter (static) in dimension 1." RESET_COLOR);
+template <typename FilterType>
+void FilterNoisedDataInErrorState(const std::vector<Scalar> &noised_data,
+                                  FilterType &filter,
+                                  std::vector<Scalar> &filtered_data) {
+    filtered_data = noised_data;
+    for (uint32_t i = 1; i < noised_data.size(); ++i) {
+        filter.PropagateNominalState();
+        filter.PropagateCovariance();
+        filter.UpdateStateAndCovariance(TVec1<Scalar>(noised_data[i] - filtered_data[i - 1]));
+        filtered_data[i] = filter.dx()(0) + filtered_data[i - 1];
+    }
+}
 
-    // Construct filter for this data.
-    KalmanFilterStatic<Scalar, 1, 1> filter;
-    filter.options().kMethod = StateCovUpdateMethod::kFull;
-    filter.P().setZero(1, 1);
-    filter.F().setIdentity(1, 1);
-    filter.H().setIdentity(1, 1);
-    filter.R() = TMat1<Scalar>(kNoiseSigma * kNoiseSigma);
-    filter.Q() = TMat1<Scalar>(0.01f);
-
-    // Filter noised data.
-    std::vector<Scalar> filtered_data = noised_data;
+template <typename FilterType>
+void FilterNoisedDataInNominalState(const std::vector<Scalar> &noised_data,
+                                    FilterType &filter,
+                                    std::vector<Scalar> &filtered_data) {
+    filtered_data = noised_data;
     filter.x() = TVec1<Scalar>(noised_data.front());
     for (uint32_t i = 1; i < noised_data.size(); ++i) {
         filter.PropagateNominalState();
@@ -65,6 +68,39 @@ void TestKalmanFilterStatic(std::vector<Scalar> &truth_data,
         filter.UpdateStateAndCovariance(TVec1<Scalar>(noised_data[i]));
         filtered_data[i] = filter.x()(0);
     }
+}
+
+template <typename FilterType>
+void InitializeKalmanFilter(FilterType &filter) {
+    filter.options().kMethod = StateCovUpdateMethod::kFull;
+    filter.P().setZero(1, 1);
+    filter.F().setIdentity(1, 1);
+    filter.H().setIdentity(1, 1);
+    filter.R() = TMat1<Scalar>(kNoiseSigma * kNoiseSigma);
+    filter.Q() = TMat1<Scalar>(0.01f);
+}
+
+template <typename FilterType>
+void InitializeSquareRootKalmanFilter(FilterType &filter) {
+    filter.options().kMethod = StateCovUpdateMethod::kFull;
+    filter.S_t().setZero(1, 1);
+    filter.F().setIdentity(1, 1);
+    filter.H().setIdentity(1, 1);
+    filter.square_R_t() = TMat1<Scalar>(kNoiseSigma);
+    filter.square_Q_t() = TMat1<Scalar>(std::sqrt(0.01f));
+}
+
+void TestKalmanFilterStatic(std::vector<Scalar> &truth_data,
+                            std::vector<Scalar> &noised_data) {
+    ReportInfo(YELLOW ">> Test kalman filter (static) in dimension 1." RESET_COLOR);
+
+    // Construct filter for this data.
+    KalmanFilterStatic<Scalar, 1, 1> filter;
+    InitializeKalmanFilter(filter);
+
+    // Filter noised data.
+    std::vector<Scalar> filtered_data;
+    FilterNoisedDataInNominalState(noised_data, filter, filtered_data);
 
     // Print result.
     PrintFilterResult(truth_data, noised_data, filtered_data);
@@ -76,21 +112,11 @@ void TestErrorKalmanFilterStatic(std::vector<Scalar> &truth_data,
 
     // Construct filter for this data.
     ErrorKalmanFilterStatic<Scalar, 1, 1> filter;
-    filter.options().kMethod = StateCovUpdateMethod::kFull;
-    filter.P().setZero(1, 1);
-    filter.F().setIdentity(1, 1);
-    filter.H().setIdentity(1, 1);
-    filter.R() = TMat1<Scalar>(kNoiseSigma * kNoiseSigma);
-    filter.Q() = TMat1<Scalar>(0.01f);
+    InitializeKalmanFilter(filter);
 
     // Filter noised data.
-    std::vector<Scalar> filtered_data = noised_data;
-    for (uint32_t i = 1; i < noised_data.size(); ++i) {
-        filter.PropagateNominalState();
-        filter.PropagateCovariance();
-        filter.UpdateStateAndCovariance(TVec1<Scalar>(noised_data[i] - filtered_data[i - 1]));
-        filtered_data[i] = filter.dx()(0) + filtered_data[i - 1];
-    }
+    std::vector<Scalar> filtered_data;
+    FilterNoisedDataInErrorState(noised_data, filter, filtered_data);
 
     // Print result.
     PrintFilterResult(truth_data, noised_data, filtered_data);
@@ -102,21 +128,11 @@ void TestSquareRootKalmanFilterStatic(std::vector<Scalar> &truth_data,
 
     // Construct filter for this data.
     SquareRootKalmanFilterStatic<Scalar, 1, 1> filter;
-    filter.options().kMethod = StateCovUpdateMethod::kFull;
-    filter.S_t().setZero(1, 1);
-    filter.F().setIdentity(1, 1);
-    filter.H().setIdentity(1, 1);
-    filter.square_R_t() = TMat1<Scalar>(kNoiseSigma);
-    filter.square_Q_t() = TMat1<Scalar>(std::sqrt(0.01f));
+    InitializeSquareRootKalmanFilter(filter);
 
     // Filter noised data.
-    std::vector<Scalar> filtered_data = noised_data;
-    for (uint32_t i = 1; i < noised_data.size(); ++i) {
-        filter.PropagateNominalState();
-        filter.PropagateCovariance();
-        filter.UpdateStateAndCovariance(TVec1<Scalar>(noised_data[i] - filtered_data[i - 1]));
-        filtered_data[i] = filter.dx()(0) + filtered_data[i - 1];
-    }
+    std::vector<Scalar> filtered_data;
+    FilterNoisedDataInErrorState(noised_data, filter, filtered_data);
 
     // Print result.
     PrintFilterResult(truth_data, noised_data, filtered_data);
@@ -128,22 +144,11 @@ void TestKalmanFilterDynamic(std::vector<Scalar> &truth_data,
 
     // Construct filter for this data.
     KalmanFilterDynamic<Scalar> filter;
-    filter.options().kMethod = StateCovUpdateMethod::kFull;
-    filter.P().setZero(1, 1);
-    filter.F().setIdentity(1, 1);
-    filter.H().setIdentity(1, 1);
-    filter.R() = TMat1<Scalar>(kNoiseSigma * kNoiseSigma);
-    filter.Q() = TMat1<Scalar>(0.01f);
+    InitializeKalmanFilter(filter);
 
     // Filter noised data.
-    std::vector<Scalar> filtered_data = noised_data;
-    filter.x() = TVec1<Scalar>(noised_data.front());
-    for (uint32_t i = 1; i < noised_data.size(); ++i) {
-        filter.PropagateNominalState();
-        filter.PropagateCovariance();
-        filter.UpdateStateAndCovariance(TVec1<Scalar>(noised_data[i]));
-        filtered_data[i] = filter.x()(0);
-    }
+    std::vector<Scalar> filtered_data;
+    FilterNoisedDataInNominalState(noised_data, filter, filtered_data);
 
     // Print result.
     PrintFilterResult(truth_data, noised_data, filtered_data);
@@ -155,21 +160,11 @@ void TestErrorKalmanFilterDynamic(std::vector<Scalar> &truth_data,
 
     // Construct filter for this data.
     ErrorKalmanFilterDynamic<Scalar> filter;
-    filter.options().kMethod = StateCovUpdateMethod::kFull;
-    filter.P().setZero(1, 1);
-    filter.F().setIdentity(1, 1);
-    filter.H().setIdentity(1, 1);
-    filter.R() = TMat1<Scalar>(kNoiseSigma * kNoiseSigma);
-    filter.Q() = TMat1<Scalar>(0.01f);
+    InitializeKalmanFilter(filter);
 
     // Filter noised data.
-    std::vector<Scalar> filtered_data = noised_data;
-    for (uint32_t i = 1; i < noised_data.size(); ++i) {
-        filter.PropagateNominalState();
-        filter.PropagateCovariance();
-        filter.UpdateStateAndCovariance(TVec1<Scalar>(noised_data[i] - filtered_data[i - 1]));
-        filtered_data[i] = filter.dx()(0) + filtered_data[i - 1];
-    }
+    std::vector<Scalar> filtered_data;
+    FilterNoisedDataInErrorState(noised_data, filter, filtered_data);
 
     // Print result.
     PrintFilterResult(truth_data, noised_data, filtered_data);
@@ -181,21 +176,11 @@ void TestSquareRootKalmanFilterDynamic(std::vector<Scalar> &truth_data,
 
     // Construct filter for this data.
     SquareRootKalmanFilterDynamic<Scalar> filter;
-    filter.options().kMethod = StateCovUpdateMethod::kFull;
-    filter.S_t().setZero(1, 1);
-    filter.F().setIdentity(1, 1);
-    filter.H().setIdentity(1, 1);
-    filter.square_R_t() = TMat1<Scalar>(kNoiseSigma);
-    filter.square_Q_t() = TMat1<Scalar>(std::sqrt(0.01f));
+    InitializeSquareRootKalmanFilter(filter);
 
     // Filter noised data.
-    std::vector<Scalar> filtered_data = noised_data;
-    for (uint32_t i = 1; i < noised_data.size(); ++i) {
-        filter.PropagateNominalState();
-        filter.PropagateCovariance();
-        filter.UpdateStateAndCovariance(TVec1<Scalar>(noised_data[i] - filtered_data[i - 1]));
-        filtered_data[i] = filter.dx()(0) + filtered_data[i - 1];
-    }
+    std::vector<Scalar> filtered_data;
+    FilterNoisedDataInErrorState(noised_data, filter, filtered_data);
 
     // Print result.
     PrintFilterResult(truth_data, noised_data, filtered_data);
