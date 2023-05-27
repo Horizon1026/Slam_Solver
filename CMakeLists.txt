@@ -55,11 +55,11 @@ target_link_libraries( test_general_graph_optimizor_marginalization
     lib_general_graph_optimizor
 )
 
-# Add test_kalman_filter.
-add_executable( test_kalman_filter
-    test/test_kalman_filter.cpp
+# Add test_kalman_filter_constant.
+add_executable( test_kalman_filter_constant
+    test/test_kalman_filter_constant.cpp
 )
-target_link_libraries( test_kalman_filter
+target_link_libraries( test_kalman_filter_constant
     lib_kalman_filter
     lib_error_kalman_filter
     lib_square_root_kalman_filter
