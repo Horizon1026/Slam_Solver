@@ -12,9 +12,10 @@ General solver for slam problem, such as graph optimization problem solver.
     - [ ] Landmark block template.
     - [ ] Non-linear optimization solver template.
     - [ ] Marginalization.
-- [ ] Kalman filter problem solver.
-    - [ ] Basic kalman filter.
-    - [ ] Error state kalman filter.
+- [x] Kalman filter problem solver.
+    - [x] Basic kalman filter.
+    - [x] Error state kalman filter.
+    - [x] Square root error state kalman filter.
     - [ ] Iteration kalman filter.
 
 # Dependence
