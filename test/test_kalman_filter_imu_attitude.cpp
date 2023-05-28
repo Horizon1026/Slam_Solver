@@ -12,7 +12,7 @@ using namespace SLAM_SOLVER;
 
 namespace {
     constexpr float kGyroNoiseSigma = 0.01f;
-    constexpr float kGyroRandomWalkSigma = 0.001f;
+    constexpr float kGyroRandomWalkSigma = 0.01f;
 }
 
 bool LoadImuMeasurements(const std::string &imu_file,
@@ -86,7 +86,7 @@ void TestErrorKalmanFilter(const std::vector<ImuMeasurement> &meas,
         filter.PropagateNominalState();
 
         // Propagate covariance.
-        filter.F().block<3, 3>(0, 0) = Mat3::Identity() - Utility::SkewSymmetricMatrix(gyro - est_bw[i - 1]) * dt;
+        filter.F().block<3, 3>(0, 0) = Mat3::Identity() - Utility::SkewSymmetricMatrix(gyro) * dt;
         filter.F().block<3, 3>(0, 3) = -dt * Mat3::Identity();
         filter.Q().block<3, 3>(0, 0) = Mat3::Identity() * kGyroNoiseSigma * kGyroNoiseSigma * dt * dt;
         filter.Q().block<3, 3>(3, 3) = Mat3::Identity() * kGyroRandomWalkSigma * kGyroRandomWalkSigma * dt * dt;
@@ -98,7 +98,7 @@ void TestErrorKalmanFilter(const std::vector<ImuMeasurement> &meas,
         const Vec3 residual = Utility::SkewSymmetricMatrix(pred) * obv;
         filter.H().block<3, 3>(0, 0) = Utility::SkewSymmetricMatrix(obv) * Utility::SkewSymmetricMatrix(pred);
         const float weight = std::fabs(meas[i].accel.norm() - 9.81f);
-        filter.R() = Mat3::Identity() * (weight * weight * weight + 0.001f);
+        filter.R() = Mat3::Identity() * (weight + 0.001f);
 		filter.UpdateStateAndCovariance(residual);
 
         est_q[i] = est_q[i] * Utility::DeltaQ(filter.dx().head<3>());
@@ -137,7 +137,7 @@ void TestSquareRootKalmanFilter(const std::vector<ImuMeasurement> &meas,
         filter.PropagateNominalState();
 
         // Propagate covariance.
-        filter.F().block<3, 3>(0, 0) = Mat3::Identity() - Utility::SkewSymmetricMatrix(gyro - est_bw[i - 1]) * dt;
+        filter.F().block<3, 3>(0, 0) = Mat3::Identity() - Utility::SkewSymmetricMatrix(gyro) * dt;
         filter.F().block<3, 3>(0, 3) = -dt * Mat3::Identity();
         filter.square_Q_t().block<3, 3>(0, 0) = Mat3::Identity() * kGyroNoiseSigma * dt;
         filter.square_Q_t().block<3, 3>(3, 3) = Mat3::Identity() * kGyroRandomWalkSigma * dt;
@@ -149,7 +149,7 @@ void TestSquareRootKalmanFilter(const std::vector<ImuMeasurement> &meas,
         const Vec3 residual = Utility::SkewSymmetricMatrix(pred) * obv;
         filter.H().block<3, 3>(0, 0) = Utility::SkewSymmetricMatrix(obv) * Utility::SkewSymmetricMatrix(pred);
         const float weight = std::fabs(meas[i].accel.norm() - 9.81f);
-        filter.square_R_t() = Mat3::Identity() * std::sqrt(weight * weight * weight + 0.001f);
+        filter.square_R_t() = Mat3::Identity() * std::sqrt(weight + 0.001f);
 		filter.UpdateStateAndCovariance(residual);
 
         est_q[i] = est_q[i] * Utility::DeltaQ(filter.dx().head<3>());
@@ -189,9 +189,9 @@ void ComputeEstimationResidual(const std::vector<Quat> &truth,
     	mean_min_max[i](0) /= static_cast<float>(truth.size());
     }
 
-    ReportInfo("The mean/min/max residual of pitch is " << LogVec(mean_min_max[0]));
-    ReportInfo("The mean/min/max residual of roll is " << LogVec(mean_min_max[1]));
-    ReportInfo("The mean/min/max residual of yaw is " << LogVec(mean_min_max[2]));
+    ReportInfo("The mean/min/max residual of pitch is " << LogVec(mean_min_max[0]) << " deg.");
+    ReportInfo("The mean/min/max residual of roll is " << LogVec(mean_min_max[1]) << " deg.");
+    ReportInfo("The mean/min/max residual of yaw is " << LogVec(mean_min_max[2]) << " deg.");
 }
 
 int main(int argc, char **argv) {
