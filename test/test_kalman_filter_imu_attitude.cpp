@@ -76,7 +76,7 @@ void TestErrorKalmanFilter(const std::vector<ImuMeasurement> &meas,
     filter.Q().setIdentity();
 
     for (uint32_t i = 1; i < meas.size(); ++i) {
-		const Vec3 gyro = meas[i].gyro;
+		const Vec3 gyro = 0.5f * (meas[i - 1].gyro + meas[i].gyro) - est_bw[i - 1];
         const float dt = meas[i].time_stamp - meas[i - 1].time_stamp;
 
         // Propagate nominal state.
@@ -88,8 +88,8 @@ void TestErrorKalmanFilter(const std::vector<ImuMeasurement> &meas,
         // Propagate covariance.
         filter.F().block<3, 3>(0, 0) = Mat3::Identity() - Utility::SkewSymmetricMatrix(gyro - est_bw[i - 1]) * dt;
         filter.F().block<3, 3>(0, 3) = -dt * Mat3::Identity();
-        filter.Q().block<3, 3>(0, 0) = Mat3::Identity() * kGyroNoiseSigma * kGyroNoiseSigma * dt;
-        filter.Q().block<3, 3>(3, 3) = Mat3::Identity() * kGyroRandomWalkSigma * kGyroRandomWalkSigma * dt;
+        filter.Q().block<3, 3>(0, 0) = Mat3::Identity() * kGyroNoiseSigma * kGyroNoiseSigma * dt * dt;
+        filter.Q().block<3, 3>(3, 3) = Mat3::Identity() * kGyroRandomWalkSigma * kGyroRandomWalkSigma * dt * dt;
         filter.PropagateCovariance();
 
         // Update state and covariance with observations.
@@ -127,7 +127,7 @@ void TestSquareRootKalmanFilter(const std::vector<ImuMeasurement> &meas,
     filter.square_Q_t().setIdentity();
 
     for (uint32_t i = 1; i < meas.size(); ++i) {
-		const Vec3 gyro = meas[i].gyro;
+		const Vec3 gyro = 0.5f * (meas[i - 1].gyro + meas[i].gyro) - est_bw[i - 1];
         const float dt = meas[i].time_stamp - meas[i - 1].time_stamp;
 
         // Propagate nominal state.
@@ -139,8 +139,8 @@ void TestSquareRootKalmanFilter(const std::vector<ImuMeasurement> &meas,
         // Propagate covariance.
         filter.F().block<3, 3>(0, 0) = Mat3::Identity() - Utility::SkewSymmetricMatrix(gyro - est_bw[i - 1]) * dt;
         filter.F().block<3, 3>(0, 3) = -dt * Mat3::Identity();
-        filter.square_Q_t().block<3, 3>(0, 0) = Mat3::Identity() * kGyroNoiseSigma * std::sqrt(dt);
-        filter.square_Q_t().block<3, 3>(3, 3) = Mat3::Identity() * kGyroRandomWalkSigma * std::sqrt(dt);
+        filter.square_Q_t().block<3, 3>(0, 0) = Mat3::Identity() * kGyroNoiseSigma * dt;
+        filter.square_Q_t().block<3, 3>(3, 3) = Mat3::Identity() * kGyroRandomWalkSigma * dt;
         filter.PropagateCovariance();
 
         // Update state and covariance with observations.
