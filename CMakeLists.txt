@@ -7,6 +7,12 @@ set( CMAKE_CXX_FLAGS "-std=c++17 -O3 -Wall" )
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 set( CMAKE_CXX_STANDARD 17 )
 
+# In order to test kalman filter, add imu model from 'Sensor_Model'.
+set( SENSOR_MODEL_PATH ${PROJECT_SOURCE_DIR}/../Sensor_Model/src )
+if ( NOT TARGET lib_imu_model )
+	add_subdirectory( ${SENSOR_MODEL_PATH}/imu ${PROJECT_SOURCE_DIR}/build/lib_imu_model )
+endif()
+
 # Add general graph optimizor.
 set( GENERAL_GRAPH_OPTIMIZOR_PATH ${PROJECT_SOURCE_DIR}/src/general_graph_optimizor )
 if ( NOT TARGET lib_general_graph_optimizor )
@@ -63,4 +69,16 @@ target_link_libraries( test_kalman_filter_constant
     lib_kalman_filter
     lib_error_kalman_filter
     lib_square_root_kalman_filter
+)
+
+# Add test_kalman_filter_imu_attitude.
+add_executable( test_kalman_filter_imu_attitude
+    test/test_kalman_filter_imu_attitude.cpp
+)
+target_link_libraries( test_kalman_filter_imu_attitude
+    lib_kalman_filter
+    lib_error_kalman_filter
+    lib_square_root_kalman_filter
+
+    lib_imu_model
 )

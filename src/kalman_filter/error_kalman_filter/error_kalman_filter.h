@@ -107,7 +107,7 @@ bool ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>::PropagateCovarianc
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 bool ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAndCovarianceImpl(const TMat<Scalar> &residual) {
     // Compute Kalman gain.
-    const TMat<Scalar, ObserveSize, StateSize> H_t = H_.transpose();
+    const TMat<Scalar, StateSize, ObserveSize> H_t = H_.transpose();
     predict_S_ = H_ * predict_P_ * H_t + R_;
     const TMat<Scalar, StateSize, ObserveSize> K_ = predict_P_ * H_t * predict_S_.inverse();
 
