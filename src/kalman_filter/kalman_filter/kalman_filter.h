@@ -31,6 +31,15 @@ public:
     TMat<Scalar> &Q() { return Q_; }
     TMat<Scalar> &R() { return R_; }
 
+    // Const reference for member variables.
+    const KalmanFilterOptions &options() const { return options_; }
+    const TVec<Scalar> &x() const { return x_; }
+    const TMat<Scalar> &P() const { return P_; }
+    const TMat<Scalar> &F() const { return F_; }
+    const TMat<Scalar> &H() const { return H_; }
+    const TMat<Scalar> &Q() const { return Q_; }
+    const TMat<Scalar> &R() const { return R_; }
+
 private:
     KalmanFilterOptions options_;
 
@@ -73,6 +82,15 @@ public:
     TMat<Scalar, ObserveSize, StateSize> &H() { return H_; }
     TMat<Scalar, StateSize, StateSize> &Q() { return Q_; }
     TMat<Scalar, ObserveSize, ObserveSize> &R() { return R_; }
+
+    // Const reference for member variables.
+    const KalmanFilterOptions &options() const { return options_; }
+    const TVec<Scalar, StateSize> &x() const { return x_; }
+    const TMat<Scalar, StateSize, StateSize> &P() const { return P_; }
+    const TMat<Scalar, StateSize, StateSize> &F() const { return F_; }
+    const TMat<Scalar, ObserveSize, StateSize> &H() const { return H_; }
+    const TMat<Scalar, StateSize, StateSize> &Q() const { return Q_; }
+    const TMat<Scalar, ObserveSize, ObserveSize> &R() const { return R_; }
 
 private:
     KalmanFilterOptions options_;

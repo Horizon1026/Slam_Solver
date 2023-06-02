@@ -62,6 +62,17 @@ public:
     TVec<Scalar> &prior_bias_backup() { return prior_bias_backup_; }
     TVec<Scalar> &prior_residual_backup() { return prior_residual_backup_; }
 
+    // Const reference for member varibles.
+    const SolverOptions<Scalar> &options() const { return options_; }
+    const Graph<Scalar> *problem() const { return problem_; }
+
+    const Scalar &cost_at_linearized_point() const { return cost_at_linearized_point_; }
+    const Scalar &cost_at_latest_step() const { return cost_at_latest_step_; }
+
+    const TVec<Scalar> &dx() const { return dx_; }
+    const TVec<Scalar> &prior_bias_backup() const { return prior_bias_backup_; }
+    const TVec<Scalar> &prior_residual_backup() const { return prior_residual_backup_; }
+
 private:
     // General options for solver.
     SolverOptions<Scalar> options_;

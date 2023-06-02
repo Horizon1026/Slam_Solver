@@ -56,9 +56,6 @@ public:
     std::vector<Vertex<Scalar> *> &dense_vertices() { return dense_vertices_; }
     std::vector<Vertex<Scalar> *> &sparse_vertices() { return sparse_vertices_; }
     std::vector<Edge<Scalar> *> &edges() { return edges_; }
-    const int32_t &full_size_of_dense_vertices() const { return full_size_of_dense_vertices_; }
-    const int32_t &full_size_of_sparse_vertices() const { return full_size_of_sparse_vertices_; }
-    const int32_t &full_size_of_residuals() const { return full_size_of_residuals_; }
     TMat<Scalar> &hessian() { return hessian_; }
     TVec<Scalar> &bias() { return bias_; }
     TMat<Scalar> &jacobian() { return jacobian_; }
@@ -68,6 +65,23 @@ public:
     TMat<Scalar> &prior_jacobian() { return prior_jacobian_; }
     TMat<Scalar> &prior_jacobian_t_inv() { return prior_jacobian_t_inv_; }
     TVec<Scalar> &prior_residual() { return prior_residual_; }
+
+    // Const reference of member varibles.
+    const std::vector<Vertex<Scalar> *> &dense_vertices() const { return dense_vertices_; }
+    const std::vector<Vertex<Scalar> *> &sparse_vertices() const { return sparse_vertices_; }
+    const std::vector<Edge<Scalar> *> &edges() const { return edges_; }
+    const int32_t &full_size_of_dense_vertices() const { return full_size_of_dense_vertices_; }
+    const int32_t &full_size_of_sparse_vertices() const { return full_size_of_sparse_vertices_; }
+    const int32_t &full_size_of_residuals() const { return full_size_of_residuals_; }
+    const TMat<Scalar> &hessian() const { return hessian_; }
+    const TVec<Scalar> &bias() const { return bias_; }
+    const TMat<Scalar> &jacobian() const { return jacobian_; }
+    const TVec<Scalar> &residual() const { return residual_; }
+    const TMat<Scalar> &prior_hessian() const { return prior_hessian_; }
+    const TVec<Scalar> &prior_bias() const { return prior_bias_; }
+    const TMat<Scalar> &prior_jacobian() const { return prior_jacobian_; }
+    const TMat<Scalar> &prior_jacobian_t_inv() const { return prior_jacobian_t_inv_; }
+    const TVec<Scalar> &prior_residual() const { return prior_residual_; }
 
 private:
     // Manage vertices and edges in this graph.

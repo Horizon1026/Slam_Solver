@@ -51,6 +51,10 @@ public:
     MargOptions<Scalar> &options() { return options_; }
     Graph<Scalar> *&problem() { return problem_; }
 
+    // Const reference for member varibles.
+    const MargOptions<Scalar> &options() const { return options_; }
+    const Graph<Scalar> *problem() const { return problem_; }
+
 private:
     // Compute prior information with schur complement.
     void ComputePriorBySchurComplement(const TMat<Scalar> &Hrr,

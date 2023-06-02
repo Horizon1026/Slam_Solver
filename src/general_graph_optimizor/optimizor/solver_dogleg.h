@@ -33,6 +33,9 @@ public:
     // Reference for member varibles.
     SolverDoglegOptions<Scalar> &dogleg_options() { return dogleg_options_; }
 
+    // Const reference for member varibles.
+    const SolverDoglegOptions<Scalar> &dogleg_options() const { return dogleg_options_; }
+
 private:
     // Options for Dogleg solver.
     SolverDoglegOptions<Scalar> dogleg_options_;

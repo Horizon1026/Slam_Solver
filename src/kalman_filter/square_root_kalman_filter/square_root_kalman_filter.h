@@ -24,13 +24,21 @@ public:
 
     // Reference for member variables.
     SquareRootKalmanFilterOptions &options() { return options_; }
-
     TVec<Scalar> &dx() { return dx_; }
     TMat<Scalar> &S_t() { return S_t_; }
     TMat<Scalar> &F() { return F_; }
     TMat<Scalar> &H() { return H_; }
     TMat<Scalar> &square_Q_t() { return square_Q_t_; }
     TMat<Scalar> &square_R_t() { return square_R_t_; }
+
+    // Const reference for member variables.
+    const SquareRootKalmanFilterOptions &options() const { return options_; }
+    const TVec<Scalar> &dx() const { return dx_; }
+    const TMat<Scalar> &S_t() const { return S_t_; }
+    const TMat<Scalar> &F() const { return F_; }
+    const TMat<Scalar> &H() const { return H_; }
+    const TMat<Scalar> &square_Q_t() const { return square_Q_t_; }
+    const TMat<Scalar> &square_R_t() const { return square_R_t_; }
 
 private:
     SquareRootKalmanFilterOptions options_;
@@ -70,13 +78,21 @@ public:
 
     // Reference for member variables.
     SquareRootKalmanFilterOptions &options() { return options_; }
-
     TVec<Scalar, StateSize> &dx() { return dx_; }
     TMat<Scalar, StateSize, StateSize> &S_t() { return S_t_; }
     TMat<Scalar, StateSize, StateSize> &F() { return F_; }
     TMat<Scalar, ObserveSize, StateSize> &H() { return H_; }
     TMat<Scalar, StateSize, StateSize> &square_Q_t() { return square_Q_t_; }
     TMat<Scalar, ObserveSize, ObserveSize> &square_R_t() { return square_R_t_; }
+
+    // Const reference for member variables.
+    const SquareRootKalmanFilterOptions &options() const { return options_; }
+    const TVec<Scalar, StateSize> &dx() const { return dx_; }
+    const TMat<Scalar, StateSize, StateSize> &S_t() const { return S_t_; }
+    const TMat<Scalar, StateSize, StateSize> &F() const { return F_; }
+    const TMat<Scalar, ObserveSize, StateSize> &H() const { return H_; }
+    const TMat<Scalar, StateSize, StateSize> &square_Q_t() const { return square_Q_t_; }
+    const TMat<Scalar, ObserveSize, ObserveSize> &square_R_t() const { return square_R_t_; }
 
 private:
     SquareRootKalmanFilterOptions options_;

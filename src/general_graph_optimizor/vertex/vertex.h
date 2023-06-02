@@ -29,6 +29,9 @@ public:
     // Reference for member varibles.
     TVec<Scalar> &param() { return param_; }
 
+    // Const reference for member varibles.
+    const TVec<Scalar> &param() const { return param_; }
+
     // Update param with delta_param solved by solver.
     virtual void UpdateParam(const TVec<Scalar> &delta_param) { param_ += delta_param; }
 

@@ -33,6 +33,9 @@ public:
     // Reference for member varibles.
     SolverLmOptions<Scalar> &lm_options() { return lm_options_; }
 
+    // Const reference for member varibles.
+    const SolverLmOptions<Scalar> &lm_options() const { return lm_options_; }
+
 private:
     // Options for LM solver.
     SolverLmOptions<Scalar> lm_options_;

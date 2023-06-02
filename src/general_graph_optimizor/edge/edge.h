@@ -35,13 +35,17 @@ public:
     TMat<Scalar> &GetJacobian(uint32_t index) { return jacobians_[index]; }
     const std::vector<TMat<Scalar>> &GetJacobians() const { return jacobians_; }
 
-    // Reference of residual, information and observation for this edge.
+    // Reference for member varibles.
     TVec<Scalar> &residual() { return residual_; }
     TMat<Scalar> &information() { return information_; }
     TMat<Scalar> &observation() { return observation_; }
-
-    // Kernel function ptr reference.
     std::unique_ptr<Kernel<Scalar>> &kernel() { return kernel_; }
+
+    // Const reference for member varibles.
+    const TVec<Scalar> &residual() const { return residual_; }
+    const TMat<Scalar> &information() const { return information_; }
+    const TMat<Scalar> &observation() const { return observation_; }
+    const std::unique_ptr<Kernel<Scalar>> &kernel() const { return kernel_; }
 
     // Use string to represent edge type.
     virtual std::string GetType() { return std::string("Basic Edge"); }
