@@ -20,7 +20,7 @@ public:
     virtual ~Filter() = default;
     Filter(const Filter &filter) = delete;
 
-    bool PropagateNominalState(const TVec<Scalar> &value = TVec<Scalar, 1>()) {
+    bool PropagateNominalState(const TVec<Scalar> &value = TMat<Scalar>::Zero(1, 1)) {
         return reinterpret_cast<FilterType *>(this)->PropagateNominalStateImpl(value);
     }
 
@@ -28,7 +28,7 @@ public:
         return reinterpret_cast<FilterType *>(this)->PropagateCovarianceImpl();
     }
 
-    bool UpdateStateAndCovariance(const TMat<Scalar> &value = TVec<Scalar, 1>()) {
+    bool UpdateStateAndCovariance(const TMat<Scalar> &value = TMat<Scalar>::Zero(1, 1)) {
         return reinterpret_cast<FilterType *>(this)->UpdateStateAndCovarianceImpl(value);
     }
 

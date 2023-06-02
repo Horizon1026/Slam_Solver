@@ -18,9 +18,9 @@ public:
     ErrorKalmanFilterDynamic() : Filter<Scalar, ErrorKalmanFilterDynamic<Scalar>>() {}
     virtual ~ErrorKalmanFilterDynamic() = default;
 
-    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TVec1<Scalar>());
+    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TMat<Scalar>::Zero(1, 1));
     bool PropagateCovarianceImpl();
-    bool UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation = TVec1<Scalar>());
+    bool UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation = TMat<Scalar>::Zero(1, 1));
 
     // Reference for member varibles.
     ErrorKalmanFilterOptions &options() { return options_; }
@@ -43,19 +43,19 @@ public:
 private:
     ErrorKalmanFilterOptions options_;
 
-    TVec<Scalar> dx_ = TVec1<Scalar>::Zero();
-    TMat<Scalar> P_ = TMat1<Scalar>::Zero();
+    TVec<Scalar> dx_ = TMat<Scalar>::Zero(1, 1);
+    TMat<Scalar> P_ = TMat<Scalar>::Zero(1, 1);
 
-    TMat<Scalar> predict_P_ = TMat1<Scalar>::Zero();
-    TMat<Scalar> predict_S_ = TMat1<Scalar>::Zero();
+    TMat<Scalar> predict_P_ = TMat<Scalar>::Zero(1, 1);
+    TMat<Scalar> predict_S_ = TMat<Scalar>::Zero(1, 1);
 
     // Process function F and measurement function H.
-    TMat<Scalar> F_ = TMat1<Scalar>::Identity();
-    TMat<Scalar> H_ = TMat1<Scalar>::Identity();
+    TMat<Scalar> F_ = TMat<Scalar>::Identity(1, 1);
+    TMat<Scalar> H_ = TMat<Scalar>::Identity(1, 1);
 
     // Process noise Q and measurement noise R.
-    TMat<Scalar> Q_ = TMat1<Scalar>::Zero();
-    TMat<Scalar> R_ = TMat1<Scalar>::Zero();
+    TMat<Scalar> Q_ = TMat<Scalar>::Zero(1, 1);
+    TMat<Scalar> R_ = TMat<Scalar>::Zero(1, 1);
 
 };
 
@@ -69,9 +69,9 @@ public:
     ErrorKalmanFilterStatic() : Filter<Scalar, ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>>() {}
     virtual ~ErrorKalmanFilterStatic() = default;
 
-    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TVec<Scalar, 1>());
+    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TMat<Scalar>::Zero(1, 1));
     bool PropagateCovarianceImpl();
-    bool UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation = TVec<Scalar, 1>());
+    bool UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation = TMat<Scalar>::Zero(1, 1));
 
     // Reference for member variables.
     ErrorKalmanFilterOptions &options() { return options_; }

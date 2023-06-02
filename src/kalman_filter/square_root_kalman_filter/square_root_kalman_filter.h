@@ -18,9 +18,9 @@ public:
     SquareRootKalmanFilterDynamic() : Filter<Scalar, SquareRootKalmanFilterDynamic<Scalar>>() {}
     virtual ~SquareRootKalmanFilterDynamic() = default;
 
-    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TVec1<Scalar>());
+    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TMat<Scalar>::Zero(1, 1));
     bool PropagateCovarianceImpl();
-    bool UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation = TVec1<Scalar>());
+    bool UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation = TMat<Scalar>::Zero(1, 1));
 
     // Reference for member variables.
     SquareRootKalmanFilterOptions &options() { return options_; }
@@ -43,22 +43,22 @@ public:
 private:
     SquareRootKalmanFilterOptions options_;
 
-    TVec<Scalar> dx_ = TVec1<Scalar>::Zero();
+    TVec<Scalar> dx_ = TMat<Scalar>::Zero(1, 1);
     // P is represent as P = S * S.t.
-    TMat<Scalar> S_t_ = TMat1<Scalar>::Zero();
+    TMat<Scalar> S_t_ = TMat<Scalar>::Zero(1, 1);
 
     // Process function F and measurement function H.
-    TMat<Scalar> F_ = TMat1<Scalar>::Identity();
-    TMat<Scalar> H_ = TMat1<Scalar>::Identity();
+    TMat<Scalar> F_ = TMat<Scalar>::Identity(1, 1);
+    TMat<Scalar> H_ = TMat<Scalar>::Identity(1, 1);
 
     // Process noise Q and measurement noise R.
     // Define Q^(T/2) and R^(T/2) here.
-    TMat<Scalar> square_Q_t_ = TMat1<Scalar>::Zero();
-    TMat<Scalar> square_R_t_ = TMat1<Scalar>::Zero();
+    TMat<Scalar> square_Q_t_ = TMat<Scalar>::Zero(1, 1);
+    TMat<Scalar> square_R_t_ = TMat<Scalar>::Zero(1, 1);
 
-    TMat<Scalar> extend_predict_S_t_ = TVec2<Scalar>::Zero();
-    TMat<Scalar> predict_S_t_ = TMat1<Scalar>::Zero();
-    TMat<Scalar> M_ = TMat2<Scalar>::Zero();
+    TMat<Scalar> extend_predict_S_t_ = TMat<Scalar>::Zero(2, 1);
+    TMat<Scalar> predict_S_t_ = TMat<Scalar>::Zero(1, 1);
+    TMat<Scalar> M_ = TMat<Scalar>::Zero(2, 2);
 
 };
 
@@ -72,9 +72,9 @@ public:
     SquareRootKalmanFilterStatic() : Filter<Scalar, SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>>() {}
     virtual ~SquareRootKalmanFilterStatic() = default;
 
-    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TVec<Scalar, 1>());
+    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TMat<Scalar>::Zero(1, 1));
     bool PropagateCovarianceImpl();
-    bool UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation = TVec<Scalar, 1>());
+    bool UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation = TMat<Scalar>::Zero(1, 1));
 
     // Reference for member variables.
     SquareRootKalmanFilterOptions &options() { return options_; }

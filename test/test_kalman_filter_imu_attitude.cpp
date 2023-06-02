@@ -33,19 +33,19 @@ bool LoadImuMeasurements(const std::string &imu_file,
     }
 
     std::string oneLine;
-    double time_stamp;
+    double time_stamp_s;
     TVec3<double> acc, gyr, pos;
     TQuat<double> q;
     uint32_t cnt = 0;
     while (std::getline(fsIMU, oneLine) && !oneLine.empty()) {
         std::istringstream imuData(oneLine);
-        imuData >> time_stamp >> q.w() >> q.x() >> q.y() >> q.z() >> pos.x() >> pos.y() >> pos.z()
+        imuData >> time_stamp_s >> q.w() >> q.x() >> q.y() >> q.z() >> pos.x() >> pos.y() >> pos.z()
 			>> gyr.x() >> gyr.y() >> gyr.z() >> acc.x() >> acc.y() >> acc.z();
 
         ImuMeasurement meas;
         meas.accel = acc.cast<float>();
         meas.gyro = gyr.cast<float>();
-        meas.time_stamp = time_stamp;
+        meas.time_stamp_s = time_stamp_s;
         measurements.emplace_back(meas);
         position.emplace_back(pos.cast<float>());
         rotation.emplace_back(q.cast<float>());
@@ -77,7 +77,7 @@ void TestErrorKalmanFilter(const std::vector<ImuMeasurement> &meas,
 
     for (uint32_t i = 1; i < meas.size(); ++i) {
 		const Vec3 gyro = 0.5f * (meas[i - 1].gyro + meas[i].gyro) - est_bw[i - 1];
-        const float dt = meas[i].time_stamp - meas[i - 1].time_stamp;
+        const float dt = meas[i].time_stamp_s - meas[i - 1].time_stamp_s;
 
         // Propagate nominal state.
         est_q[i] = est_q[i - 1] * Utility::DeltaQ(gyro * dt);
@@ -128,7 +128,7 @@ void TestSquareRootKalmanFilter(const std::vector<ImuMeasurement> &meas,
 
     for (uint32_t i = 1; i < meas.size(); ++i) {
 		const Vec3 gyro = 0.5f * (meas[i - 1].gyro + meas[i].gyro) - est_bw[i - 1];
-        const float dt = meas[i].time_stamp - meas[i - 1].time_stamp;
+        const float dt = meas[i].time_stamp_s - meas[i - 1].time_stamp_s;
 
         // Propagate nominal state.
         est_q[i] = est_q[i - 1] * Utility::DeltaQ(gyro * dt);
