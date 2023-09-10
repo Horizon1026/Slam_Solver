@@ -161,9 +161,9 @@ int main(int argc, char **argv) {
     solver.problem() = &problem;
 
     TickTock tick_tock;
-    tick_tock.TickInMillisecond();
+    tick_tock.TockTickInMillisecond();
     solver.Solve(false);
-    ReportInfo("[Ticktock] Solve cost time " << tick_tock.TickInMillisecond() << " ms");
+    ReportInfo("[Ticktock] Solve cost time " << tick_tock.TockTickInMillisecond() << " ms");
 
     // Show optimization result.
     const int32_t max_points_num_to_print = std::min(10, kPointsNumber);
