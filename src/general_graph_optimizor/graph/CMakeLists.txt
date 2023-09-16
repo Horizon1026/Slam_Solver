@@ -32,3 +32,13 @@ target_link_libraries( lib_general_graph_optimizor_graph
     lib_general_graph_optimizor_vertex
     lib_general_graph_optimizor_edge
 )
+
+# Try to find intel tbb.
+find_package( TBB )
+if( TBB_FOUND )
+    message( ">> Find package tbb. Graph will use it." )
+    target_link_libraries( lib_general_graph_optimizor_graph
+        TBB::tbb
+    )
+    add_definitions( -DENABLE_TBB_PARALLEL )
+endif()
