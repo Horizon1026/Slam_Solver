@@ -1,7 +1,7 @@
 #include "graph.h"
 
 #ifdef ENABLE_TBB_PARALLEL
-#warning "tbb/tbb.h is included."
+#pragma message("tbb/tbb.h is included.")
 #include "tbb/tbb.h"
 #endif
 
