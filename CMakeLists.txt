@@ -45,11 +45,19 @@ target_link_libraries( test_general_graph_optimizor_polynomial_problem
     lib_general_graph_optimizor
 )
 
-# Add test_general_graph_optimizor_bundle_adjustment.
-add_executable( test_general_graph_optimizor_bundle_adjustment
-    test/test_general_graph_optimizor_bundle_adjustment.cpp
+# Add test_general_graph_optimizor_norm_plane_BA.
+add_executable( test_general_graph_optimizor_norm_plane_BA
+    test/test_general_graph_optimizor_norm_plane_BA.cpp
 )
-target_link_libraries( test_general_graph_optimizor_bundle_adjustment
+target_link_libraries( test_general_graph_optimizor_norm_plane_BA
+    lib_general_graph_optimizor
+)
+
+# Add test_general_graph_optimizor_unit_sphere_BA.
+add_executable( test_general_graph_optimizor_unit_sphere_BA
+    test/test_general_graph_optimizor_unit_sphere_BA.cpp
+)
+target_link_libraries( test_general_graph_optimizor_unit_sphere_BA
     lib_general_graph_optimizor
 )
 
