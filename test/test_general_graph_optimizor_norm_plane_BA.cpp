@@ -31,44 +31,30 @@ public:
         p_wc = this->GetVertex(1)->param();
         const TVec4<Scalar> &parameter = this->GetVertex(2)->param();
         q_wc = TQuat<Scalar>(parameter(0), parameter(1), parameter(2), parameter(3));
-        TVec3<Scalar> sphere_xyz = this->observation();
+
+        pixel_norm_xy = this->observation();
+
         p_c = q_wc.inverse() * (p_w - p_wc);
         inv_depth = static_cast<Scalar>(1) / p_c.z();
 
-        const TVec2<Scalar> pred_norm_xy = (p_c * inv_depth).template head<2>();
-        yita = 2.0 / (1.0 + pred_norm_xy.squaredNorm());
-        const TVec3<Scalar> pred_sphere_xyz = TVec3<Scalar>(pred_norm_xy.x() * yita, pred_norm_xy.y() * yita, yita - 1.0);
-
         if (std::isinf(inv_depth) || std::isnan(inv_depth)) {
-            this->residual().setZero(3);
+            this->residual().setZero(2);
         } else {
-            this->residual() = pred_sphere_xyz - sphere_xyz;
+            this->residual() = (p_c * inv_depth).template head<2>() - pixel_norm_xy;
         }
     }
 
     virtual void ComputeJacobians() override {
-        TMat3<Scalar> jacobian_sphere_3d = TMat3<Scalar>::Zero();
+        TMat2x3<Scalar> jacobian_2d_3d = TMat2x3<Scalar>::Zero();
         if (!std::isinf(inv_depth) && !std::isnan(inv_depth)) {
-            TMat3x2<Scalar> jacobian_sphere_norm = TMat3x2<Scalar>::Zero();
-            const Scalar yita2_4 = yita * yita * 4.0;
-            const Scalar uv = pred_norm_xy(0) * pred_norm_xy(1);
-            const Scalar u2 = pred_norm_xy(0) * pred_norm_xy(0);
-            const Scalar v2 = pred_norm_xy(1) * pred_norm_xy(1);
-            jacobian_sphere_norm << yita - u2 * yita2_4, yita - v2 * yita2_4,
-                                    - uv * yita2_4, - uv * yita2_4,
-                                    - pred_norm_xy(0) * yita2_4, - pred_norm_xy(1) * yita2_4;
-
-            TMat2x3<Scalar> jacobian_2d_3d = TMat2x3<Scalar>::Zero();
             const Scalar inv_depth_2 = inv_depth * inv_depth;
             jacobian_2d_3d << inv_depth, 0, - p_c(0) * inv_depth_2,
                               0, inv_depth, - p_c(1) * inv_depth_2;
-
-            jacobian_sphere_3d = jacobian_sphere_norm * jacobian_2d_3d;
         }
 
-        this->GetJacobian(0) = jacobian_sphere_3d * (q_wc.inverse().matrix());
+        this->GetJacobian(0) = jacobian_2d_3d * (q_wc.inverse().matrix());
         this->GetJacobian(1) = - this->GetJacobian(0);
-        this->GetJacobian(2) = jacobian_sphere_3d * SLAM_UTILITY::Utility::SkewSymmetricMatrix(p_c);
+        this->GetJacobian(2) = jacobian_2d_3d * SLAM_UTILITY::Utility::SkewSymmetricMatrix(p_c);
     }
 
     // Use string to represent edge type.
@@ -80,10 +66,9 @@ private:
     TVec3<Scalar> p_w;
     TVec3<Scalar> p_wc;
     TQuat<Scalar> q_wc;
+    TVec2<Scalar> pixel_norm_xy;
     TVec3<Scalar> p_c;
     Scalar inv_depth = 0;
-    Scalar yita = 0;
-    TVec2<Scalar> pred_norm_xy;
 };
 
 template <typename Scalar>
@@ -150,17 +135,14 @@ int main(int argc, char **argv) {
     for (int32_t i = 0; i < kPointsNumber; ++i) {
         for (int32_t j = 0; j < kCameraFrameNumber; ++j) {
             const int32_t idx = i * kCameraFrameNumber + j;
-            reprojection_edges[idx] = std::make_unique<EdgeReproject<Scalar>>(3, 3);
+            reprojection_edges[idx] = std::make_unique<EdgeReproject<Scalar>>(2, 3);
             reprojection_edges[idx]->SetVertex(all_points[i].get(), 0);
             reprojection_edges[idx]->SetVertex(all_camera_pos[j].get(), 1);
             reprojection_edges[idx]->SetVertex(all_camera_rot[j].get(), 2);
 
             TVec3<Scalar> p_c = cameras[j].q_wc.inverse() * (points[i] - cameras[j].p_wc);
-            TVec2<Scalar> norm_xy = p_c.head<2>() / p_c.z();
-            const Scalar yita = 2.0 / (1.0 + norm_xy.squaredNorm());
-            TVec3<Scalar> sphere_xyz = TVec3<Scalar>(norm_xy.x() * yita, norm_xy.y() * yita, yita - 1.0);
-
-            reprojection_edges[idx]->observation() = sphere_xyz;
+            TVec2<Scalar> obv = p_c.head<2>() / p_c.z();
+            reprojection_edges[idx]->observation() = obv;
             reprojection_edges[idx]->SelfCheck();
         }
     }
