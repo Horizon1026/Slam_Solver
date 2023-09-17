@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
     Graph<Scalar> problem;
     for (auto &vertex : vertices) { problem.AddVertex(vertex.get()); }
     for (auto &edge : edges) { problem.AddEdge(edge.get()); }
-    SolverDogleg<Scalar> solver;
+    SolverLm<Scalar> solver;
     solver.problem() = &problem;
     solver.Solve(true);
 

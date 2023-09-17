@@ -40,7 +40,7 @@ public:
         if (std::isinf(inv_depth) || std::isnan(inv_depth)) {
             this->residual().setZero(2);
         } else {
-            this->residual() = (p_c * inv_depth).template head<2>() - pixel_norm_xy;
+            this->residual() = (p_c.template head<2>() * inv_depth) - pixel_norm_xy;
         }
     }
 

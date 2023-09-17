@@ -1,4 +1,5 @@
 #include "solver.h"
+#include "tick_tock.h"
 
 namespace SLAM_SOLVER {
 
@@ -12,6 +13,7 @@ bool Solver<Scalar>::Solve(bool use_prior) {
     if (problem_ == nullptr) {
         return false;
     }
+    SLAM_UTILITY::TickTock timer;
 
     // Sort all vertices, determine their location in incremental function.
     problem_->SortVertices(false);

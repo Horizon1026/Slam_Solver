@@ -70,8 +70,11 @@ bool SolverLm<Scalar>::IsUpdateValid(Scalar min_allowed_gain_rate) {
         this->cost_at_linearized_point() - this->cost_at_latest_step()
     ) / scale;
 
-    // ReportDebug("[Solver] lambda is " << lambda_ << ", rho is " << rho << ", cost is " << this->cost_at_latest_step() << "/" <<
-    //     this->cost_at_linearized_point() << ", dx is " << this->dx().norm());
+    // Report information of this iteration if enabled.
+    if (this->options().kEnableReportEachIteration) {
+        ReportInfo("[LM] lambda is " << lambda_ << ", rho is " << rho << ", cost is " << this->cost_at_latest_step() << "/" <<
+            this->cost_at_linearized_point() << ", dx_norm is " << this->dx().norm());
+    }
 
     bool result = true;
     if (rho > min_allowed_gain_rate && std::isfinite(this->cost_at_latest_step())) {

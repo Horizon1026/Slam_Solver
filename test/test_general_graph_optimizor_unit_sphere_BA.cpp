@@ -35,7 +35,7 @@ public:
         p_c = q_wc.inverse() * (p_w - p_wc);
         inv_depth = static_cast<Scalar>(1) / p_c.z();
 
-        const TVec2<Scalar> pred_norm_xy = (p_c * inv_depth).template head<2>();
+        const TVec2<Scalar> pred_norm_xy = p_c.template head<2>() * inv_depth;
         yita = 2.0 / (1.0 + pred_norm_xy.squaredNorm());
         const TVec3<Scalar> pred_sphere_xyz = TVec3<Scalar>(pred_norm_xy.x() * yita, pred_norm_xy.y() * yita, yita - 1.0);
 

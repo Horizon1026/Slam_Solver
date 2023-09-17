@@ -84,12 +84,19 @@ bool SolverDogleg<Scalar>::IsUpdateValid(Scalar min_allowed_gain_rate) {
     // Reference: The Levenberg-Marquardt method for nonlinear least squares curve-fitting problems.pdf
     auto &hessian = this->problem()->hessian();
     auto &bias = this->problem()->bias();
-
     const Scalar scale = static_cast<Scalar>(2) * bias.dot(this->dx()) + this->dx().dot(hessian * this->dx()) + static_cast<Scalar>(1e-6);
     const Scalar rho = static_cast<Scalar>(0.5) * (this->cost_at_linearized_point() - this->cost_at_latest_step()) / scale;
+
+    // Report information of this iteration if enabled.
+    const Scalar delta_x_norm = this->dx().norm();
+    if (this->options().kEnableReportEachIteration) {
+        ReportInfo("[Dogleg] radius is " << radius_ << ", rho is " << rho << ", cost is " << this->cost_at_latest_step() << "/" <<
+            this->cost_at_linearized_point() << ", dx_norm is " << delta_x_norm);
+    }
+
     if (rho > min_allowed_gain_rate && std::isfinite(this->cost_at_latest_step()) && !std::isnan(this->cost_at_latest_step())) {
         if (rho > static_cast<Scalar>(0.75)) {
-            radius_ = std::max(radius_, static_cast<Scalar>(3) * this->dx().norm());
+            radius_ = std::max(radius_, static_cast<Scalar>(3) * delta_x_norm);
         } else if (rho < static_cast<Scalar>(0.25)) {
             radius_ *= static_cast<Scalar>(0.5);
         }
