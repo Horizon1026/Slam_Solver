@@ -104,7 +104,7 @@ void GenerateSimulationData(std::vector<Pose<Scalar>> &cameras,
 
 int main(int argc, char **argv) {
     LogFixPercision(3);
-    ReportInfo(YELLOW ">> Test general graph optimizor on bundle adjustment with norm plane model." RESET_COLOR);
+    ReportInfo(YELLOW ">> Test general graph optimizor on bundle adjustment with <norm plane> model." RESET_COLOR);
 
     std::vector<Pose<Scalar>> cameras;
     std::vector<TVec3<Scalar>> points;
