@@ -27,22 +27,22 @@ public:
 
     // Compute residual and jacobians for each vertex. These operations should be defined by subclass.
     virtual void ComputeResidual() override {
+        // Compute prediction.
         p_w = this->GetVertex(0)->param();
         p_wc = this->GetVertex(1)->param();
         const TVec4<Scalar> &parameter = this->GetVertex(2)->param();
         q_wc = TQuat<Scalar>(parameter(0), parameter(1), parameter(2), parameter(3));
+        p_c = q_wc.inverse() * (p_w - p_wc);
 
+        // Get observation.
         obv_norm_xy = this->observation();
         const TVec3<Scalar> obv_p_c = TVec3<Scalar>(obv_norm_xy.x(), obv_norm_xy.y(), 1.0f);
 
-        p_c = q_wc.inverse() * (p_w - p_wc);
-        inv_depth = static_cast<Scalar>(1) / p_c.z();
-
+        // Compute residual.
         this->residual() = tangent_base_transpose * (p_c.normalized() - obv_p_c.normalized());
     }
 
     virtual void ComputeJacobians() override {
-
         const Scalar p_c_norm = p_c.norm();
         const Scalar p_c_norm3 = p_c_norm * p_c_norm * p_c_norm;
         TMat3<Scalar> jacobian_norm = TMat3<Scalar>::Zero();
@@ -74,7 +74,6 @@ private:
     TQuat<Scalar> q_wc;
     TVec2<Scalar> obv_norm_xy;
     TVec3<Scalar> p_c;
-    Scalar inv_depth = 0;
     TMat2x3<Scalar> tangent_base_transpose;
 };
 
