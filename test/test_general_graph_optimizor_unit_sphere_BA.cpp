@@ -34,29 +34,24 @@ public:
 
         obv_norm_xy = this->observation();
         const TVec3<Scalar> obv_p_c = TVec3<Scalar>(obv_norm_xy.x(), obv_norm_xy.y(), 1.0f);
-        tangent_base = Utility::TangentBase(obv_p_c);
 
         p_c = q_wc.inverse() * (p_w - p_wc);
         inv_depth = static_cast<Scalar>(1) / p_c.z();
 
-        if (std::isinf(inv_depth) || std::isnan(inv_depth)) {
-            this->residual().setZero(2);
-        } else {
-            this->residual() = tangent_base.transpose() * (p_c.normalized() - obv_p_c.normalized());
-        }
+        this->residual() = tangent_base_transpose * (p_c.normalized() - obv_p_c.normalized());
     }
 
     virtual void ComputeJacobians() override {
+
+        const Scalar p_c_norm = p_c.norm();
+        const Scalar p_c_norm3 = p_c_norm * p_c_norm * p_c_norm;
+        TMat3<Scalar> jacobian_norm = TMat3<Scalar>::Zero();
+        jacobian_norm << 1.0 / p_c_norm - p_c.x() * p_c.x() / p_c_norm3, - p_c.x() * p_c.y() / p_c_norm3,                - p_c.x() * p_c.z() / p_c_norm3,
+                            - p_c.x() * p_c.y() / p_c_norm3,                1.0 / p_c_norm - p_c.y() * p_c.y() / p_c_norm3, - p_c.y() * p_c.z() / p_c_norm3,
+                            - p_c.x() * p_c.z() / p_c_norm3,                - p_c.y() * p_c.z() / p_c_norm3,                1.0 / p_c_norm - p_c.z() * p_c.z() / p_c_norm3;
+
         TMat2x3<Scalar> jacobian_2d_3d = TMat2x3<Scalar>::Zero();
-        if (!std::isinf(inv_depth) && !std::isnan(inv_depth)) {
-            const Scalar p_c_norm = p_c.norm();
-            const Scalar p_c_norm3 = p_c_norm * p_c_norm * p_c_norm;
-            TMat3<Scalar> jacobian_norm = TMat3<Scalar>::Zero();
-            jacobian_norm << 1.0 / p_c_norm - p_c.x() * p_c.x() / p_c_norm3, - p_c.x() * p_c.y() / p_c_norm3,                - p_c.x() * p_c.z() / p_c_norm3,
-                             - p_c.x() * p_c.y() / p_c_norm3,                1.0 / p_c_norm - p_c.y() * p_c.y() / p_c_norm3, - p_c.y() * p_c.z() / p_c_norm3,
-                             - p_c.x() * p_c.z() / p_c_norm3,                - p_c.y() * p_c.z() / p_c_norm3,                1.0 / p_c_norm - p_c.z() * p_c.z() / p_c_norm3;
-            jacobian_2d_3d = tangent_base.transpose() * jacobian_norm;
-        }
+        jacobian_2d_3d = tangent_base_transpose * jacobian_norm;
 
         this->GetJacobian(0) = jacobian_2d_3d * (q_wc.inverse().matrix());
         this->GetJacobian(1) = - this->GetJacobian(0);
@@ -65,6 +60,11 @@ public:
 
     // Use string to represent edge type.
     virtual std::string GetType() { return std::string("Edge Reprojection"); }
+
+    // Set tangent base.
+    void SetTrangetBase(const TVec3<Scalar> &vec) {
+        tangent_base_transpose = Utility::TangentBase(vec).transpose();
+    }
 
 private:
     // Parameters will be calculated in ComputeResidual().
@@ -75,7 +75,7 @@ private:
     TVec2<Scalar> obv_norm_xy;
     TVec3<Scalar> p_c;
     Scalar inv_depth = 0;
-    TMat3x2<Scalar> tangent_base;
+    TMat2x3<Scalar> tangent_base_transpose;
 };
 
 template <typename Scalar>
@@ -132,6 +132,7 @@ int main(int argc, char **argv) {
 
             TVec3<Scalar> p_c = cameras[j].q_wc.inverse() * (points[i] - cameras[j].p_wc);
             TVec2<Scalar> obv = p_c.head<2>() / p_c.z();
+            reprojection_edges[idx]->SetTrangetBase(p_c);
             reprojection_edges[idx]->observation() = obv;
             reprojection_edges[idx]->SelfCheck();
         }
