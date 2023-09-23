@@ -22,7 +22,7 @@ public:
     bool PropagateCovarianceImpl();
     bool UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation = TMat<Scalar>::Zero(1, 1));
 
-    // Reference for member varibles.
+    // Reference for member variables.
     ErrorKalmanFilterOptions &options() { return options_; }
     TVec<Scalar> &dx() { return dx_; }
     TMat<Scalar> &P() { return P_; }
@@ -31,7 +31,7 @@ public:
     TMat<Scalar> &Q() { return Q_; }
     TMat<Scalar> &R() { return R_; }
 
-    // Const reference for member varibles.
+    // Const reference for member variables.
     const ErrorKalmanFilterOptions &options() const { return options_; }
     const TVec<Scalar> &dx() const { return dx_; }
     const TMat<Scalar> &P() const { return P_; }

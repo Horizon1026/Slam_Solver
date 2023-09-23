@@ -22,7 +22,7 @@ if ( NOT TARGET lib_slam_utility_tick_tock )
 endif()
 
 # Add all components of general graph optimizor.
-set( GENERAL_GRAPH_OPTIMIZOR_PATH ${PROJECT_SOURCE_DIR}/src/general_graph_optimizor )
+set( GENERAL_GRAPH_OPTIMIZOR_PATH ${PROJECT_SOURCE_DIR}/../Slam_Solver/src/general_graph_optimizor )
 if ( NOT TARGET lib_general_graph_optimizor_vertex )
     add_subdirectory( ${GENERAL_GRAPH_OPTIMIZOR_PATH}/vertex ${PROJECT_SOURCE_DIR}/build/lib_general_graph_optimizor_vertex )
 endif()

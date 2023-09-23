@@ -30,10 +30,10 @@ public:
     // Check if one update step is valid.
     virtual bool IsUpdateValid(Scalar min_allowed_gain_rate = 0) override;
 
-    // Reference for member varibles.
+    // Reference for member variables.
     SolverLmOptions<Scalar> &lm_options() { return lm_options_; }
 
-    // Const reference for member varibles.
+    // Const reference for member variables.
     const SolverLmOptions<Scalar> &lm_options() const { return lm_options_; }
 
 private:

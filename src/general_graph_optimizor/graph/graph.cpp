@@ -244,7 +244,7 @@ void Graph<Scalar>::ConstructFullSizeHessianAndBias(bool use_prior) {
     hessian_.setZero(size, size);
     bias_.setZero(size);
 
-    // Preallocate memory for temp varibles.
+    // Preallocate memory for temp variables.
     TMat<Scalar> Jt_S_w;
     TMat<Scalar> sub_hessian;
 

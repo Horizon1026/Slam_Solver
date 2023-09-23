@@ -52,7 +52,7 @@ public:
     void MarginalizeSparseVerticesInHessianAndBias(TMat<Scalar> &hessian, TVec<Scalar> &bias);
     void MarginalizeSparseVerticesInJacobianAndResidual(TMat<Scalar> &jacobian, TVec<Scalar> &residual);
 
-    // Reference of member varibles.
+    // Reference of member variables.
     std::vector<Vertex<Scalar> *> &dense_vertices() { return dense_vertices_; }
     std::vector<Vertex<Scalar> *> &sparse_vertices() { return sparse_vertices_; }
     std::vector<Edge<Scalar> *> &edges() { return edges_; }
@@ -66,7 +66,7 @@ public:
     TMat<Scalar> &prior_jacobian_t_inv() { return prior_jacobian_t_inv_; }
     TVec<Scalar> &prior_residual() { return prior_residual_; }
 
-    // Const reference of member varibles.
+    // Const reference of member variables.
     const std::vector<Vertex<Scalar> *> &dense_vertices() const { return dense_vertices_; }
     const std::vector<Vertex<Scalar> *> &sparse_vertices() const { return sparse_vertices_; }
     const std::vector<Edge<Scalar> *> &edges() const { return edges_; }

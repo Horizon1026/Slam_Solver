@@ -47,11 +47,11 @@ public:
     // Create prior information, and store them in graph problem.
     virtual void CreatePriorInformation();
 
-    // Reference for member varibles.
+    // Reference for member variables.
     MargOptions<Scalar> &options() { return options_; }
     Graph<Scalar> *&problem() { return problem_; }
 
-    // Const reference for member varibles.
+    // Const reference for member variables.
     const MargOptions<Scalar> &options() const { return options_; }
     const Graph<Scalar> *problem() const { return problem_; }
 

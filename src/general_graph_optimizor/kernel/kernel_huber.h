@@ -15,15 +15,15 @@ public:
     virtual ~KernelHuber() = default;
 
     virtual void Compute(const Scalar x) override {
-        x_ = x;
+        this->x() = x;
 
-        if (x_ > dsqr_) {
-            const Scalar sqrt_x = std::sqrt(x_);
-            y_[0] = 2.0f * sqrt_x * delta_ - dsqr_;
-            y_[1] = delta_ / sqrt_x;
+        if (this->x() > dsqr_) {
+            const Scalar sqrt_x = std::sqrt(this->x());
+            this->y(0) = 2.0f * sqrt_x * delta_ - dsqr_;
+            this->y(1) = delta_ / sqrt_x;
         } else {
-            y_[0] = x_;
-            y_[1] = static_cast<Scalar>(1);
+            this->y(0) = this->x();
+            this->y(1) = static_cast<Scalar>(1);
         }
     }
 

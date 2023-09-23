@@ -35,13 +35,13 @@ public:
     TMat<Scalar> &GetJacobian(uint32_t index) { return jacobians_[index]; }
     const std::vector<TMat<Scalar>> &GetJacobians() const { return jacobians_; }
 
-    // Reference for member varibles.
+    // Reference for member variables.
     TVec<Scalar> &residual() { return residual_; }
     TMat<Scalar> &information() { return information_; }
     TMat<Scalar> &observation() { return observation_; }
     std::unique_ptr<Kernel<Scalar>> &kernel() { return kernel_; }
 
-    // Const reference for member varibles.
+    // Const reference for member variables.
     const TVec<Scalar> &residual() const { return residual_; }
     const TMat<Scalar> &information() const { return information_; }
     const TMat<Scalar> &observation() const { return observation_; }

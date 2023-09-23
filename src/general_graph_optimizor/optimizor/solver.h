@@ -52,7 +52,7 @@ public:
                                   const TVec<Scalar> &b,
                                   TVec<Scalar> &x);
 
-    // Reference for member varibles.
+    // Reference for member variables.
     SolverOptions<Scalar> &options() { return options_; }
     Graph<Scalar> *&problem() { return problem_; }
 
@@ -63,7 +63,7 @@ public:
     TVec<Scalar> &prior_bias_backup() { return prior_bias_backup_; }
     TVec<Scalar> &prior_residual_backup() { return prior_residual_backup_; }
 
-    // Const reference for member varibles.
+    // Const reference for member variables.
     const SolverOptions<Scalar> &options() const { return options_; }
     const Graph<Scalar> *problem() const { return problem_; }
 

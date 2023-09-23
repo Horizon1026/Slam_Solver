@@ -20,8 +20,13 @@ public:
         y_[2] = static_cast<Scalar>(0);
     }
 
+    // Const reference for member variables.
     const Scalar &x() const { return x_; }
     const Scalar &y(int32_t index) const { return y_[index]; }
+
+    // Reference for member variables.
+    Scalar &x() { return x_; }
+    Scalar &y(int32_t index) { return y_[index]; }
 
 private:
     Scalar x_ = 0;

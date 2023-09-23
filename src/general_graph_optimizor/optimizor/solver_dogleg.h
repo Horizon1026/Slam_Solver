@@ -30,10 +30,10 @@ public:
     // Check if one update step is valid.
     virtual bool IsUpdateValid(Scalar min_allowed_gain_rate = 0) override;
 
-    // Reference for member varibles.
+    // Reference for member variables.
     SolverDoglegOptions<Scalar> &dogleg_options() { return dogleg_options_; }
 
-    // Const reference for member varibles.
+    // Const reference for member variables.
     const SolverDoglegOptions<Scalar> &dogleg_options() const { return dogleg_options_; }
 
 private:
