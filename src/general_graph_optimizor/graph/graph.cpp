@@ -162,6 +162,31 @@ void Graph<Scalar>::UpdateAllVertices(const TVec<Scalar> &delta_x) {
 // Roll back all vertices.
 template <typename Scalar>
 void Graph<Scalar>::RollBackAllVertices() {
+#ifdef ENABLE_TBB_PARALLEL
+    tbb::parallel_for(tbb::blocked_range<uint32_t>(0, dense_vertices_.size()),
+        [&] (tbb::blocked_range<uint32_t> range) {
+            for (uint32_t i = range.begin(); i < range.end(); ++i) {
+                auto &vertex = dense_vertices_[i];
+                if (vertex->IsFixed()) {
+                    continue;
+                }
+                vertex->RollbackParam();
+            }
+        }
+    );
+
+    tbb::parallel_for(tbb::blocked_range<uint32_t>(0, sparse_vertices_.size()),
+        [&] (tbb::blocked_range<uint32_t> range) {
+            for (uint32_t i = range.begin(); i < range.end(); ++i) {
+                auto &vertex = sparse_vertices_[i];
+                if (vertex->IsFixed()) {
+                    continue;
+                }
+                vertex->RollbackParam();
+            }
+        }
+    );
+#else // ENABLE_TBB_PARALLEL
     for (auto &vertex : dense_vertices_) {
         if (vertex->IsFixed()) {
             continue;
@@ -177,6 +202,7 @@ void Graph<Scalar>::RollBackAllVertices() {
 
         vertex->RollbackParam();
     }
+#endif // end of ENABLE_TBB_PARALLEL
 }
 
 // Compute residual for all edges.
