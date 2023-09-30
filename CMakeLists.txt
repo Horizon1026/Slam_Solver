@@ -37,12 +37,19 @@ if ( NOT TARGET lib_square_root_kalman_filter )
     add_subdirectory( ${SQUARE_ROOT_KALMAN_FILTER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_square_root_kalman_filter )
 endif()
 
+# Add all 3rd libraries.
+set( SLAM_UTILITY_PATH ${PROJECT_SOURCE_DIR}/../Slam_Utility )
+if ( NOT TARGET lib_stack_backward )
+    add_subdirectory( ${SLAM_UTILITY_PATH}/3rd_libraries/backward ${PROJECT_SOURCE_DIR}/build/lib_stack_backward )
+endif()
+
 # Add test_general_graph_optimizor_polynomial_problem.
 add_executable( test_general_graph_optimizor_polynomial_problem
     test/test_general_graph_optimizor_polynomial_problem.cpp
 )
 target_link_libraries( test_general_graph_optimizor_polynomial_problem
     lib_general_graph_optimizor
+    lib_stack_backward
 )
 
 # Add test_general_graph_optimizor_norm_plane_BA.
@@ -51,6 +58,7 @@ add_executable( test_general_graph_optimizor_norm_plane_BA
 )
 target_link_libraries( test_general_graph_optimizor_norm_plane_BA
     lib_general_graph_optimizor
+    lib_stack_backward
 )
 
 # Add test_general_graph_optimizor_unit_sphere_BA.
@@ -59,6 +67,7 @@ add_executable( test_general_graph_optimizor_unit_sphere_BA
 )
 target_link_libraries( test_general_graph_optimizor_unit_sphere_BA
     lib_general_graph_optimizor
+    lib_stack_backward
 )
 
 # Add test_general_graph_optimizor_marginalization.
@@ -67,6 +76,7 @@ add_executable( test_general_graph_optimizor_marginalization
 )
 target_link_libraries( test_general_graph_optimizor_marginalization
     lib_general_graph_optimizor
+    lib_stack_backward
 )
 
 # Add test_kalman_filter_constant.
@@ -77,6 +87,8 @@ target_link_libraries( test_kalman_filter_constant
     lib_kalman_filter
     lib_error_kalman_filter
     lib_square_root_kalman_filter
+
+    lib_stack_backward
 )
 
 # Add test_kalman_filter_imu_attitude.
@@ -89,4 +101,6 @@ target_link_libraries( test_kalman_filter_imu_attitude
     lib_square_root_kalman_filter
 
     lib_imu_model
+
+    lib_stack_backward
 )

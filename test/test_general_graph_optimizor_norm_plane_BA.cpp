@@ -9,6 +9,8 @@
 #include "solver_lm.h"
 #include "solver_dogleg.h"
 
+#include "enable_stack_backward.h"
+
 using Scalar = float;
 using namespace SLAM_SOLVER;
 
