@@ -37,6 +37,12 @@ if ( NOT TARGET lib_square_root_kalman_filter )
     add_subdirectory( ${SQUARE_ROOT_KALMAN_FILTER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_square_root_kalman_filter )
 endif()
 
+# Add polynomial solver.
+set( POLYNOMIAL_SOLVER_PATH ${PROJECT_SOURCE_DIR}/src/polynomial_solver )
+if ( NOT TARGET lib_polynomial_solver )
+    add_subdirectory( ${POLYNOMIAL_SOLVER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_polynomial_solver )
+endif()
+
 # Add all 3rd libraries.
 set( SLAM_UTILITY_PATH ${PROJECT_SOURCE_DIR}/../Slam_Utility )
 if ( NOT TARGET lib_stack_backward )
