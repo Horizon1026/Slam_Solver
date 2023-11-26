@@ -58,20 +58,29 @@ target_link_libraries( test_general_graph_optimizor_polynomial_problem
     lib_stack_backward
 )
 
-# Add test_general_graph_optimizor_norm_plane_BA.
-add_executable( test_general_graph_optimizor_norm_plane_BA
-    test/test_general_graph_optimizor_norm_plane_BA.cpp
+# Add test_general_graph_optimizor_pos_norm_plane_BA.
+add_executable( test_general_graph_optimizor_pos_norm_plane_BA
+    test/test_general_graph_optimizor_pos_norm_plane_BA.cpp
 )
-target_link_libraries( test_general_graph_optimizor_norm_plane_BA
+target_link_libraries( test_general_graph_optimizor_pos_norm_plane_BA
     lib_general_graph_optimizor
     lib_stack_backward
 )
 
-# Add test_general_graph_optimizor_unit_sphere_BA.
-add_executable( test_general_graph_optimizor_unit_sphere_BA
-    test/test_general_graph_optimizor_unit_sphere_BA.cpp
+# Add test_general_graph_optimizor_invdep_norm_plane_BA.
+add_executable( test_general_graph_optimizor_invdep_norm_plane_BA
+    test/test_general_graph_optimizor_invdep_norm_plane_BA.cpp
 )
-target_link_libraries( test_general_graph_optimizor_unit_sphere_BA
+target_link_libraries( test_general_graph_optimizor_invdep_norm_plane_BA
+    lib_general_graph_optimizor
+    lib_stack_backward
+)
+
+# Add test_general_graph_optimizor_pos_unit_sphere_BA.
+add_executable( test_general_graph_optimizor_pos_unit_sphere_BA
+    test/test_general_graph_optimizor_pos_unit_sphere_BA.cpp
+)
+target_link_libraries( test_general_graph_optimizor_pos_unit_sphere_BA
     lib_general_graph_optimizor
     lib_stack_backward
 )

@@ -20,7 +20,7 @@ constexpr int32_t kPointsNumber = 300;
 /* Class Edge reprojection. */
 template <typename Scalar>
 class EdgeReproject : public Edge<Scalar> {
-// vertex is [feature, p_w] [camera, p_wc] [camera, q_wc].
+// vertex is [feature, invdep] [first camera, p_wc0] [first camera, q_wc0] [camera, p_wc] [camera, q_wc].
 
 public:
     EdgeReproject() = delete;
@@ -29,20 +29,26 @@ public:
 
     // Compute residual and jacobians for each vertex. These operations should be defined by subclass.
     virtual void ComputeResidual() override {
-        p_w = this->GetVertex(0)->param();
-        p_wc = this->GetVertex(1)->param();
-        const TVec4<Scalar> &parameter = this->GetVertex(2)->param();
-        q_wc = TQuat<Scalar>(parameter(0), parameter(1), parameter(2), parameter(3));
+        inv_depth0 = this->GetVertex(0)->param()(0);
+        p_wc0 = this->GetVertex(1)->param();
+        const TVec4<Scalar> &param_i = this->GetVertex(2)->param();
+        q_wc0 = TQuat<Scalar>(param_i(0), param_i(1), param_i(2), param_i(3));
+        p_wc = this->GetVertex(3)->param();
+        const TVec4<Scalar> &param_j = this->GetVertex(4)->param();
+        q_wc = TQuat<Scalar>(param_j(0), param_j(1), param_j(2), param_j(3));
 
-        pixel_norm_xy = this->observation();
+        norm_xy0 = this->observation().block(0, 0, 2, 1);
+        norm_xy = this->observation().block(2, 0, 2, 1);
 
+        p_c0 = TVec3<Scalar>(norm_xy0(0), norm_xy0(1), static_cast<Scalar>(1)) / inv_depth0;
+        p_w = q_wc0 * p_c0 + p_wc0;
         p_c = q_wc.inverse() * (p_w - p_wc);
         inv_depth = static_cast<Scalar>(1) / p_c.z();
 
         if (std::isinf(inv_depth) || std::isnan(inv_depth)) {
             this->residual().setZero(2);
         } else {
-            this->residual() = (p_c.template head<2>() * inv_depth) - pixel_norm_xy;
+            this->residual() = (p_c.template head<2>() * inv_depth) - norm_xy;
         }
     }
 
@@ -54,9 +60,20 @@ public:
                               0, inv_depth, - p_c(1) * inv_depth_2;
         }
 
-        this->GetJacobian(0) = jacobian_2d_3d * (q_wc.inverse().matrix());
-        this->GetJacobian(1) = - this->GetJacobian(0);
-        this->GetJacobian(2) = jacobian_2d_3d * SLAM_UTILITY::Utility::SkewSymmetricMatrix(p_c);
+        const TMat3<Scalar> jacobian_cam0_p = - (q_wc.inverse() * q_wc0).toRotationMatrix() * Utility::SkewSymmetricMatrix(p_c0);
+        const TMat3<Scalar> jacobian_cam0_q = q_wc.toRotationMatrix().transpose();
+
+        const TMat3<Scalar> jacobian_cam_p = Utility::SkewSymmetricMatrix(p_c);
+        const TMat3<Scalar> jacobian_cam_q = - q_wc.toRotationMatrix().transpose();
+
+        const TVec3<Scalar> jacobian_invdep = - (q_wc.inverse() * q_wc0).toRotationMatrix() *
+            TVec3<Scalar>(norm_xy0(0), norm_xy0(1), static_cast<Scalar>(1)) / (inv_depth0 * inv_depth0);
+
+        this->GetJacobian(0) = jacobian_2d_3d * jacobian_invdep;
+        this->GetJacobian(1) = jacobian_2d_3d * jacobian_cam0_p;
+        this->GetJacobian(2) = jacobian_2d_3d * jacobian_cam0_q;
+        this->GetJacobian(3) = jacobian_2d_3d * jacobian_cam_p;
+        this->GetJacobian(4) = jacobian_2d_3d * jacobian_cam_q;
     }
 
     // Use string to represent edge type.
@@ -65,12 +82,19 @@ public:
 private:
     // Parameters will be calculated in ComputeResidual().
     // It should not be repeatedly calculated in ComputeJacobians().
-    TVec3<Scalar> p_w;
+    TVec3<Scalar> p_wc0;
+    TQuat<Scalar> q_wc0;
+    TVec2<Scalar> norm_xy0;
+    Scalar inv_depth0 = 0;
+    TVec3<Scalar> p_c0;
+
     TVec3<Scalar> p_wc;
     TQuat<Scalar> q_wc;
-    TVec2<Scalar> pixel_norm_xy;
-    TVec3<Scalar> p_c;
+    TVec2<Scalar> norm_xy;
     Scalar inv_depth = 0;
+    TVec3<Scalar> p_c;
+
+    TVec3<Scalar> p_w;
 };
 
 template <typename Scalar>
@@ -113,20 +137,25 @@ int main(int argc, char **argv) {
     GenerateSimulationData(cameras, points);
 
     // Use include here is interesting.
-    #include "embeded_add_vertices_of_BA.h"
+    #include "embeded_add_invdep_vertices_of_BA.h"
 
     // Generate edges between cameras and points.
     std::array<std::unique_ptr<EdgeReproject<Scalar>>, kCameraFrameNumber * kPointsNumber> reprojection_edges = {};
     for (int32_t i = 0; i < kPointsNumber; ++i) {
         for (int32_t j = 0; j < kCameraFrameNumber; ++j) {
             const int32_t idx = i * kCameraFrameNumber + j;
-            reprojection_edges[idx] = std::make_unique<EdgeReproject<Scalar>>(2, 3);
+            reprojection_edges[idx] = std::make_unique<EdgeReproject<Scalar>>(2, 5);
             reprojection_edges[idx]->SetVertex(all_points[i].get(), 0);
-            reprojection_edges[idx]->SetVertex(all_camera_pos[j].get(), 1);
-            reprojection_edges[idx]->SetVertex(all_camera_rot[j].get(), 2);
+            reprojection_edges[idx]->SetVertex(all_camera_pos[0].get(), 1);
+            reprojection_edges[idx]->SetVertex(all_camera_rot[0].get(), 2);
+            reprojection_edges[idx]->SetVertex(all_camera_pos[j].get(), 3);
+            reprojection_edges[idx]->SetVertex(all_camera_rot[j].get(), 4);
 
+            TVec3<Scalar> p_c0 = cameras[0].q_wc.inverse() * (points[i] - cameras[0].p_wc);
             TVec3<Scalar> p_c = cameras[j].q_wc.inverse() * (points[i] - cameras[j].p_wc);
-            TVec2<Scalar> obv = p_c.head<2>() / p_c.z();
+            TVec4<Scalar> obv = TVec4<Scalar>::Zero();
+            obv.head<2>() = p_c0.head<2>() / p_c0.z();
+            obv.tail<2>() = p_c.head<2>() / p_c.z();
             reprojection_edges[idx]->observation() = obv;
             reprojection_edges[idx]->SelfCheck();
         }

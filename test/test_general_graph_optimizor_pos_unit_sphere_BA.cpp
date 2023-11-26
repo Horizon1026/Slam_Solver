@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
     GenerateSimulationData(cameras, points);
 
     // Use include here is interesting.
-    #include "embeded_add_vertices_of_BA.h"
+    #include "embeded_add_pos_vertices_of_BA.h"
 
     // Generate edges between cameras and points.
     std::array<std::unique_ptr<EdgeReproject<Scalar>>, kCameraFrameNumber * kPointsNumber> reprojection_edges = {};
