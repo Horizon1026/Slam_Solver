@@ -60,11 +60,11 @@ public:
                               0, inv_depth, - p_c(1) * inv_depth_2;
         }
 
-        const TMat3<Scalar> jacobian_cam0_p = - (q_wc.inverse() * q_wc0).toRotationMatrix() * Utility::SkewSymmetricMatrix(p_c0);
-        const TMat3<Scalar> jacobian_cam0_q = q_wc.toRotationMatrix().transpose();
+        const TMat3<Scalar> jacobian_cam0_q = - (q_wc.inverse() * q_wc0).toRotationMatrix() * Utility::SkewSymmetricMatrix(p_c0);
+        const TMat3<Scalar> jacobian_cam0_p = q_wc.toRotationMatrix().transpose();
 
-        const TMat3<Scalar> jacobian_cam_p = Utility::SkewSymmetricMatrix(p_c);
-        const TMat3<Scalar> jacobian_cam_q = - q_wc.toRotationMatrix().transpose();
+        const TMat3<Scalar> jacobian_cam_q = Utility::SkewSymmetricMatrix(p_c);
+        const TMat3<Scalar> jacobian_cam_p = - q_wc.toRotationMatrix().transpose();
 
         const TVec3<Scalar> jacobian_invdep = - (q_wc.inverse() * q_wc0).toRotationMatrix() *
             TVec3<Scalar>(norm_xy0(0), norm_xy0(1), static_cast<Scalar>(1)) / (inv_depth0 * inv_depth0);
