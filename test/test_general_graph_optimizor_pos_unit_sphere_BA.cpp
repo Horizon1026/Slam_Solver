@@ -49,8 +49,8 @@ public:
         const Scalar p_c_norm3 = p_c_norm * p_c_norm * p_c_norm;
         TMat3<Scalar> jacobian_norm = TMat3<Scalar>::Zero();
         jacobian_norm << 1.0 / p_c_norm - p_c.x() * p_c.x() / p_c_norm3, - p_c.x() * p_c.y() / p_c_norm3,                - p_c.x() * p_c.z() / p_c_norm3,
-                            - p_c.x() * p_c.y() / p_c_norm3,                1.0 / p_c_norm - p_c.y() * p_c.y() / p_c_norm3, - p_c.y() * p_c.z() / p_c_norm3,
-                            - p_c.x() * p_c.z() / p_c_norm3,                - p_c.y() * p_c.z() / p_c_norm3,                1.0 / p_c_norm - p_c.z() * p_c.z() / p_c_norm3;
+                         - p_c.x() * p_c.y() / p_c_norm3,                1.0 / p_c_norm - p_c.y() * p_c.y() / p_c_norm3, - p_c.y() * p_c.z() / p_c_norm3,
+                         - p_c.x() * p_c.z() / p_c_norm3,                - p_c.y() * p_c.z() / p_c_norm3,                1.0 / p_c_norm - p_c.z() * p_c.z() / p_c_norm3;
 
         TMat2x3<Scalar> jacobian_2d_3d = TMat2x3<Scalar>::Zero();
         jacobian_2d_3d = tangent_base_transpose * jacobian_norm;
@@ -112,7 +112,7 @@ void GenerateSimulationData(std::vector<Pose<Scalar>> &cameras,
 
 int main(int argc, char **argv) {
     LogFixPercision(3);
-    ReportInfo(YELLOW ">> Test general graph optimizor on bundle adjustment with <unit sphere> model." RESET_COLOR);
+    ReportInfo(YELLOW ">> Test general graph optimizor on bundle adjustment with <pos> <unit sphere> model." RESET_COLOR);
 
     std::vector<Pose<Scalar>> cameras;
     std::vector<TVec3<Scalar>> points;

@@ -85,6 +85,15 @@ target_link_libraries( test_general_graph_optimizor_pos_unit_sphere_BA
     lib_stack_backward
 )
 
+# Add test_general_graph_optimizor_invdep_unit_sphere_BA.
+add_executable( test_general_graph_optimizor_invdep_unit_sphere_BA
+    test/test_general_graph_optimizor_invdep_unit_sphere_BA.cpp
+)
+target_link_libraries( test_general_graph_optimizor_invdep_unit_sphere_BA
+    lib_general_graph_optimizor
+    lib_stack_backward
+)
+
 # Add test_general_graph_optimizor_marginalization.
 add_executable( test_general_graph_optimizor_marginalization
     test/test_general_graph_optimizor_marginalization.cpp
