@@ -140,10 +140,10 @@ int main(int argc, char **argv) {
     #include "embeded_add_invdep_vertices_of_BA.h"
 
     // Generate edges between cameras and points.
-    std::array<std::unique_ptr<EdgeReproject<Scalar>>, kCameraFrameNumber * kPointsNumber> reprojection_edges = {};
+    std::array<std::unique_ptr<EdgeReproject<Scalar>>, (kCameraFrameNumber - 1) * kPointsNumber> reprojection_edges = {};
     for (int32_t i = 0; i < kPointsNumber; ++i) {
-        for (int32_t j = 0; j < kCameraFrameNumber; ++j) {
-            const int32_t idx = i * kCameraFrameNumber + j;
+        for (int32_t j = 1; j < kCameraFrameNumber; ++j) {
+            const int32_t idx = i * (kCameraFrameNumber - 1) + j;
             reprojection_edges[idx] = std::make_unique<EdgeReproject<Scalar>>(2, 5);
             reprojection_edges[idx]->SetVertex(all_points[i].get(), 0);
             reprojection_edges[idx]->SetVertex(all_camera_pos[0].get(), 1);
@@ -152,10 +152,10 @@ int main(int argc, char **argv) {
             reprojection_edges[idx]->SetVertex(all_camera_rot[j].get(), 4);
 
             TVec3<Scalar> p_c0 = cameras[0].q_wc.inverse() * (points[i] - cameras[0].p_wc);
-            TVec3<Scalar> p_c = cameras[j].q_wc.inverse() * (points[i] - cameras[j].p_wc);
+            TVec3<Scalar> p_cj = cameras[j].q_wc.inverse() * (points[i] - cameras[j].p_wc);
             TVec4<Scalar> obv = TVec4<Scalar>::Zero();
             obv.head<2>() = p_c0.head<2>() / p_c0.z();
-            obv.tail<2>() = p_c.head<2>() / p_c.z();
+            obv.tail<2>() = p_cj.head<2>() / p_cj.z();
             reprojection_edges[idx]->observation() = obv;
             reprojection_edges[idx]->SelfCheck();
         }

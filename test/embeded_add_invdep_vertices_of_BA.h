@@ -19,5 +19,5 @@ for (int32_t i = 0; i < kPointsNumber; ++i) {
 
     all_points[i] = std::make_unique<Vertex<Scalar>>(1, 1);
     all_points[i]->param() = TVec1<Scalar>(invdep);
-    all_points[i]->param() += TVec1<Scalar>(0.1);
+    all_points[i]->param() += TVec1<Scalar>(0.15);
 }
