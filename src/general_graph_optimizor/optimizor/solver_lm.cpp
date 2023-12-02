@@ -1,4 +1,5 @@
 #include "solver_lm.h"
+#include "log_report.h"
 
 namespace SLAM_SOLVER {
 

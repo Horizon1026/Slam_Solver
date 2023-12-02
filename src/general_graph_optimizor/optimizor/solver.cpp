@@ -1,5 +1,6 @@
 #include "solver.h"
 #include "tick_tock.h"
+#include "log_report.h"
 
 namespace SLAM_SOLVER {
 

@@ -3,7 +3,6 @@
 
 #include "datatype_basic.h"
 #include "graph.h"
-#include "log_report.h"
 
 namespace SLAM_SOLVER {
 

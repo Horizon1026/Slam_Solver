@@ -1,4 +1,5 @@
 #include "solver_dogleg.h"
+#include "log_report.h"
 
 namespace SLAM_SOLVER {
 

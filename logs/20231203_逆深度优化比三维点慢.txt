@@ -1,0 +1,431 @@
+horizon@horizon-GP66-Leopard-10UG:~/Desktop/code_space/Slam_Workspace/scripts$ sh run_test.sh Slam_Solver
+-e >> Find path : '../../Slam_Solver', test it.
+[Info ] >> Test general graph optimizor on polynomial problem.
+[Info ] Ground truth is [vec][ 2 -3 -4]
+[Debug] SortVertices 0.018077 ms.
+[Debug] ComputeResidualForAllEdges 2.47177 ms.
+[Debug] ComputeJacobiansForAllEdges 0.238178 ms.
+[Debug] ConstructIncrementalFunction 0.397063 ms.
+[Debug] InitializeSolver 0.014401 ms.
+[Debug] SolveIncrementalFunction 0.017638 ms.
+[Debug] UpdateParameters 0.014538 ms.
+[Debug] ComputeResidualForAllEdges 0.080588 ms.
+[Debug] IsConvergedAfterUpdate 0.009354 ms.
+[Info ] [LM] lambda is 1e-06, rho is 0.500001, cost is 14.4092/8.9698e+11, dx_norm is 5.36199
+[Debug] IsUpdateValid 0.408149 ms.
+[Debug] ComputeJacobiansForAllEdges 0.222793 ms.
+[Debug] ConstructIncrementalFunction 0.495434 ms.
+[Debug] SolveIncrementalFunction 0.038787 ms.
+[Debug] UpdateParameters 0.027309 ms.
+[Debug] ComputeResidualForAllEdges 0.115162 ms.
+[Debug] IsConvergedAfterUpdate 0.00365 ms.
+[Info ] [LM] lambda is 1e-06, rho is 0.500144, cost is 1.06024e-05/14.4092, dx_norm is 0.031223
+[Debug] IsUpdateValid 0.007184 ms.
+[Debug] ComputeJacobiansForAllEdges 0.009809 ms.
+[Debug] ConstructIncrementalFunction 0.083795 ms.
+[Debug] SolveIncrementalFunction 0.004776 ms.
+[Debug] UpdateParameters 0.003082 ms.
+[Debug] ComputeResidualForAllEdges 0.014467 ms.
+[Info ] Solve result is [vec][       2       -3 -3.99998]
+[Info ] >> Test general graph optimizor marginalization.
+[Info ] Prior hessian is
+  0.800  -0.000   0.160  -0.000  -0.000   0.000   1.360   4.160  -6.800   0.000   0.000   0.000
+ -0.000   0.800  -1.360  -0.000   0.000  -0.000 -20.880  -1.360  -0.800  -0.000  -0.000  -0.000
+  0.160  -1.360   3.408  -0.000  -0.000   0.000  53.856   4.208   0.000   0.000   0.000   0.000
+ -0.000  -0.000  -0.000   0.800  -0.000   0.480   0.000  -0.000  -0.000   3.600   5.440  -6.000
+ -0.000   0.000  -0.000  -0.000   0.800  -1.200   0.000  -0.000  -0.000 -18.320  -3.600  -2.400
+  0.000  -0.000   0.000   0.480  -1.200   3.152  -0.000   0.000   0.000  45.600  11.856   0.000
+  1.360 -20.880  53.856   0.000   0.000  -0.000 883.929  60.656   4.000  -0.000  -0.000  -0.000
+  4.160  -1.360   4.208  -0.000  -0.000   0.000  60.656  25.008 -34.000   0.000  -0.000   0.000
+ -6.800  -0.800   0.000  -0.000  -0.000   0.000   4.000 -34.000  85.200   0.000  -0.000   0.000
+  0.000  -0.000   0.000   3.600 -18.320  45.600  -0.000   0.000   0.000 712.793 154.800  12.000
+  0.000  -0.000   0.000   5.440  -3.600  11.856  -0.000  -0.000  -0.000 154.800  62.768 -30.000
+  0.000  -0.000   0.000  -6.000  -2.400   0.000  -0.000   0.000   0.000  12.000 -30.000  78.800
+[Info ] Prior bias is
+ 0.000
+ 0.000
+-0.000
+-0.800
+ 0.000
+-0.480
+-0.000
+-0.000
+-0.000
+-3.600
+-5.440
+ 6.000
+[Info ] Prior jacobian is
+ -0.000  -0.000  -0.000   0.000   0.000   0.000   0.000   0.000   0.000  -0.000  -0.000  -0.000
+  0.000   0.000   0.000   0.000   0.000   0.000  -0.000  -0.000  -0.000  -0.000  -0.000  -0.000
+ -0.000   0.000   0.000   0.142   0.005  -0.236  -0.000  -0.000  -0.000   0.013   0.005   0.011
+ -0.052   0.094   0.255  -0.000  -0.000   0.000  -0.013  -0.002  -0.004  -0.000  -0.000  -0.000
+ -0.000  -0.000   0.000  -0.003   0.507   0.011  -0.000  -0.000  -0.000   0.009   0.016   0.020
+  0.041   0.533  -0.187  -0.000   0.000   0.000   0.022   0.020   0.015  -0.000   0.000  -0.000
+ -0.416   0.088  -0.144   0.000  -0.000  -0.000   0.170  -2.225  -1.001   0.000  -0.000   0.000
+ -0.000  -0.000  -0.000   0.408  -0.148   0.345   0.000  -0.000  -0.000  -0.735   3.075   1.562
+ -0.000   0.000  -0.000   0.764   0.233   0.102   0.000  -0.000  -0.000  -0.869   4.128  -8.736
+ -0.787  -0.074  -0.027  -0.000   0.000  -0.000   0.261  -3.962   9.176  -0.000  -0.000   0.000
+ -0.000   0.000  -0.000  -0.171   0.683  -1.722   0.000  -0.000  -0.000 -26.674  -6.023  -0.208
+  0.055  -0.703   1.813  -0.000   0.000  -0.000  29.729   2.088   0.060  -0.000  -0.000   0.000
+[Info ] Prior jacobian.t.inv is
+-0.000 -0.000 -0.000  0.000  0.000  0.000  0.000  0.000  0.000 -0.000 -0.000 -0.000
+ 0.000  0.000  0.000  0.000  0.000  0.000 -0.000 -0.000 -0.000 -0.000 -0.000 -0.000
+-0.000  0.000  0.000  1.870  0.068 -3.093 -0.000 -0.000 -0.000  0.173  0.070  0.145
+-0.672  1.227  3.324 -0.000 -0.000  0.000 -0.170 -0.032 -0.047 -0.000 -0.000 -0.000
+-0.000 -0.000  0.000 -0.013  1.967  0.042 -0.000 -0.000 -0.000  0.034  0.060  0.077
+ 0.129  1.655 -0.580 -0.000  0.000  0.000  0.070  0.063  0.048 -0.000  0.000 -0.000
+-0.067  0.014 -0.023  0.000 -0.000 -0.000  0.027 -0.360 -0.162  0.000 -0.000  0.000
+-0.000 -0.000 -0.000  0.032 -0.012  0.027  0.000 -0.000 -0.000 -0.058  0.241  0.123
+-0.000  0.000 -0.000  0.008  0.002  0.001  0.000 -0.000 -0.000 -0.009  0.044 -0.092
+-0.008 -0.001 -0.000 -0.000  0.000 -0.000  0.003 -0.039  0.091 -0.000 -0.000  0.000
+-0.000  0.000 -0.000 -0.000  0.001 -0.002  0.000 -0.000 -0.000 -0.036 -0.008 -0.000
+ 0.000 -0.001  0.002 -0.000  0.000 -0.000  0.033  0.002  0.000 -0.000 -0.000  0.000
+[Info ] Prior residual is
+ 0.000
+ 0.000
+ 0.142
+-0.000
+-0.003
+ 0.000
+-0.000
+ 0.408
+ 0.764
+ 0.000
+-0.171
+ 0.000
+[Info ] >> Test kalman filter solver.
+[Info ] >> Test kalman filter (static) in dimension 1.
+[Info ] Noise of raw data and new data is 0.826624 / 0.207263
+[Info ] >> Test error kalman filter (static) in dimension 1.
+[Info ] Noise of raw data and new data is 0.826624 / 0.207263
+[Info ] >> Test square root kalman filter (static) in dimension 1.
+[Info ] Noise of raw data and new data is 0.826624 / 0.207263
+[Info ] >> Test kalman filter (dynamic) in dimension 1.
+[Info ] Noise of raw data and new data is 0.826624 / 0.207263
+[Info ] >> Test error kalman filter (dynamic) in dimension 1.
+[Info ] Noise of raw data and new data is 0.826624 / 0.207263
+[Info ] >> Test square root kalman filter (dynamic) in dimension 1.
+[Info ] Noise of raw data and new data is 0.826624 / 0.207263
+[Info ] >> Test kalman filter on pure imu attitude estimation.
+[Info ] >> Load imu data from ../examples/imu_pose_noise.txt
+[Info ] >> 4001 imu raw data loaded.
+[Info ] >> Test error state kalman filter.
+[Info ] The mean/min/max residual of pitch is [vec][ 0.61943 -7.24966  6.27198] deg.
+[Info ] The mean/min/max residual of roll is [vec][ 0.00975 -5.49499  3.98705] deg.
+[Info ] The mean/min/max residual of yaw is [vec][-0.95802 -3.68382  2.13255] deg.
+[Info ] >> Test error state square root kalman filter.
+[Info ] The mean/min/max residual of pitch is [vec][ 0.61943 -7.24966  6.27198] deg.
+[Info ] The mean/min/max residual of roll is [vec][ 0.00975 -5.49502  3.98705] deg.
+[Info ] The mean/min/max residual of yaw is [vec][-0.95804 -3.68384  2.13255] deg.
+[Info ] >> Test general graph optimizor on bundle adjustment with <pos> <norm plane> model.
+[Debug] SortVertices 0.002 ms.
+[Debug] ComputeResidualForAllEdges 1.166 ms.
+[Debug] ComputeJacobiansForAllEdges 0.198 ms.
+[Debug] ConstructIncrementalFunction 1.884 ms.
+[Debug] InitializeSolver 0.019 ms.
+[Debug] SolveIncrementalFunction 0.597 ms.
+[Debug] UpdateParameters 0.140 ms.
+[Debug] ComputeResidualForAllEdges 0.225 ms.
+[Debug] IsConvergedAfterUpdate 0.112 ms.
+[Info ] [LM] lambda is 0.000, rho is 0.481, cost is 10.307/278.244, dx_norm is 16.886
+[Debug] IsUpdateValid 0.030 ms.
+[Debug] ComputeJacobiansForAllEdges 0.055 ms.
+[Debug] ConstructIncrementalFunction 0.749 ms.
+[Debug] SolveIncrementalFunction 0.864 ms.
+[Debug] UpdateParameters 0.060 ms.
+[Debug] ComputeResidualForAllEdges 0.208 ms.
+[Debug] IsConvergedAfterUpdate 0.006 ms.
+[Info ] [LM] lambda is 0.000, rho is 0.500, cost is 0.010/10.307, dx_norm is 1.860
+[Debug] IsUpdateValid 0.012 ms.
+[Debug] ComputeJacobiansForAllEdges 0.046 ms.
+[Debug] ConstructIncrementalFunction 0.743 ms.
+[Debug] SolveIncrementalFunction 0.502 ms.
+[Debug] UpdateParameters 0.027 ms.
+[Debug] ComputeResidualForAllEdges 0.066 ms.
+[Debug] IsConvergedAfterUpdate 0.005 ms.
+[Info ] [LM] lambda is 0.000, rho is 0.491, cost is 0.000/0.010, dx_norm is 2.277
+[Debug] IsUpdateValid 0.011 ms.
+[Debug] ComputeJacobiansForAllEdges 0.028 ms.
+[Debug] ConstructIncrementalFunction 0.592 ms.
+[Debug] SolveIncrementalFunction 0.505 ms.
+[Debug] UpdateParameters 0.053 ms.
+[Debug] ComputeResidualForAllEdges 0.071 ms.
+[Debug] IsConvergedAfterUpdate 0.010 ms.
+[Info ] [LM] lambda is 0.000, rho is 0.498, cost is 0.000/0.000, dx_norm is 0.254
+[Debug] IsUpdateValid 0.017 ms.
+[Debug] ComputeJacobiansForAllEdges 0.035 ms.
+[Debug] ConstructIncrementalFunction 0.608 ms.
+[Debug] SolveIncrementalFunction 0.482 ms.
+[Debug] UpdateParameters 0.051 ms.
+[Debug] ComputeResidualForAllEdges 0.072 ms.
+[Debug] IsConvergedAfterUpdate 0.006 ms.
+[Info ] [LM] lambda is 0.000, rho is 0.124, cost is 0.000/0.000, dx_norm is 0.040
+[Debug] IsUpdateValid 0.007 ms.
+[Debug] ComputeJacobiansForAllEdges 0.030 ms.
+[Debug] ConstructIncrementalFunction 0.632 ms.
+[Debug] SolveIncrementalFunction 0.475 ms.
+[Debug] UpdateParameters 0.027 ms.
+[Debug] ComputeResidualForAllEdges 0.073 ms.
+[Debug] IsConvergedAfterUpdate 0.111 ms.
+[Info ] [LM] lambda is 0.000, rho is 0.002, cost is 0.000/0.000, dx_norm is 0.008
+[Debug] IsUpdateValid 0.015 ms.
+[Debug] ComputeJacobiansForAllEdges 0.153 ms.
+[Debug] ConstructIncrementalFunction 0.667 ms.
+[Debug] SolveIncrementalFunction 0.694 ms.
+[Debug] UpdateParameters 0.058 ms.
+[Debug] ComputeResidualForAllEdges 0.076 ms.
+[Debug] IsConvergedAfterUpdate 0.005 ms.
+[Info ] [LM] lambda is 0.000, rho is 0.000, cost is 0.000/0.000, dx_norm is 0.001
+[Debug] IsUpdateValid 0.011 ms.
+[Debug] ComputeJacobiansForAllEdges 0.031 ms.
+[Debug] ConstructIncrementalFunction 0.775 ms.
+[Debug] SolveIncrementalFunction 0.493 ms.
+[Debug] UpdateParameters 0.026 ms.
+[Debug] ComputeResidualForAllEdges 0.056 ms.
+[Info ] [Ticktock] Solve cost time 14.679 ms
+[Info ] [Point pos] [truth] [vec][0.000 0.000 5.000] | [result] [vec][ 0.002 -0.002  5.000]
+[Info ] [Point pos] [truth] [vec][0.000 1.000 5.000] | [result] [vec][0.002 0.998 5.000]
+[Info ] [Point pos] [truth] [vec][0.000 2.000 5.000] | [result] [vec][0.002 1.998 5.001]
+[Info ] [Point pos] [truth] [vec][0.000 3.000 5.000] | [result] [vec][0.002 2.998 5.001]
+[Info ] [Point pos] [truth] [vec][0.000 4.000 5.000] | [result] [vec][0.002 3.998 5.001]
+[Info ] [Point pos] [truth] [vec][0.000 5.000 5.000] | [result] [vec][0.002 4.998 5.002]
+[Info ] [Point pos] [truth] [vec][0.000 6.000 5.000] | [result] [vec][0.002 5.998 5.002]
+[Info ] [Point pos] [truth] [vec][0.000 7.000 5.000] | [result] [vec][0.002 6.998 5.002]
+[Info ] [Point pos] [truth] [vec][0.000 8.000 5.000] | [result] [vec][0.002 7.998 5.003]
+[Info ] [Point pos] [truth] [vec][0.000 9.000 5.000] | [result] [vec][0.002 8.998 5.003]
+[Info ] [Camera pos] [truth] [vec][0.000 0.000 0.000] | [result] [vec][0.000 0.000 0.000]
+[Info ] [Camera pos] [truth] [vec][1.000 1.000 0.000] | [result] [vec][1.000 1.000 0.000]
+[Info ] [Camera pos] [truth] [vec][2.000 2.000 0.000] | [result] [vec][2.000 2.000 0.000]
+[Info ] [Camera pos] [truth] [vec][3.000 3.000 0.000] | [result] [vec][3.000 3.000 0.000]
+[Info ] [Camera pos] [truth] [vec][4.000 4.000 0.000] | [result] [vec][4.000 4.000 0.000]
+[Info ] [Camera pos] [truth] [vec][5.000 5.000 0.000] | [result] [vec][5.000 5.000 0.000]
+[Info ] [Camera pos] [truth] [vec][6.000 6.000 0.000] | [result] [vec][6.000 6.000 0.000]
+[Info ] [Camera pos] [truth] [vec][7.000 7.000 0.000] | [result] [vec][7.000 7.000 0.000]
+[Info ] [Camera pos] [truth] [vec][8.000 8.000 0.000] | [result] [vec][8.000 8.000 0.000]
+[Info ] [Camera pos] [truth] [vec][9.000 9.000 0.000] | [result] [vec][9.000 9.000 0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][ 1.000  0.000  0.000 -0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][ 1.000  0.000  0.000 -0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][ 1.000  0.000  0.000 -0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][ 1.000  0.000  0.000 -0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][ 1.000  0.000  0.000 -0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][ 1.000  0.000  0.000 -0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][ 1.000  0.000  0.000 -0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][ 1.000  0.000  0.000 -0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][ 1.000  0.000  0.000 -0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][ 1.000  0.000  0.000 -0.000]
+[Info ] >> Test general graph optimizor on bundle adjustment with <pos> <unit sphere> model.
+[Debug] SortVertices 0.002 ms.
+[Debug] ComputeResidualForAllEdges 0.752 ms.
+[Debug] ComputeJacobiansForAllEdges 0.077 ms.
+[Debug] ConstructIncrementalFunction 1.725 ms.
+[Debug] InitializeSolver 0.012 ms.
+[Debug] SolveIncrementalFunction 0.580 ms.
+[Debug] UpdateParameters 0.056 ms.
+[Debug] ComputeResidualForAllEdges 0.112 ms.
+[Debug] IsConvergedAfterUpdate 0.005 ms.
+[Info ] [LM] lambda is 0.000, rho is 0.497, cost is 0.105/20.248, dx_norm is 21.254
+[Debug] IsUpdateValid 0.034 ms.
+[Debug] ComputeJacobiansForAllEdges 0.041 ms.
+[Debug] ConstructIncrementalFunction 1.086 ms.
+[Debug] SolveIncrementalFunction 0.548 ms.
+[Debug] UpdateParameters 0.028 ms.
+[Debug] ComputeResidualForAllEdges 0.104 ms.
+[Debug] IsConvergedAfterUpdate 0.005 ms.
+[Info ] [LM] lambda is 0.000, rho is 0.500, cost is 0.000/0.105, dx_norm is 4.039
+[Debug] IsUpdateValid 0.011 ms.
+[Debug] ComputeJacobiansForAllEdges 0.042 ms.
+[Debug] ConstructIncrementalFunction 0.756 ms.
+[Debug] SolveIncrementalFunction 0.590 ms.
+[Debug] UpdateParameters 0.026 ms.
+[Debug] ComputeResidualForAllEdges 0.074 ms.
+[Debug] IsConvergedAfterUpdate 0.005 ms.
+[Info ] [LM] lambda is 0.000, rho is 0.492, cost is 0.000/0.000, dx_norm is 0.508
+[Debug] IsUpdateValid 0.021 ms.
+[Debug] ComputeJacobiansForAllEdges 0.037 ms.
+[Debug] ConstructIncrementalFunction 0.609 ms.
+[Debug] SolveIncrementalFunction 0.564 ms.
+[Debug] UpdateParameters 0.027 ms.
+[Debug] ComputeResidualForAllEdges 0.059 ms.
+[Debug] IsConvergedAfterUpdate 0.005 ms.
+[Info ] [LM] lambda is 0.000, rho is 0.008, cost is 0.000/0.000, dx_norm is 0.047
+[Debug] IsUpdateValid 0.025 ms.
+[Debug] ComputeJacobiansForAllEdges 0.039 ms.
+[Debug] ConstructIncrementalFunction 0.612 ms.
+[Debug] SolveIncrementalFunction 0.482 ms.
+[Debug] UpdateParameters 0.025 ms.
+[Debug] ComputeResidualForAllEdges 0.059 ms.
+[Debug] IsConvergedAfterUpdate 0.007 ms.
+[Info ] [LM] lambda is 0.000, rho is 0.000, cost is 0.000/0.000, dx_norm is 0.002
+[Debug] IsUpdateValid 0.008 ms.
+[Debug] ComputeJacobiansForAllEdges 0.036 ms.
+[Debug] ConstructIncrementalFunction 2.743 ms.
+[Debug] SolveIncrementalFunction 0.674 ms.
+[Debug] UpdateParameters 0.050 ms.
+[Debug] ComputeResidualForAllEdges 0.142 ms.
+[Info ] [Ticktock] Solve cost time 12.902 ms
+[Info ] [Point pos] [truth] [vec][0.000 0.000 5.000] | [result] [vec][ 0.002 -0.002  5.000]
+[Info ] [Point pos] [truth] [vec][0.000 1.000 5.000] | [result] [vec][0.002 0.998 5.000]
+[Info ] [Point pos] [truth] [vec][0.000 2.000 5.000] | [result] [vec][0.002 1.998 5.001]
+[Info ] [Point pos] [truth] [vec][0.000 3.000 5.000] | [result] [vec][0.002 2.998 5.001]
+[Info ] [Point pos] [truth] [vec][0.000 4.000 5.000] | [result] [vec][0.002 3.998 5.001]
+[Info ] [Point pos] [truth] [vec][0.000 5.000 5.000] | [result] [vec][0.002 4.998 5.002]
+[Info ] [Point pos] [truth] [vec][0.000 6.000 5.000] | [result] [vec][0.002 5.998 5.002]
+[Info ] [Point pos] [truth] [vec][0.000 7.000 5.000] | [result] [vec][0.002 6.998 5.002]
+[Info ] [Point pos] [truth] [vec][0.000 8.000 5.000] | [result] [vec][0.002 7.998 5.003]
+[Info ] [Point pos] [truth] [vec][0.000 9.000 5.000] | [result] [vec][0.002 8.998 5.003]
+[Info ] [Camera pos] [truth] [vec][0.000 0.000 0.000] | [result] [vec][0.000 0.000 0.000]
+[Info ] [Camera pos] [truth] [vec][1.000 1.000 0.000] | [result] [vec][1.000 1.000 0.000]
+[Info ] [Camera pos] [truth] [vec][2.000 2.000 0.000] | [result] [vec][ 2.000  2.000 -0.000]
+[Info ] [Camera pos] [truth] [vec][3.000 3.000 0.000] | [result] [vec][ 3.000  3.000 -0.000]
+[Info ] [Camera pos] [truth] [vec][4.000 4.000 0.000] | [result] [vec][ 4.000  4.000 -0.000]
+[Info ] [Camera pos] [truth] [vec][5.000 5.000 0.000] | [result] [vec][ 5.000  5.000 -0.000]
+[Info ] [Camera pos] [truth] [vec][6.000 6.000 0.000] | [result] [vec][ 6.000  6.000 -0.000]
+[Info ] [Camera pos] [truth] [vec][7.000 7.000 0.000] | [result] [vec][ 7.000  7.000 -0.000]
+[Info ] [Camera pos] [truth] [vec][8.000 8.000 0.000] | [result] [vec][ 8.000  8.000 -0.000]
+[Info ] [Camera pos] [truth] [vec][9.000 9.000 0.000] | [result] [vec][ 9.000  9.000 -0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][1.000 0.000 0.000 0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][1.000 0.000 0.000 0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][1.000 0.000 0.000 0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][1.000 0.000 0.000 0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][1.000 0.000 0.000 0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][1.000 0.000 0.000 0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][1.000 0.000 0.000 0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][1.000 0.000 0.000 0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][1.000 0.000 0.000 0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][1.000 0.000 0.000 0.000]
+[Info ] >> Test general graph optimizor on bundle adjustment with <invdep> <norm plane> model.
+[Debug] SortVertices 0.001 ms.
+[Debug] ComputeResidualForAllEdges 0.722 ms.
+[Debug] ComputeJacobiansForAllEdges 0.085 ms.
+[Debug] ConstructIncrementalFunction 3.828 ms.
+[Debug] InitializeSolver 0.039 ms.
+[Debug] SolveIncrementalFunction 0.350 ms.
+[Debug] UpdateParameters 0.027 ms.
+[Debug] ComputeResidualForAllEdges 0.101 ms.
+[Debug] IsConvergedAfterUpdate 0.005 ms.
+[Info ] [LM] lambda is 0.000, rho is 0.489, cost is 3.765/165.895, dx_norm is 2.762
+[Debug] IsUpdateValid 0.033 ms.
+[Debug] ComputeJacobiansForAllEdges 0.069 ms.
+[Debug] ConstructIncrementalFunction 3.610 ms.
+[Debug] SolveIncrementalFunction 0.256 ms.
+[Debug] UpdateParameters 0.030 ms.
+[Debug] ComputeResidualForAllEdges 0.083 ms.
+[Debug] IsConvergedAfterUpdate 0.004 ms.
+[Info ] [LM] lambda is 0.000, rho is 0.500, cost is 0.001/3.765, dx_norm is 0.530
+[Debug] IsUpdateValid 0.010 ms.
+[Debug] ComputeJacobiansForAllEdges 0.043 ms.
+[Debug] ConstructIncrementalFunction 3.656 ms.
+[Debug] SolveIncrementalFunction 0.270 ms.
+[Debug] UpdateParameters 0.035 ms.
+[Debug] ComputeResidualForAllEdges 0.147 ms.
+[Debug] IsConvergedAfterUpdate 0.010 ms.
+[Info ] [LM] lambda is 0.000, rho is 0.500, cost is 0.000/0.001, dx_norm is 0.020
+[Debug] IsUpdateValid 0.017 ms.
+[Debug] ComputeJacobiansForAllEdges 0.118 ms.
+[Debug] ConstructIncrementalFunction 3.376 ms.
+[Debug] SolveIncrementalFunction 0.269 ms.
+[Debug] UpdateParameters 0.030 ms.
+[Debug] ComputeResidualForAllEdges 0.100 ms.
+[Debug] IsConvergedAfterUpdate 0.005 ms.
+[Info ] [LM] lambda is 0.000, rho is 0.009, cost is 0.000/0.000, dx_norm is 0.001
+[Debug] IsUpdateValid 0.013 ms.
+[Debug] ComputeJacobiansForAllEdges 0.060 ms.
+[Debug] ConstructIncrementalFunction 3.544 ms.
+[Debug] SolveIncrementalFunction 0.289 ms.
+[Debug] UpdateParameters 0.030 ms.
+[Debug] ComputeResidualForAllEdges 0.086 ms.
+[Info ] [Ticktock] Solve cost time 21.365 ms
+[Info ] [Point pos] [truth] [vec][0.000 0.000 5.000] | [result] [vec][0.200]
+[Info ] [Point pos] [truth] [vec][0.000 1.000 5.000] | [result] [vec][0.200]
+[Info ] [Point pos] [truth] [vec][0.000 2.000 5.000] | [result] [vec][0.200]
+[Info ] [Point pos] [truth] [vec][0.000 3.000 5.000] | [result] [vec][0.200]
+[Info ] [Point pos] [truth] [vec][0.000 4.000 5.000] | [result] [vec][0.200]
+[Info ] [Point pos] [truth] [vec][0.000 5.000 5.000] | [result] [vec][0.200]
+[Info ] [Point pos] [truth] [vec][0.000 6.000 5.000] | [result] [vec][0.200]
+[Info ] [Point pos] [truth] [vec][0.000 7.000 5.000] | [result] [vec][0.200]
+[Info ] [Point pos] [truth] [vec][0.000 8.000 5.000] | [result] [vec][0.200]
+[Info ] [Point pos] [truth] [vec][0.000 9.000 5.000] | [result] [vec][0.200]
+[Info ] [Camera pos] [truth] [vec][0.000 0.000 0.000] | [result] [vec][0.000 0.000 0.000]
+[Info ] [Camera pos] [truth] [vec][1.000 1.000 0.000] | [result] [vec][1.000 1.000 0.000]
+[Info ] [Camera pos] [truth] [vec][2.000 2.000 0.000] | [result] [vec][2.000 2.000 0.000]
+[Info ] [Camera pos] [truth] [vec][3.000 3.000 0.000] | [result] [vec][3.000 3.000 0.000]
+[Info ] [Camera pos] [truth] [vec][4.000 4.000 0.000] | [result] [vec][4.000 4.000 0.000]
+[Info ] [Camera pos] [truth] [vec][5.000 5.000 0.000] | [result] [vec][5.000 5.000 0.000]
+[Info ] [Camera pos] [truth] [vec][6.000 6.000 0.000] | [result] [vec][6.000 6.000 0.000]
+[Info ] [Camera pos] [truth] [vec][7.000 7.000 0.000] | [result] [vec][7.000 7.000 0.000]
+[Info ] [Camera pos] [truth] [vec][8.000 8.000 0.000] | [result] [vec][8.000 8.000 0.000]
+[Info ] [Camera pos] [truth] [vec][9.000 9.000 0.000] | [result] [vec][9.000 9.000 0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][ 1.000  0.000  0.000 -0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][ 1.000  0.000  0.000 -0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][ 1.000  0.000  0.000 -0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][ 1.000  0.000  0.000 -0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][ 1.000  0.000  0.000 -0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][ 1.000  0.000  0.000 -0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][ 1.000  0.000  0.000 -0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][ 1.000  0.000  0.000 -0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][ 1.000  0.000  0.000 -0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][ 1.000  0.000  0.000 -0.000]
+[Info ] >> Test general graph optimizor on bundle adjustment with <invdep> <unit sphere> model.
+[Debug] SortVertices 0.002 ms.
+[Debug] ComputeResidualForAllEdges 0.726 ms.
+[Debug] ComputeJacobiansForAllEdges 0.102 ms.
+[Debug] ConstructIncrementalFunction 4.180 ms.
+[Debug] InitializeSolver 0.018 ms.
+[Debug] SolveIncrementalFunction 0.350 ms.
+[Debug] UpdateParameters 0.053 ms.
+[Debug] ComputeResidualForAllEdges 0.139 ms.
+[Debug] IsConvergedAfterUpdate 0.004 ms.
+[Info ] [LM] lambda is 0.000, rho is 0.478, cost is 0.647/13.925, dx_norm is 3.276
+[Debug] IsUpdateValid 0.026 ms.
+[Debug] ComputeJacobiansForAllEdges 0.084 ms.
+[Debug] ConstructIncrementalFunction 3.633 ms.
+[Debug] SolveIncrementalFunction 0.382 ms.
+[Debug] UpdateParameters 0.079 ms.
+[Debug] ComputeResidualForAllEdges 0.170 ms.
+[Debug] IsConvergedAfterUpdate 0.005 ms.
+[Info ] [LM] lambda is 0.000, rho is 0.500, cost is 0.001/0.647, dx_norm is 1.058
+[Debug] IsUpdateValid 0.011 ms.
+[Debug] ComputeJacobiansForAllEdges 0.106 ms.
+[Debug] ConstructIncrementalFunction 3.483 ms.
+[Debug] SolveIncrementalFunction 0.293 ms.
+[Debug] UpdateParameters 0.078 ms.
+[Debug] ComputeResidualForAllEdges 0.089 ms.
+[Debug] IsConvergedAfterUpdate 0.004 ms.
+[Info ] [LM] lambda is 0.000, rho is 0.500, cost is 0.000/0.001, dx_norm is 0.070
+[Debug] IsUpdateValid 0.007 ms.
+[Debug] ComputeJacobiansForAllEdges 0.050 ms.
+[Debug] ConstructIncrementalFunction 3.623 ms.
+[Debug] SolveIncrementalFunction 0.332 ms.
+[Debug] UpdateParameters 0.030 ms.
+[Debug] ComputeResidualForAllEdges 0.310 ms.
+[Info ] [Ticktock] Solve cost time 18.377 ms
+[Info ] [Point pos] [truth] [vec][0.000 0.000 5.000] | [result] [vec][0.200]
+[Info ] [Point pos] [truth] [vec][0.000 1.000 5.000] | [result] [vec][0.200]
+[Info ] [Point pos] [truth] [vec][0.000 2.000 5.000] | [result] [vec][0.200]
+[Info ] [Point pos] [truth] [vec][0.000 3.000 5.000] | [result] [vec][0.200]
+[Info ] [Point pos] [truth] [vec][0.000 4.000 5.000] | [result] [vec][0.200]
+[Info ] [Point pos] [truth] [vec][0.000 5.000 5.000] | [result] [vec][0.200]
+[Info ] [Point pos] [truth] [vec][0.000 6.000 5.000] | [result] [vec][0.200]
+[Info ] [Point pos] [truth] [vec][0.000 7.000 5.000] | [result] [vec][0.200]
+[Info ] [Point pos] [truth] [vec][0.000 8.000 5.000] | [result] [vec][0.200]
+[Info ] [Point pos] [truth] [vec][0.000 9.000 5.000] | [result] [vec][0.200]
+[Info ] [Camera pos] [truth] [vec][0.000 0.000 0.000] | [result] [vec][0.000 0.000 0.000]
+[Info ] [Camera pos] [truth] [vec][1.000 1.000 0.000] | [result] [vec][1.000 1.000 0.000]
+[Info ] [Camera pos] [truth] [vec][2.000 2.000 0.000] | [result] [vec][2.000 2.000 0.000]
+[Info ] [Camera pos] [truth] [vec][3.000 3.000 0.000] | [result] [vec][3.000 3.000 0.000]
+[Info ] [Camera pos] [truth] [vec][4.000 4.000 0.000] | [result] [vec][4.000 4.000 0.000]
+[Info ] [Camera pos] [truth] [vec][5.000 5.000 0.000] | [result] [vec][5.000 5.000 0.000]
+[Info ] [Camera pos] [truth] [vec][6.000 6.000 0.000] | [result] [vec][6.000 6.000 0.000]
+[Info ] [Camera pos] [truth] [vec][7.000 7.000 0.000] | [result] [vec][7.000 7.000 0.000]
+[Info ] [Camera pos] [truth] [vec][8.000 8.000 0.000] | [result] [vec][8.000 8.000 0.000]
+[Info ] [Camera pos] [truth] [vec][9.000 9.000 0.000] | [result] [vec][9.000 9.000 0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][1.000 0.000 0.000 0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][1.000 0.000 0.000 0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][1.000 0.000 0.000 0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][1.000 0.000 0.000 0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][1.000 0.000 0.000 0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][1.000 0.000 0.000 0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][1.000 0.000 0.000 0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][1.000 0.000 0.000 0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][1.000 0.000 0.000 0.000]
+[Info ] [Camera quat] [truth] [wxyz][1.000, 0.000, 0.000, 0.000] | [result] [vec][1.000 0.000 0.000 0.000]
