@@ -60,13 +60,16 @@ public:
                               0, inv_depth, - p_c(1) * inv_depth_2;
         }
 
-        const TMat3<Scalar> jacobian_cam0_q = - (q_wc.inverse() * q_wc0).toRotationMatrix() * Utility::SkewSymmetricMatrix(p_c0);
-        const TMat3<Scalar> jacobian_cam0_p = q_wc.toRotationMatrix().transpose();
+        const TMat3<Scalar> R_cw = q_wc.toRotationMatrix().transpose();
+        const TMat3<Scalar> R_cc0 = R_cw * q_wc0.matrix();
+
+        const TMat3<Scalar> jacobian_cam0_q = - R_cc0 * Utility::SkewSymmetricMatrix(p_c0);
+        const TMat3<Scalar> jacobian_cam0_p = R_cw;
 
         const TMat3<Scalar> jacobian_cam_q = Utility::SkewSymmetricMatrix(p_c);
-        const TMat3<Scalar> jacobian_cam_p = - q_wc.toRotationMatrix().transpose();
+        const TMat3<Scalar> jacobian_cam_p = - R_cw;
 
-        const TVec3<Scalar> jacobian_invdep = - (q_wc.inverse() * q_wc0).toRotationMatrix() *
+        const TVec3<Scalar> jacobian_invdep = - R_cc0 *
             TVec3<Scalar>(norm_xy0(0), norm_xy0(1), static_cast<Scalar>(1)) / (inv_depth0 * inv_depth0);
 
         this->GetJacobian(0) = jacobian_2d_3d * jacobian_invdep;
@@ -141,9 +144,9 @@ int main(int argc, char **argv) {
 
     // Generate edges between cameras and points.
     std::array<std::unique_ptr<EdgeReproject<Scalar>>, (kCameraFrameNumber - 1) * kPointsNumber> reprojection_edges = {};
+    int32_t idx = 0;
     for (int32_t i = 0; i < kPointsNumber; ++i) {
         for (int32_t j = 1; j < kCameraFrameNumber; ++j) {
-            const int32_t idx = i * (kCameraFrameNumber - 1) + j;
             reprojection_edges[idx] = std::make_unique<EdgeReproject<Scalar>>(2, 5);
             reprojection_edges[idx]->SetVertex(all_points[i].get(), 0);
             reprojection_edges[idx]->SetVertex(all_camera_pos[0].get(), 1);
@@ -158,6 +161,8 @@ int main(int argc, char **argv) {
             obv.tail<2>() = p_cj.head<2>() / p_cj.z();
             reprojection_edges[idx]->observation() = obv;
             reprojection_edges[idx]->SelfCheck();
+
+            ++idx;
         }
     }
 

@@ -15,9 +15,8 @@ for (int32_t i = 0; i < kCameraFrameNumber; ++i) {
 std::array<std::unique_ptr<Vertex<Scalar>>, kPointsNumber> all_points = {};
 for (int32_t i = 0; i < kPointsNumber; ++i) {
     const TVec3<Scalar> p_c = cameras[0].q_wc.inverse() * (points[i] - cameras[0].p_wc);
-    const Scalar invdep = static_cast<Scalar>(1) / p_c.z();
+    const Scalar invdep = static_cast<Scalar>(1) / (p_c.z() + 1.0f);
 
     all_points[i] = std::make_unique<Vertex<Scalar>>(1, 1);
     all_points[i]->param() = TVec1<Scalar>(invdep);
-    all_points[i]->param() += TVec1<Scalar>(0.15);
 }

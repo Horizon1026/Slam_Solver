@@ -53,9 +53,7 @@ public:
         const Scalar p_c_norm = p_cj.norm();
         const Scalar p_c_norm3 = p_c_norm * p_c_norm * p_c_norm;
         TMat3<Scalar> jacobian_norm = TMat3<Scalar>::Zero();
-        if (p_c_norm3 < kZero) {
-            jacobian_norm.setIdentity();
-        } else {
+        if (p_c_norm3 > kZero) {
             jacobian_norm << 1.0 / p_c_norm - p_cj.x() * p_cj.x() / p_c_norm3, - p_cj.x() * p_cj.y() / p_c_norm3,                - p_cj.x() * p_cj.z() / p_c_norm3,
                              - p_cj.x() * p_cj.y() / p_c_norm3,                1.0 / p_c_norm - p_cj.y() * p_cj.y() / p_c_norm3, - p_cj.y() * p_cj.z() / p_c_norm3,
                              - p_cj.x() * p_cj.z() / p_c_norm3,                - p_cj.y() * p_cj.z() / p_c_norm3,                1.0 / p_c_norm - p_cj.z() * p_cj.z() / p_c_norm3;
@@ -150,9 +148,9 @@ int main(int argc, char **argv) {
 
     // Generate edges between cameras and points.
     std::array<std::unique_ptr<EdgeReproject<Scalar>>, (kCameraFrameNumber - 1) * kPointsNumber> reprojection_edges = {};
+    int32_t idx = 0;
     for (int32_t i = 0; i < kPointsNumber; ++i) {
         for (int32_t j = 1; j < kCameraFrameNumber; ++j) {
-            const int32_t idx = i * (kCameraFrameNumber - 1) + j;
             reprojection_edges[idx] = std::make_unique<EdgeReproject<Scalar>>(2, 5);
             reprojection_edges[idx]->SetVertex(all_points[i].get(), 0);
             reprojection_edges[idx]->SetVertex(all_camera_pos[0].get(), 1);
@@ -168,6 +166,8 @@ int main(int argc, char **argv) {
             reprojection_edges[idx]->SetTrangetBase(p_c0);
             reprojection_edges[idx]->observation() = obv;
             reprojection_edges[idx]->SelfCheck();
+
+            ++idx;
         }
     }
 

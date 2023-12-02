@@ -16,5 +16,5 @@ std::array<std::unique_ptr<Vertex<Scalar>>, kPointsNumber> all_points = {};
 for (int32_t i = 0; i < kPointsNumber; ++i) {
     all_points[i] = std::make_unique<Vertex<Scalar>>(3, 3);
     all_points[i]->param() = points[i];
-    all_points[i]->param() += TVec3<Scalar>(0.1, 0.1, 0.1);
+    all_points[i]->param() += TVec3<Scalar>(0.0, 0.0, 1.0);
 }
