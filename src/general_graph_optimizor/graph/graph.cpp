@@ -299,12 +299,12 @@ void Graph<Scalar>::ConstructFullSizeHessianAndBias(bool use_prior) {
                     Jt_S_w = jacobians_in_edge[i].transpose() * edge->information() * edge->kernel()->y(1);
 
                     // Fill bias with J.t * S * w * r.
-                    (*lockers)[col_index_i]->lock();
-                    bias.segment(col_index_i, dim_i).noalias() -= Jt_S_w * edge->residual();
-
                     // Fill hessian diagnal with J.t * S * w * J.
                     sub_hessian = Jt_S_w * jacobians_in_edge[i];
+                    (*lockers)[col_index_i]->lock();
+                    bias.segment(col_index_i, dim_i).noalias() -= Jt_S_w * edge->residual();
                     hessian.block(col_index_i, col_index_i, dim_i, dim_i).noalias() += sub_hessian;
+                    (*lockers)[col_index_i]->unlock();
 
                     for (uint32_t j = i + 1; j < vertex_num; ++j) {
                         CONTINUE_IF(vertices_in_edge[j]->IsFixed());
@@ -318,7 +318,6 @@ void Graph<Scalar>::ConstructFullSizeHessianAndBias(bool use_prior) {
                         hessian.block(col_index_j, col_index_i, dim_j, dim_i).noalias() += sub_hessian.transpose();
                         (*lockers)[col_index_j]->unlock();
                     }
-                    (*lockers)[col_index_i]->unlock();
                 }
             }
         }
