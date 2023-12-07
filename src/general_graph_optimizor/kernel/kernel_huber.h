@@ -5,7 +5,7 @@
 
 namespace SLAM_SOLVER {
 
-/* Class Kernel Trival Declaration. */
+/* Class Kernel Huber Declaration. */
 template <typename Scalar>
 class KernelHuber : public Kernel<Scalar> {
 
