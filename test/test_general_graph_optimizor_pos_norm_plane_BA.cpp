@@ -1,11 +1,13 @@
 #include "datatype_basic.h"
 #include "log_report.h"
 #include "tick_tock.h"
+#include "math_kinematics.h"
 
 #include "vertex.h"
 #include "vertex_quaternion.h"
 #include "edge.h"
-#include "math_kinematics.h"
+#include "kernel.h"
+#include "kernel_huber.h"
 #include "solver_lm.h"
 #include "solver_dogleg.h"
 
@@ -96,6 +98,7 @@ int main(int argc, char **argv) {
             TVec3<Scalar> p_c = cameras[j].q_wc.inverse() * (points[i] - cameras[j].p_wc);
             TVec2<Scalar> obv = p_c.head<2>() / p_c.z();
             reprojection_edges[idx]->observation() = obv;
+            reprojection_edges[idx]->kernel() = std::make_unique<KernelHuber<Scalar>>(0.2f);
             reprojection_edges[idx]->SelfCheck();
         }
     }

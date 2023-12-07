@@ -1,11 +1,13 @@
 #include "datatype_basic.h"
 #include "log_report.h"
 #include "tick_tock.h"
+#include "math_kinematics.h"
 
 #include "vertex.h"
 #include "vertex_quaternion.h"
 #include "edge.h"
-#include "math_kinematics.h"
+#include "kernel.h"
+#include "kernel_huber.h"
 #include "solver_lm.h"
 #include "solver_dogleg.h"
 
@@ -128,8 +130,8 @@ int main(int argc, char **argv) {
             obv.head<2>() = p_c0.head<2>() / p_c0.z();
             obv.tail<2>() = p_cj.head<2>() / p_cj.z();
             reprojection_edges[idx]->observation() = obv;
+            reprojection_edges[idx]->kernel() = std::make_unique<KernelHuber<Scalar>>(0.2f);
             reprojection_edges[idx]->SelfCheck();
-
             ++idx;
         }
     }
