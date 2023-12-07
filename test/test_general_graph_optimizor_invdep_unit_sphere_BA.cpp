@@ -14,8 +14,7 @@
 using Scalar = float;
 using namespace SLAM_SOLVER;
 
-constexpr int32_t kCameraFrameNumber = 10;
-constexpr int32_t kPointsNumber = 300;
+#include "embeded_generate_sim_data.h"
 
 /* Class Edge reprojection. */
 template <typename Scalar>
@@ -104,37 +103,6 @@ private:
     TMat2x3<Scalar> tangent_base_transpose;
 };
 
-template <typename Scalar>
-struct Pose {
-    TQuat<Scalar> q_wc = TQuat<Scalar>::Identity();
-    TVec3<Scalar> p_wc = TVec3<Scalar>::Zero();
-};
-
-void GenerateSimulationData(std::vector<Pose<Scalar>> &cameras,
-                            std::vector<TVec3<Scalar>> &points) {
-    cameras.clear();
-    points.clear();
-
-    // Cameras.
-    for (int32_t i = 0; i < kCameraFrameNumber; ++i) {
-        Pose<Scalar> camera_pose;
-        camera_pose.q_wc.setIdentity();
-        camera_pose.p_wc = TVec3<Scalar>(i, i, 0);
-        cameras.emplace_back(camera_pose);
-    }
-
-    // Points.
-    for (int32_t i = 0; i < 20; ++i) {
-        for (int32_t j = 0; j < 20; ++j) {
-            const TVec3<Scalar> point(i, j, 5);
-            points.emplace_back(point);
-            if (points.size() == kPointsNumber) {
-                return;
-            }
-        }
-    }
-}
-
 int main(int argc, char **argv) {
     LogFixPercision(3);
     ReportInfo(YELLOW ">> Test general graph optimizor on bundle adjustment with <invdep> <unit sphere> model." RESET_COLOR);
@@ -193,16 +161,7 @@ int main(int argc, char **argv) {
     ReportInfo("[Ticktock] Solve cost time " << tick_tock.TockTickInMillisecond() << " ms");
 
     // Show optimization result.
-    const int32_t max_points_num_to_print = std::min(10, kPointsNumber);
-    for (int32_t i = 0; i < max_points_num_to_print; ++i) {
-        ReportInfo("[Point pos] [truth] " << LogVec(points[i]) << " | [result] " << LogVec(all_points[i]->param()));
-    }
-    for (int32_t i = 0; i < kCameraFrameNumber; ++i) {
-        ReportInfo("[Camera pos] [truth] " << LogVec(cameras[i].p_wc) << " | [result] " << LogVec(all_camera_pos[i]->param()));
-    }
-    for (int32_t i = 0; i < kCameraFrameNumber; ++i) {
-        ReportInfo("[Camera quat] [truth] " << LogQuat(cameras[i].q_wc) << " | [result] " << LogVec(all_camera_rot[i]->param()));
-    }
+    #include "embeded_show_optimize_result.h"
 
     return 0;
 }
