@@ -281,6 +281,7 @@ void Graph<Scalar>::ConstructFullSizeHessianAndBias(bool use_prior) {
             // Preallocate memory for temp variables.
             TMat<Scalar> Jt_S_w;
             TMat<Scalar> sub_hessian;
+            TVec<Scalar> sub_bias;
 
             // Traverse all edges, use residual and jacobians to construct full size hessian and bias.
             for (uint32_t k = range.begin(); k < range.end(); ++k) {
@@ -301,8 +302,9 @@ void Graph<Scalar>::ConstructFullSizeHessianAndBias(bool use_prior) {
                     // Fill bias with J.t * S * w * r.
                     // Fill hessian diagnal with J.t * S * w * J.
                     sub_hessian = Jt_S_w * jacobians_in_edge[i];
+                    sub_bias = Jt_S_w * edge->residual();
                     (*lockers)[col_index_i]->lock();
-                    bias.segment(col_index_i, dim_i).noalias() -= Jt_S_w * edge->residual();
+                    bias.segment(col_index_i, dim_i).noalias() -= sub_bias;
                     hessian.block(col_index_i, col_index_i, dim_i, dim_i).noalias() += sub_hessian;
                     (*lockers)[col_index_i]->unlock();
 
