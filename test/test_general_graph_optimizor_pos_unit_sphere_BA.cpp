@@ -26,8 +26,7 @@ class EdgeReproject : public Edge<Scalar> {
 // vertex is [feature, p_w] [camera, p_wc] [camera, q_wc].
 
 public:
-    EdgeReproject() = delete;
-    EdgeReproject(int32_t residual_dim, int32_t vertex_num) : Edge<Scalar>(residual_dim, vertex_num) {}
+    EdgeReproject() : Edge<Scalar>(2, 3) {}
     virtual ~EdgeReproject() = default;
 
     // Compute residual and jacobians for each vertex. These operations should be defined by subclass.
@@ -98,7 +97,7 @@ int main(int argc, char **argv) {
     for (int32_t i = 0; i < kPointsNumber; ++i) {
         for (int32_t j = 0; j < kCameraFrameNumber; ++j) {
             const int32_t idx = i * kCameraFrameNumber + j;
-            reprojection_edges[idx] = std::make_unique<EdgeReproject<Scalar>>(2, 3);
+            reprojection_edges[idx] = std::make_unique<EdgeReproject<Scalar>>();
             reprojection_edges[idx]->SetVertex(all_points[i].get(), 0);
             reprojection_edges[idx]->SetVertex(all_camera_pos[j].get(), 1);
             reprojection_edges[idx]->SetVertex(all_camera_rot[j].get(), 2);
