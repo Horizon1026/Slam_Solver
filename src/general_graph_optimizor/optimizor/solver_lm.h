@@ -8,7 +8,7 @@ namespace SLAM_SOLVER {
 
 template <typename Scalar>
 struct SolverLmOptions {
-    Scalar kInitLambda = 1e-6;
+    Scalar kInitLambda = 1e-5;
     Scalar kMaxLambda = 1e32;
     Scalar kMinLambda = 1e-10;
 };
