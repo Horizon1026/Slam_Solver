@@ -11,7 +11,7 @@ template class SolverLm<double>;
 template <typename Scalar>
 void SolverLm<Scalar>::InitializeSolver() {
     // Use 'this->' to run function definded in basis class.
-    lambda_ = lm_options_.kInitLambda;
+    lambda_ = lm_options_.kInitLambda * this->problem()->hessian().diagonal().maxCoeff();
     this->cost_at_linearized_point() = this->cost_at_latest_step();
     v_ = static_cast<Scalar>(2);
 }
