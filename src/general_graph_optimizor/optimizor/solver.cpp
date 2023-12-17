@@ -91,11 +91,12 @@ void Solver<Scalar>::RollBackParameters(bool use_prior) {
 template <typename Scalar>
 bool Solver<Scalar>::IsConvergedAfterUpdate(int32_t iter) {
     if (Eigen::isnan(dx_.array()).any()) {
-        ReportError("[Solver] Incremental param is nan.");
+        ReportError("[Solver] Incremental param is nan. Not converged.");
         return false;
     }
 
     if (dx_.squaredNorm() < options_.kMaxConvergedSquaredStepLength) {
+        ReportInfo("[Solver] Converged.");
         return true;
     }
 
