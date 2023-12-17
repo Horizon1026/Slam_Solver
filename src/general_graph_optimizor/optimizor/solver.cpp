@@ -36,11 +36,6 @@ bool Solver<Scalar>::Solve(bool use_prior) {
         // Recompute residual after update.
         cost_at_latest_step_ = problem_->ComputeResidualForAllEdges(use_prior);
 
-        // If converged, the iteration can be stopped now.
-        if (IsConvergedAfterUpdate(iter)) {
-            break;
-        }
-
         // If this step is valid, perpare for next iteration.
         if (IsUpdateValid()) {
             cost_at_linearized_point_ = cost_at_latest_step_;
@@ -48,6 +43,11 @@ bool Solver<Scalar>::Solve(bool use_prior) {
             ConstructIncrementalFunction(use_prior);
         } else {
             RollBackParameters(use_prior);
+        }
+
+        // If converged, the iteration can be stopped now.
+        if (IsConvergedAfterUpdate(iter)) {
+            break;
         }
     }
 
