@@ -8,7 +8,7 @@ namespace SLAM_SOLVER {
 
 template <typename Scalar>
 struct SolverOptions {
-    int32_t kMaxIteration = 20;
+    int32_t kMaxIteration = 30;
     Scalar kMaxConvergedSquaredStepLength = 1e-6;
     Scalar kMaxPcgSolverCostDecreaseRate = 1e-6;
     Scalar kMaxPcgSolverConvergedResidual = 1e-6;
