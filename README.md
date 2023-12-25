@@ -2,13 +2,13 @@
 General solver for slam problem, such as graph optimization problem solver.
 
 # Components
-- [ ] General graph optimization solver.
+- [x] General graph optimization solver.
     - [x] Vertex template.
     - [x] Edge template.
     - [x] Graph problem template.
     - [x] Non-linear optimization solver template.
     - [x] Marginalization.
-    - [ ] Support tbb parallel.
+    - [x] Support tbb parallel.
 - [ ] Square root BA problem solver.
     - [ ] Landmark block template.
     - [ ] Non-linear optimization solver template.

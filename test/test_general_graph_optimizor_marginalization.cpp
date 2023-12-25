@@ -1,5 +1,6 @@
 #include "datatype_basic.h"
 #include "log_report.h"
+#include "visualizor.h"
 
 #include "vertex.h"
 #include "vertex_quaternion.h"
@@ -9,9 +10,12 @@
 
 using Scalar = float;
 using namespace SLAM_SOLVER;
-
-constexpr int32_t kCameraFrameNumber = 3;
-constexpr int32_t kPointsNumber = 20;
+using namespace SLAM_VISUALIZOR;
+namespace {
+    constexpr int32_t kVisualizeMatrixScale = 2;
+    constexpr int32_t kCameraFrameNumber = 10;
+    constexpr int32_t kPointsNumber = 100;
+}
 
 /* Class Edge reprojection. */
 template <typename Scalar>
@@ -99,6 +103,13 @@ void GenerateSimulationData(std::vector<Pose<Scalar>> &cameras,
     }
 }
 
+void ShowMatrixImage(const std::string &title, const TMat<Scalar> &matrix) {
+    uint8_t *buf = (uint8_t *)malloc(matrix.rows() * matrix.cols() * kVisualizeMatrixScale * kVisualizeMatrixScale * sizeof(uint8_t));
+    GrayImage image_matrix(buf, matrix.rows() * kVisualizeMatrixScale, matrix.cols() * kVisualizeMatrixScale, true);
+    Visualizor::ConvertMatrixToImage<float>(matrix, image_matrix, matrix.maxCoeff() / 5.0f, kVisualizeMatrixScale);
+    Visualizor::ShowImage(title, image_matrix);
+}
+
 int main(int argc, char **argv) {
     LogFixPercision(3);
     ReportInfo(YELLOW ">> Test general graph optimizor marginalization." RESET_COLOR);
@@ -158,11 +169,10 @@ int main(int argc, char **argv) {
     marger.Marginalize(vertices_to_be_marged, false);
 
     // Show result.
-    ReportInfo("Prior hessian is\n" << marger.problem()->prior_hessian());
-    ReportInfo("Prior bias is\n" << marger.problem()->prior_bias());
-    ReportInfo("Prior jacobian is\n" << marger.problem()->prior_jacobian());
-    ReportInfo("Prior jacobian.t.inv is\n" << marger.problem()->prior_jacobian_t_inv());
-    ReportInfo("Prior residual is\n" << marger.problem()->prior_residual());
+    ShowMatrixImage("hessian", marger.problem()->hessian());
+    ShowMatrixImage("prior hessian", marger.problem()->prior_hessian());
+    ShowMatrixImage("prior jacobian", marger.problem()->prior_jacobian());
+    Visualizor::WaitKey(0);
 
     return 0;
 }

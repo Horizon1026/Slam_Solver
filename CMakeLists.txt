@@ -49,6 +49,12 @@ if ( NOT TARGET lib_stack_backward )
     add_subdirectory( ${SLAM_UTILITY_PATH}/3rd_libraries/backward ${PROJECT_SOURCE_DIR}/build/lib_stack_backward )
 endif()
 
+# Add visualizor.
+set( VISUALIZOR_PATH ${PROJECT_SOURCE_DIR}/../Visualizor2D )
+if ( NOT TARGET lib_image_visualizor )
+    add_subdirectory( ${VISUALIZOR_PATH}/src ${PROJECT_SOURCE_DIR}/build/lib_image_visualizor )
+endif()
+
 # Add test_general_graph_optimizor_polynomial_problem.
 add_executable( test_general_graph_optimizor_polynomial_problem
     test/test_general_graph_optimizor_polynomial_problem.cpp
@@ -101,6 +107,7 @@ add_executable( test_general_graph_optimizor_marginalization
 target_link_libraries( test_general_graph_optimizor_marginalization
     lib_general_graph_optimizor
     lib_stack_backward
+    lib_image_visualizor
 )
 
 # Add test_kalman_filter_constant.
