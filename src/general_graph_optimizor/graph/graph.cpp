@@ -372,23 +372,25 @@ void Graph<Scalar>::ConstructFullSizeHessianAndBias(bool use_prior) {
 
     // Add prior information on incremental function, if configed to use prior.
     if (use_prior && prior_hessian_.rows() > 0) {
+        TMat<Scalar> tmp_prior_hessian = prior_hessian_;
+        TVec<Scalar> tmp_prior_bias = prior_bias_;
         // Adjust prior information.
         for (const auto &vertex : dense_vertices_) {
             if (vertex->IsFixed()) {
                 const int32_t index = vertex->ColIndex();
                 const int32_t dim = vertex->GetIncrementDimension();
-                CONTINUE_IF(index + size > prior_hessian_.cols());
+                CONTINUE_IF(index + size > tmp_prior_hessian.cols());
 
                 // If vertex is fixed, its prior information should be cleaned.
-                prior_hessian_.block(index, 0, dim, prior_hessian_.cols()).setZero();
-                prior_hessian_.block(0, index, prior_hessian_.rows(), dim).setZero();
-                prior_bias_.segment(index, dim).setZero();
+                tmp_prior_hessian.block(index, 0, dim, tmp_prior_hessian.cols()).setZero();
+                tmp_prior_hessian.block(0, index, tmp_prior_hessian.rows(), dim).setZero();
+                tmp_prior_bias.segment(index, dim).setZero();
             }
         }
 
         // Add prior information on incremantal function.
-        hessian_.topLeftCorner(prior_hessian_.rows(), prior_hessian_.cols()).noalias() += prior_hessian_;
-        bias_.head(prior_bias_.rows()).noalias() += prior_bias_;
+        hessian_.topLeftCorner(tmp_prior_hessian.rows(), tmp_prior_hessian.cols()).noalias() += tmp_prior_hessian;
+        bias_.head(tmp_prior_bias.rows()).noalias() += tmp_prior_bias;
     }
 }
 

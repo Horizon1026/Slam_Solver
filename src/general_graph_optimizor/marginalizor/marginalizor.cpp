@@ -88,12 +88,13 @@ void Marginalizor<Scalar>::ConstructInformation(bool use_prior) {
 template <typename Scalar>
 void Marginalizor<Scalar>::MarginalizeSparseVertices() {
     const int32_t marg = this->problem()->full_size_of_sparse_vertices();
-    if (marg) {
+    if (marg > 0) {
         this->problem()->MarginalizeSparseVerticesInHessianAndBias(reverse_hessian_, reverse_bias_);
     } else {
         reverse_hessian_ = this->problem()->hessian();
         reverse_bias_ = this->problem()->bias();
     }
+    std::cout << reverse_hessian_ << std::endl;
 }
 
 // Create prior information, and store them in graph problem.
@@ -107,12 +108,12 @@ void Marginalizor<Scalar>::CreatePriorInformation() {
         // [ Hrr Hrm ] [ br ]
         // [ Hmr Hmm ] [ bm ]
         case SortMargedVerticesDirection::kSortAtBack: {
-            TMat<Scalar> &&Hrr = this->problem()->hessian().block(0, 0, reverse, reverse);
-            TMat<Scalar> &&Hrm = this->problem()->hessian().block(0, reverse, reverse, marg);
-            TMat<Scalar> &&Hmr = this->problem()->hessian().block(reverse, 0, marg, reverse);
-            TMat<Scalar> &&Hmm = this->problem()->hessian().block(reverse, reverse, marg, marg);
-            TVec<Scalar> &&br = this->problem()->bias().head(reverse);
-            TVec<Scalar> &&bm = this->problem()->bias().tail(marg);
+            TMat<Scalar> &&Hrr = reverse_hessian_.block(0, 0, reverse, reverse);
+            TMat<Scalar> &&Hrm = reverse_hessian_.block(0, reverse, reverse, marg);
+            TMat<Scalar> &&Hmr = reverse_hessian_.block(reverse, 0, marg, reverse);
+            TMat<Scalar> &&Hmm = reverse_hessian_.block(reverse, reverse, marg, marg);
+            TVec<Scalar> &&br = reverse_bias_.head(reverse);
+            TVec<Scalar> &&bm = reverse_bias_.tail(marg);
 
             ComputePriorBySchurComplement(Hrr, Hrm, Hmr, Hmm, br, bm);
             break;
@@ -122,12 +123,12 @@ void Marginalizor<Scalar>::CreatePriorInformation() {
         // [ Hrm Hrr ] [ br ]
         case SortMargedVerticesDirection::kSortAtFront:
         default: {
-            TMat<Scalar> &&Hrr = this->problem()->hessian().block(marg, marg, reverse, reverse);
-            TMat<Scalar> &&Hrm = this->problem()->hessian().block(marg, 0, reverse, marg);
-            TMat<Scalar> &&Hmr = this->problem()->hessian().block(0, marg, marg, reverse);
-            TMat<Scalar> &&Hmm = this->problem()->hessian().block(0, 0, marg, marg);
-            TVec<Scalar> &&br = this->problem()->bias().tail(reverse);
-            TVec<Scalar> &&bm = this->problem()->bias().head(marg);
+            TMat<Scalar> &&Hrr = reverse_hessian_.block(marg, marg, reverse, reverse);
+            TMat<Scalar> &&Hrm = reverse_hessian_.block(marg, 0, reverse, marg);
+            TMat<Scalar> &&Hmr = reverse_hessian_.block(0, marg, marg, reverse);
+            TMat<Scalar> &&Hmm = reverse_hessian_.block(0, 0, marg, marg);
+            TVec<Scalar> &&br = reverse_bias_.tail(reverse);
+            TVec<Scalar> &&bm = reverse_bias_.head(marg);
 
             ComputePriorBySchurComplement(Hrr, Hrm, Hmr, Hmm, br, bm);
             break;

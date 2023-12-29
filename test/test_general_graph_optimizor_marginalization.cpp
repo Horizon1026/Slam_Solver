@@ -170,6 +170,7 @@ int main(int argc, char **argv) {
 
     // Show result.
     ShowMatrixImage("hessian", marger.problem()->hessian());
+    ShowMatrixImage("reverse hessian", marger.reverse_hessian());
     ShowMatrixImage("prior hessian", marger.problem()->prior_hessian());
     ShowMatrixImage("prior jacobian", marger.problem()->prior_jacobian());
     Visualizor::WaitKey(0);

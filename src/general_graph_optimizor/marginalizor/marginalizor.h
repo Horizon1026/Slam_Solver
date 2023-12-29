@@ -50,10 +50,14 @@ public:
     // Reference for member variables.
     MargOptions<Scalar> &options() { return options_; }
     Graph<Scalar> *&problem() { return problem_; }
+    TMat<Scalar> &reverse_hessian() { return reverse_hessian_; }
+    TVec<Scalar> &reverse_bias() { return reverse_bias_; }
 
     // Const reference for member variables.
     const MargOptions<Scalar> &options() const { return options_; }
     const Graph<Scalar> *problem() const { return problem_; }
+    const TMat<Scalar> &reverse_hessian() const { return reverse_hessian_; }
+    const TVec<Scalar> &reverse_bias() const { return reverse_bias_; }
 
 private:
     // Compute prior information with schur complement.
