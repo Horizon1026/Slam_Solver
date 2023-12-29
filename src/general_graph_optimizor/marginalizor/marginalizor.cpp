@@ -94,7 +94,6 @@ void Marginalizor<Scalar>::MarginalizeSparseVertices() {
         reverse_hessian_ = this->problem()->hessian();
         reverse_bias_ = this->problem()->bias();
     }
-    std::cout << reverse_hessian_ << std::endl;
 }
 
 // Create prior information, and store them in graph problem.
