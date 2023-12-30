@@ -109,6 +109,8 @@ private:
     TMat<Scalar> prior_jacobian_;
     TMat<Scalar> prior_jacobian_t_inv_;
     TVec<Scalar> prior_residual_;
+    TVec<Scalar> backup_prior_bias_;
+    TVec<Scalar> backup_prior_residual_;
 
 };
 

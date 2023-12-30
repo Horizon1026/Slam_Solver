@@ -59,7 +59,6 @@ bool Graph<Scalar>::AddVertexWithCheck(Vertex<Scalar> *vertex, bool is_dense_ver
 template <typename Scalar>
 bool Graph<Scalar>::AddEdge(Edge<Scalar> *edge) {
     RETURN_FALSE_IF(edge == nullptr);
-
     edges_.emplace_back(edge);
     return true;
 }
@@ -67,7 +66,6 @@ bool Graph<Scalar>::AddEdge(Edge<Scalar> *edge) {
 template <typename Scalar>
 bool Graph<Scalar>::AddEdgeWithCheck(Edge<Scalar> *edge) {
     RETURN_FALSE_IF(std::find(edges_.cbegin(), edges_.cend(), edge) == edges_.cend());
-
     return AddEdge(edge);
 }
 
@@ -145,6 +143,12 @@ void Graph<Scalar>::UpdateAllVertices(const TVec<Scalar> &delta_x) {
         vertex->UpdateParam(delta_x.segment(index, dim));
     }
 #endif // end of ENABLE_TBB_PARALLEL
+
+    // Backup and update prior information.
+    backup_prior_bias_ = prior_bias_;
+    backup_prior_residual_ = prior_residual_;
+    prior_bias_ -= prior_hessian_ * delta_x.head(prior_hessian_.cols());
+    prior_residual_ = - prior_jacobian_t_inv_ * prior_bias_;
 }
 
 // Roll back all vertices.
@@ -181,6 +185,10 @@ void Graph<Scalar>::RollBackAllVertices() {
         vertex->RollbackParam();
     }
 #endif // end of ENABLE_TBB_PARALLEL
+
+    // Roll back prior information.
+    prior_bias_ = backup_prior_bias_;
+    prior_residual_ = backup_prior_residual_;
 }
 
 // Compute residual for all edges.
@@ -379,7 +387,7 @@ void Graph<Scalar>::ConstructFullSizeHessianAndBias(bool use_prior) {
             if (vertex->IsFixed()) {
                 const int32_t index = vertex->ColIndex();
                 const int32_t dim = vertex->GetIncrementDimension();
-                CONTINUE_IF(index + size > tmp_prior_hessian.cols());
+                CONTINUE_IF(index + dim > tmp_prior_hessian.cols());
 
                 // If vertex is fixed, its prior information should be cleaned.
                 tmp_prior_hessian.block(index, 0, dim, tmp_prior_hessian.cols()).setZero();
@@ -411,9 +419,13 @@ void Graph<Scalar>::MarginalizeSparseVerticesInHessianAndBias(TMat<Scalar> &hess
                 const int32_t index = vertex->ColIndex();
                 const int32_t dim = vertex->GetIncrementDimension();
 
-                Hrm_Hmm_inv.block(0, index - reverse, reverse, dim) =
-                    hessian_.block(0, index, reverse, dim) *
-                    hessian_.block(index, index, dim, dim).inverse();
+                const TMat<Scalar> &&sub_hessian = hessian_.block(index, index, dim, dim);
+                const TMat<Scalar> sub_hessian_inverse = sub_hessian.inverse();
+                if (std::fabs((sub_hessian * sub_hessian_inverse)(0, 0) - 1.0) < 0.1) {
+                    Hrm_Hmm_inv.block(0, index - reverse, reverse, dim) = hessian_.block(0, index, reverse, dim) * sub_hessian_inverse;
+                } else {
+                    Hrm_Hmm_inv.block(0, index - reverse, reverse, dim).setZero();
+                }
             }
         }
     );
@@ -422,9 +434,13 @@ void Graph<Scalar>::MarginalizeSparseVerticesInHessianAndBias(TMat<Scalar> &hess
         const int32_t index = vertex->ColIndex();
         const int32_t dim = vertex->GetIncrementDimension();
 
-        Hrm_Hmm_inv.block(0, index - reverse, reverse, dim) =
-            hessian_.block(0, index, reverse, dim) *
-            hessian_.block(index, index, dim, dim).inverse();
+        const TMat<Scalar> &&sub_hessian = hessian_.block(index, index, dim, dim);
+        const TMat<Scalar> sub_hessian_inverse = sub_hessian.inverse();
+        if (std::fabs((sub_hessian * sub_hessian_inverse)(0, 0) - 1.0) < 0.1) {
+            Hrm_Hmm_inv.block(0, index - reverse, reverse, dim) = hessian_.block(0, index, reverse, dim) * sub_hessian_inverse;
+        } else {
+            Hrm_Hmm_inv.block(0, index - reverse, reverse, dim).setZero();
+        }
     }
 #endif // end of ENABLE_TBB_PARALLEL
 
