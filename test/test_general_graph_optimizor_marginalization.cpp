@@ -169,6 +169,7 @@ int main(int argc, char **argv) {
     marger.Marginalize(vertices_to_be_marged, false);
 
     // Show result.
+    ReportInfo("Marginalize residual squared norm is " << marger.problem()->prior_residual().squaredNorm() << ", cost of problem is " << marger.cost_of_problem());
     ShowMatrixImage("hessian", marger.problem()->hessian());
     ShowMatrixImage("reverse hessian", marger.reverse_hessian());
     ShowMatrixImage("prior hessian", marger.problem()->prior_hessian());

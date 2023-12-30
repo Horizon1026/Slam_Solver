@@ -50,12 +50,14 @@ public:
     // Reference for member variables.
     MargOptions<Scalar> &options() { return options_; }
     Graph<Scalar> *&problem() { return problem_; }
+    Scalar &cost_of_problem() { return cost_of_problem_; }
     TMat<Scalar> &reverse_hessian() { return reverse_hessian_; }
     TVec<Scalar> &reverse_bias() { return reverse_bias_; }
 
     // Const reference for member variables.
     const MargOptions<Scalar> &options() const { return options_; }
     const Graph<Scalar> *problem() const { return problem_; }
+    const Scalar &cost_of_problem() const { return cost_of_problem_; }
     const TMat<Scalar> &reverse_hessian() const { return reverse_hessian_; }
     const TVec<Scalar> &reverse_bias() const { return reverse_bias_; }
 
@@ -74,6 +76,7 @@ private:
 
     // The graph optimization problem to be marged.
     Graph<Scalar> *problem_ = nullptr;
+    Scalar cost_of_problem_ = 0.0;
 
     // The size of vertices needing to be marged.
     int32_t size_of_vertices_need_marge_ = 0;

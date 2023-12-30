@@ -79,7 +79,7 @@ void Marginalizor<Scalar>::SortVerticesToBeMarged(std::vector<Vertex<Scalar> *> 
 // Construct information.
 template <typename Scalar>
 void Marginalizor<Scalar>::ConstructInformation(bool use_prior) {
-    problem_->ComputeResidualForAllEdges(use_prior);
+    cost_of_problem_ = problem_->ComputeResidualForAllEdges(use_prior);
     problem_->ComputeJacobiansForAllEdges();
     problem_->ConstructFullSizeHessianAndBias(use_prior);
 }
