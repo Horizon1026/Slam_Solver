@@ -62,9 +62,6 @@ public:
         this->GetJacobian(2) = jacobian_2d_3d * SLAM_UTILITY::Utility::SkewSymmetricMatrix(p_c);
     }
 
-    // Use string to represent edge type.
-    virtual std::string GetType() { return std::string("Edge Reprojection"); }
-
     // Set tangent base.
     void SetTrangetBase(const TVec3<Scalar> &vec) {
         tangent_base_transpose = Utility::TangentBase(vec).transpose();

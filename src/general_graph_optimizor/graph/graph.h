@@ -2,7 +2,6 @@
 #define _GENERAL_GRAPH_OPTIMIZOR_GRAPH_H_
 
 #include "datatype_basic.h"
-#include "log_report.h"
 #include "vertex.h"
 #include "edge.h"
 
@@ -20,8 +19,9 @@ public:
     explicit Graph(uint32_t reserved_vertex_num);
     virtual ~Graph() = default;
 
-    // Clear everything of this graph.
     void Clear();
+    void VerticesInformation(bool show_sparse_vertices_info = false);
+    void EdgesInformation();
 
     // Add vertices and edges for this graph.
     bool AddVertex(Vertex<Scalar> *vertex, bool is_dense_vertex = true);

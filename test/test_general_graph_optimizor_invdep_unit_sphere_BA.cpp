@@ -79,9 +79,6 @@ public:
         this->GetJacobian(4) = jacobian_2d_3d * jacobian_camj_q;
     }
 
-    // Use string to represent edge type.
-    virtual std::string GetType() { return std::string("Edge Reprojection"); }
-
     // Set tangent base.
     void SetTrangetBase(const TVec3<Scalar> &vec) {
         tangent_base_transpose = Utility::TangentBase(vec).transpose();
@@ -165,6 +162,8 @@ int main(int argc, char **argv) {
 
     // Show optimization result.
     #include "embeded_show_optimize_result.h"
+    problem.VerticesInformation();
+    // problem.EdgesInformation();
 
     return 0;
 }

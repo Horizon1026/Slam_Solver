@@ -40,15 +40,14 @@ public:
     TMat<Scalar> &information() { return information_; }
     TMat<Scalar> &observation() { return observation_; }
     std::unique_ptr<Kernel<Scalar>> &kernel() { return kernel_; }
+    std::string &name() { return name_; }
 
     // Const reference for member variables.
     const TVec<Scalar> &residual() const { return residual_; }
     const TMat<Scalar> &information() const { return information_; }
     const TMat<Scalar> &observation() const { return observation_; }
     const std::unique_ptr<Kernel<Scalar>> &kernel() const { return kernel_; }
-
-    // Use string to represent edge type.
-    virtual std::string GetType() { return std::string("Basic Edge"); }
+    const std::string &name() const { return name_; }
 
     // Check if this edge valid.
     bool SelfCheck();
@@ -84,6 +83,9 @@ private:
 
     // Kernel function, nullptr default.
     std::unique_ptr<Kernel<Scalar>> kernel_ = std::make_unique<Kernel<Scalar>>();
+
+    // Name of this edge.
+    std::string name_ = "edge";
 };
 
 /* Class Edge Definition. */

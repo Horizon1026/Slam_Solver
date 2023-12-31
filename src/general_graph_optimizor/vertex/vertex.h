@@ -23,14 +23,13 @@ public:
     const int32_t GetParameterDimension() const { return param_dim_; }
     const int32_t GetIncrementDimension() const { return delta_dim_; }
 
-    // Use string to represent vertex type.
-    virtual std::string GetType() { return std::string("Basic Vertex"); }
-
     // Reference for member variables.
     TVec<Scalar> &param() { return param_; }
+    std::string &name() { return name_; }
 
     // Const reference for member variables.
     const TVec<Scalar> &param() const { return param_; }
+    const std::string &name() const { return name_; }
 
     // Update param with delta_param solved by solver.
     virtual void UpdateParam(const TVec<Scalar> &delta_param) { param_ += delta_param; }
@@ -56,6 +55,7 @@ private:
     // Store parameter to be solved.
     TVec<Scalar> param_ = TVec3<Scalar>::Zero();
     TVec<Scalar> param_backup_ = TVec3<Scalar>::Zero();
+    std::string name_ = "vertex";
 
     // Fix this vertex when solving problem or not.
     bool fixed_ = false;

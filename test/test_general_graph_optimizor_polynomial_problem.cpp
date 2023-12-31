@@ -17,8 +17,6 @@ public:
     VertexParam() = delete;
     VertexParam(int32_t param_dim, int32_t delta_dim) : Vertex<Scalar>(param_dim, delta_dim) {}
     virtual ~VertexParam() = default;
-
-    virtual std::string GetType() override { return std::string("Vertex"); }
 };
 
 /* Class Edge r = y - (a * x^3 + b * x^2 + c * x) */
@@ -50,8 +48,6 @@ public:
         this->GetJacobian(1) << x_ * x_;
         this->GetJacobian(2) << x_;
     }
-
-    virtual std::string GetType() override { return std::string("Edge r = y - (a * x^3 + b * x^2 + c * x)"); }
 
 private:
     Scalar x_, y_, a_, b_, c_;

@@ -58,9 +58,6 @@ public:
         this->GetJacobian(2) = jacobian_2d_3d * SLAM_UTILITY::Utility::SkewSymmetricMatrix(p_c);
     }
 
-    // Use string to represent edge type.
-    virtual std::string GetType() { return std::string("Edge Reprojection"); }
-
 private:
     // Parameters will be calculated in ComputeResidual().
     // It should not be repeatedly calculated in ComputeJacobians().

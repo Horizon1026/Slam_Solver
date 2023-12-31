@@ -1,4 +1,5 @@
 #include "graph.h"
+#include "log_report.h"
 #include "slam_operations.h"
 
 #ifdef ENABLE_TBB_PARALLEL
@@ -34,6 +35,42 @@ void Graph<Scalar>::Clear() {
     full_size_of_dense_vertices_ = 0;
     full_size_of_sparse_vertices_ = 0;
     full_size_of_residuals_ = 0;
+}
+
+// Report all vertices in this graph.
+template <typename Scalar>
+void Graph<Scalar>::VerticesInformation(bool show_sparse_vertices_info) {
+    ReportInfo("[Graph] All vertices in this graph:");
+    for (const auto &vertex : dense_vertices_) {
+        const std::string fix_status = vertex->IsFixed() ? "fixed" : "unfixed";
+        ReportInfo(" - [dense] [name] " << vertex->name() <<
+            ",\t[col id] " << vertex->ColIndex() << ", " << fix_status <<
+            ",\t[param] " << vertex->param().transpose());
+    }
+
+    if (show_sparse_vertices_info) {
+        for (const auto &vertex : sparse_vertices_) {
+            const std::string fix_status = vertex->IsFixed() ? "fixed" : "unfixed";
+            ReportInfo(" - [sparse] [name] " << vertex->name() <<
+                ",\t[col id] " << vertex->ColIndex() << ", " << fix_status <<
+                ",\t[param] " << vertex->param().transpose());
+        }
+    }
+}
+
+// Report all edges in this graph.
+template <typename Scalar>
+void Graph<Scalar>::EdgesInformation() {
+    ReportInfo("[Graph] All vertices in this graph:");
+    for (const auto &edge : edges_) {
+        ReportInfo(" - [name] " << edge->name() << ", [id] " << edge->GetId() << ", relative vertices:");
+        for (const auto &vertex : edge->GetVertices()) {
+            const std::string fix_status = vertex->IsFixed() ? "fixed." : "unfixed.";
+            ReportInfo(" - [name] " << vertex->name() <<
+                ",\t[col id] " << vertex->ColIndex() << ", " << fix_status <<
+                ",\t[param] " << vertex->param().transpose());
+        }
+    }
 }
 
 // Add vertices and edges for this graph.

@@ -15,9 +15,6 @@ public:
     VertexQuat(int32_t param_dim, int32_t delta_dim) : Vertex<Scalar>(param_dim, delta_dim) {}
     virtual ~VertexQuat() = default;
 
-    // Use string to represent vertex type.
-    virtual std::string GetType() override { return std::string("Vertex Quaternion"); }
-
     // Update param with delta_param solved by solver.
     virtual void UpdateParam(const TVec<Scalar> &delta_param) override {
         // Stored param is [w, x, y, z]. Incremental param is [dx, dy, dz].
