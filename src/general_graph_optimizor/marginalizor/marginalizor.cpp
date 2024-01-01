@@ -110,7 +110,8 @@ void Marginalizor<Scalar>::CreatePriorInformation() {
             TMat<Scalar> &&Hrr = reverse_hessian_.block(0, 0, reverse, reverse);
             TMat<Scalar> &&Hrm = reverse_hessian_.block(0, reverse, reverse, marg);
             TMat<Scalar> &&Hmr = reverse_hessian_.block(reverse, 0, marg, reverse);
-            TMat<Scalar> &&Hmm = reverse_hessian_.block(reverse, reverse, marg, marg);
+            TMat<Scalar> Hmm = 0.5 * (reverse_hessian_.block(reverse, reverse, marg, marg) +
+                reverse_hessian_.block(reverse, reverse, marg, marg).transpose());
             TVec<Scalar> &&br = reverse_bias_.head(reverse);
             TVec<Scalar> &&bm = reverse_bias_.tail(marg);
 
@@ -125,7 +126,8 @@ void Marginalizor<Scalar>::CreatePriorInformation() {
             TMat<Scalar> &&Hrr = reverse_hessian_.block(marg, marg, reverse, reverse);
             TMat<Scalar> &&Hrm = reverse_hessian_.block(marg, 0, reverse, marg);
             TMat<Scalar> &&Hmr = reverse_hessian_.block(0, marg, marg, reverse);
-            TMat<Scalar> &&Hmm = reverse_hessian_.block(0, 0, marg, marg);
+            TMat<Scalar> Hmm = 0.5 * (reverse_hessian_.block(0, 0, marg, marg) +
+                reverse_hessian_.block(0, 0, marg, marg).transpose());
             TVec<Scalar> &&br = reverse_bias_.tail(reverse);
             TVec<Scalar> &&bm = reverse_bias_.head(marg);
 
