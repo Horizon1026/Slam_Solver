@@ -15,6 +15,12 @@ void SolverLm<Scalar>::InitializeSolver() {
     lambda_ = std::min(lambda_, lm_options_.kInitLambda);
     this->cost_at_linearized_point() = this->cost_at_latest_step();
     v_ = static_cast<Scalar>(2);
+
+    // Report information of initialize state if enabled.
+    if (this->options().kEnableReportEachIteration) {
+        ReportInfo("[LM] Init lambda is " << lambda_ << ", cost is " << this->cost_at_latest_step() << "/" <<
+            this->cost_at_linearized_point() << "(" << this->problem()->prior_residual().squaredNorm() << "), dx_norm is " << this->dx().norm());
+    }
 }
 
 template <typename Scalar>
@@ -75,7 +81,7 @@ bool SolverLm<Scalar>::IsUpdateValid(Scalar min_allowed_gain_rate) {
     // Report information of this iteration if enabled.
     if (this->options().kEnableReportEachIteration) {
         ReportInfo("[LM] lambda is " << lambda_ << ", rho is " << rho << ", cost is " << this->cost_at_latest_step() << "/" <<
-            this->cost_at_linearized_point() << ", dx_norm is " << this->dx().norm());
+            this->cost_at_linearized_point() << "(" << this->problem()->prior_residual().squaredNorm() << "), dx_norm is " << this->dx().norm());
     }
 
     bool result = true;

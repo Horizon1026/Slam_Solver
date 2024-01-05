@@ -17,6 +17,14 @@ void SolverDogleg<Scalar>::InitializeSolver() {
     auto &hessian = this->problem()->hessian();
     radius_ = std::max(radius_, hessian.diagonal().array().maxCoeff());
     radius_ = std::min(radius_, dogleg_options_.kMaxRadius);
+
+    // Report information of this iteration if enabled.
+    const Scalar delta_x_norm = this->dx().norm();
+    if (this->options().kEnableReportEachIteration) {
+        ReportInfo("[Dogleg] Init radius is " << radius_ << ", cost is " << this->cost_at_latest_step() << "/" <<
+            this->cost_at_linearized_point() << "(" << this->problem()->prior_residual().squaredNorm() <<
+            "), dx_norm is " << delta_x_norm);
+    }
 }
 
 template <typename Scalar>
@@ -92,7 +100,7 @@ bool SolverDogleg<Scalar>::IsUpdateValid(Scalar min_allowed_gain_rate) {
     const Scalar delta_x_norm = this->dx().norm();
     if (this->options().kEnableReportEachIteration) {
         ReportInfo("[Dogleg] radius is " << radius_ << ", rho is " << rho << ", cost is " << this->cost_at_latest_step() << "/" <<
-            this->cost_at_linearized_point() << ", dx_norm is " << delta_x_norm);
+            this->cost_at_linearized_point() << "(" << this->problem()->prior_residual().squaredNorm() << "), dx_norm is " << delta_x_norm);
     }
 
     if (rho > min_allowed_gain_rate && std::isfinite(this->cost_at_latest_step()) && !std::isnan(this->cost_at_latest_step())) {
