@@ -64,7 +64,7 @@ void Solver<Scalar>::ConstructIncrementalFunction(bool use_prior) {
 template <typename Scalar>
 void Solver<Scalar>::UpdateParameters(bool use_prior) {
     // Update and backup all vertices.
-    problem_->UpdateAllVertices(dx_);
+    problem_->UpdateAllVertices(dx_, use_prior);
 
     // Update and backup prior information.
     if (use_prior && problem_->prior_hessian().size() > 0) {
@@ -78,7 +78,7 @@ void Solver<Scalar>::UpdateParameters(bool use_prior) {
 template <typename Scalar>
 void Solver<Scalar>::RollBackParameters(bool use_prior) {
     // Roll back all vertices.
-    problem_->RollBackAllVertices();
+    problem_->RollBackAllVertices(use_prior);
 
     // Roll back prior information.
     if (use_prior && problem_->prior_hessian().size() > 0) {

@@ -37,8 +37,8 @@ public:
     void SortVertices(bool statis_size_of_residual = false);
 
     // Update and roll back all vertices.
-    void UpdateAllVertices(const TVec<Scalar> &delta_x);
-    void RollBackAllVertices();
+    void UpdateAllVertices(const TVec<Scalar> &delta_x, bool use_prior = false);
+    void RollBackAllVertices(bool use_prior = false);
 
     // Compute residual for all edges and jacobian for all vertices and edges.
     Scalar ComputeResidualForAllEdges(bool use_prior = false);
