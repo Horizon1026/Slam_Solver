@@ -36,16 +36,16 @@ public:
 
     // Sort vertices to be marged to the front or back of vertices vector.
     // Keep the other vertices the same order.
-    virtual void SortVerticesToBeMarged(std::vector<Vertex<Scalar> *> &vertices);
+    void SortVerticesToBeMarged(std::vector<Vertex<Scalar> *> &vertices);
 
     // Construct information.
-    virtual void ConstructInformation(bool use_prior = true);
+    void ConstructInformation(bool use_prior = true);
 
     // Marginalize sparse vertices in information.
-    virtual void MarginalizeSparseVertices();
+    void MarginalizeSparseVertices();
 
     // Create prior information, and store them in graph problem.
-    virtual void CreatePriorInformation();
+    void CreatePriorInformation();
 
     // Reference for member variables.
     MargOptions<Scalar> &options() { return options_; }
