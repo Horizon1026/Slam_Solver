@@ -132,7 +132,7 @@ void Graph<Scalar>::SortVertices(bool statis_size_of_residual) {
 
 // Update all vertices.
 template <typename Scalar>
-void Graph<Scalar>::UpdateAllVertices(const TVec<Scalar> &delta_x, bool use_prior) {
+void Graph<Scalar>::UpdateAllVertices(const TVec<Scalar> &delta_x) {
 #ifdef ENABLE_TBB_PARALLEL
     tbb::parallel_for(tbb::blocked_range<uint32_t>(0, dense_vertices_.size()),
         [&] (tbb::blocked_range<uint32_t> range) {
@@ -181,18 +181,11 @@ void Graph<Scalar>::UpdateAllVertices(const TVec<Scalar> &delta_x, bool use_prio
     }
 #endif // end of ENABLE_TBB_PARALLEL
 
-    if (use_prior && prior_hessian_.rows() > 0) {
-        // Backup and update prior information.
-        backup_prior_bias_ = prior_bias_;
-        backup_prior_residual_ = prior_residual_;
-        prior_bias_ -= prior_hessian_ * delta_x.head(prior_hessian_.cols());
-        prior_residual_ = - prior_jacobian_t_inv_ * prior_bias_;
-    }
 }
 
 // Roll back all vertices.
 template <typename Scalar>
-void Graph<Scalar>::RollBackAllVertices(bool use_prior) {
+void Graph<Scalar>::RollBackAllVertices() {
 #ifdef ENABLE_TBB_PARALLEL
     tbb::parallel_for(tbb::blocked_range<uint32_t>(0, dense_vertices_.size()),
         [&] (tbb::blocked_range<uint32_t> range) {
@@ -225,11 +218,6 @@ void Graph<Scalar>::RollBackAllVertices(bool use_prior) {
     }
 #endif // end of ENABLE_TBB_PARALLEL
 
-    if (use_prior && prior_bias_.rows() > 0) {
-        // Roll back prior information.
-        prior_bias_ = backup_prior_bias_;
-        prior_residual_ = backup_prior_residual_;
-    }
 }
 
 // Compute residual for all edges.

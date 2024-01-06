@@ -157,21 +157,32 @@ void Marginalizor<Scalar>::ComputePriorBySchurComplement(const TMat<Scalar> &Hrr
     prior_hessian = Hrr - Hrm_Hmm_inv * Hmr;
     prior_bias = br - Hrm_Hmm_inv * bm;
 
+    // Decompose prior hessian matrix and bias vector.
+    DecomposeHessianAndBias(prior_hessian, prior_bias, prior_jacobian, prior_residual, prior_jacobian_t_inv);
+}
+
+// Decompose hessian and bias to be jacobian and residual.
+template <typename Scalar>
+void Marginalizor<Scalar>::DecomposeHessianAndBias(TMat<Scalar> &hessian,
+                                                   TVec<Scalar> &bias,
+                                                   TMat<Scalar> &jacobian,
+                                                   TVec<Scalar> &residual,
+                                                   TMat<Scalar> &jacobian_t_inv) {
     // Decompose prior hessian matrix.
-    Eigen::SelfAdjointEigenSolver<TMat<Scalar>> saes(prior_hessian);
-    TVec<Scalar> S = TVec<Scalar>((saes.eigenvalues().array() > kZero).select(saes.eigenvalues().array(), 0));
-    TVec<Scalar> S_inv = TVec<Scalar>((saes.eigenvalues().array() > kZero).select(saes.eigenvalues().array().inverse(), 0));
-    TVec<Scalar> S_sqrt = S.cwiseSqrt();
-    TVec<Scalar> S_inv_sqrt = S_inv.cwiseSqrt();
+    Eigen::SelfAdjointEigenSolver<TMat<Scalar>> saes(hessian);
+    const TVec<Scalar> S = TVec<Scalar>((saes.eigenvalues().array() > kZero).select(saes.eigenvalues().array(), 0));
+    const TVec<Scalar> S_inv = TVec<Scalar>((saes.eigenvalues().array() > kZero).select(saes.eigenvalues().array().inverse(), 0));
+    const TVec<Scalar> S_sqrt = S.cwiseSqrt();
+    const TVec<Scalar> S_inv_sqrt = S_inv.cwiseSqrt();
 
     // Calculate prior information, store them in graph problem.
-    TMat<Scalar> eigen_vectors_t = saes.eigenvectors().transpose();
-    prior_jacobian_t_inv = S_inv_sqrt.asDiagonal() * eigen_vectors_t;
-    prior_residual = -prior_jacobian_t_inv * prior_bias;
-    prior_jacobian = S_sqrt.asDiagonal() * eigen_vectors_t;
-    prior_hessian = prior_jacobian.transpose() * prior_jacobian;
-    TMat<Scalar> tmp_h = TMat<Scalar>((prior_hessian.array().abs() > kZero).select(prior_hessian.array(), 0));
-    prior_hessian = tmp_h;
+    const TMat<Scalar> eigen_vectors = saes.eigenvectors().transpose();
+    jacobian_t_inv = S_inv_sqrt.asDiagonal() * eigen_vectors;
+    residual = - jacobian_t_inv * bias;
+    jacobian = S_sqrt.asDiagonal() * eigen_vectors;
+    hessian = jacobian.transpose() * jacobian;
+    const TMat<Scalar> tmp_h = TMat<Scalar>((hessian.array().abs() > kZero).select(hessian.array(), 0));
+    hessian = tmp_h;
 }
 
 }

@@ -47,6 +47,13 @@ public:
     // Create prior information, and store them in graph problem.
     void CreatePriorInformation();
 
+    // Decompose hessian and bias to be jacobian and residual.
+    void DecomposeHessianAndBias(TMat<Scalar> &hessian,
+                                 TVec<Scalar> &bias,
+                                 TMat<Scalar> &jacobian,
+                                 TVec<Scalar> &residual,
+                                 TMat<Scalar> &jacobian_t_inv);
+
     // Reference for member variables.
     MargOptions<Scalar> &options() { return options_; }
     Graph<Scalar> *&problem() { return problem_; }

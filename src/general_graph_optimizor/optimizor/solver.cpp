@@ -64,10 +64,10 @@ void Solver<Scalar>::ConstructIncrementalFunction(bool use_prior) {
 template <typename Scalar>
 void Solver<Scalar>::UpdateParameters(bool use_prior) {
     // Update and backup all vertices.
-    problem_->UpdateAllVertices(dx_, use_prior);
+    problem_->UpdateAllVertices(dx_);
 
     // Update and backup prior information.
-    if (use_prior && problem_->prior_hessian().size() > 0) {
+    if (use_prior && problem_->prior_hessian().rows() > 0) {
         prior_bias_backup_ = problem_->prior_bias();
         prior_residual_backup_ = problem_->prior_residual();
         problem_->prior_bias() -= problem_->prior_hessian() * dx_.head(problem_->prior_hessian().cols());
@@ -78,10 +78,10 @@ void Solver<Scalar>::UpdateParameters(bool use_prior) {
 template <typename Scalar>
 void Solver<Scalar>::RollBackParameters(bool use_prior) {
     // Roll back all vertices.
-    problem_->RollBackAllVertices(use_prior);
+    problem_->RollBackAllVertices();
 
     // Roll back prior information.
-    if (use_prior && problem_->prior_hessian().size() > 0) {
+    if (use_prior && problem_->prior_hessian().rows() > 0) {
         problem_->prior_bias() = prior_bias_backup_;
         problem_->prior_residual() = prior_residual_backup_;
     }
