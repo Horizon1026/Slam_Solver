@@ -54,6 +54,12 @@ public:
                                  TVec<Scalar> &residual,
                                  TMat<Scalar> &jacobian_t_inv);
 
+    // Discard specified cols and rows of hessian and bias.
+    void DiscardPriorInformation(TMat<Scalar> &hessian,
+                                 TVec<Scalar> &bias,
+                                 uint32_t row_index,
+                                 uint32_t dimension);
+
     // Reference for member variables.
     MargOptions<Scalar> &options() { return options_; }
     Graph<Scalar> *&problem() { return problem_; }

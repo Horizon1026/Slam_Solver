@@ -110,6 +110,16 @@ target_link_libraries( test_general_graph_optimizor_marginalization
     lib_image_visualizor
 )
 
+# Add test_prior_operation.
+add_executable( test_prior_operation
+    test/test_prior_operation.cpp
+)
+target_link_libraries( test_prior_operation
+    lib_general_graph_optimizor
+    lib_stack_backward
+    lib_image_visualizor
+)
+
 # Add test_kalman_filter_constant.
 add_executable( test_kalman_filter_constant
     test/test_kalman_filter_constant.cpp

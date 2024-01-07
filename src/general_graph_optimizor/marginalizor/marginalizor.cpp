@@ -1,4 +1,6 @@
 #include "marginalizor.h"
+#include "slam_operations.h"
+#include "log_report.h"
 
 namespace SLAM_SOLVER {
 
@@ -10,9 +12,7 @@ template class Marginalizor<double>;
 template <typename Scalar>
 bool Marginalizor<Scalar>::Marginalize(std::vector<Vertex<Scalar> *> &vertices,
                                        bool use_prior) {
-    if (problem_ == nullptr) {
-        return false;
-    }
+    RETURN_FALSE_IF(problem_ == nullptr);
 
     // Sort all vertices, determine their location in incremental function.
     SortVerticesToBeMarged(vertices);
@@ -43,9 +43,7 @@ void Marginalizor<Scalar>::SortVerticesToBeMarged(std::vector<Vertex<Scalar> *> 
 
         // Find the vertex to be marged from back to front.
         auto vertex_to_be_marged = std::find(dense_vertices.rbegin(), dense_vertices.rend(), vertex);
-        if (vertex_to_be_marged == dense_vertices.rend()) {
-            continue;
-        }
+        CONTINUE_IF(vertex_to_be_marged == dense_vertices.rend());
 
         // If vertex is found, compute its index in std::vector<>.
         const int32_t idx = std::distance(vertex_to_be_marged, dense_vertices.rend()) - 1;
@@ -59,7 +57,6 @@ void Marginalizor<Scalar>::SortVerticesToBeMarged(std::vector<Vertex<Scalar> *> 
                     dense_vertices[i] = dense_vertices[i + 1];
                     dense_vertices[i + 1] = temp_vertex;
                 }
-
                 break;
             }
             case SortMargedVerticesDirection::kSortAtFront:
@@ -183,6 +180,36 @@ void Marginalizor<Scalar>::DecomposeHessianAndBias(TMat<Scalar> &hessian,
     hessian = jacobian.transpose() * jacobian;
     const TMat<Scalar> tmp_h = TMat<Scalar>((hessian.array().abs() > kZero).select(hessian.array(), 0));
     hessian = tmp_h;
+}
+
+// Discard specified cols and rows of hessian and bias.
+template <typename Scalar>
+void Marginalizor<Scalar>::DiscardPriorInformation(TMat<Scalar> &hessian,
+                                                   TVec<Scalar> &bias,
+                                                   uint32_t row_index,
+                                                   uint32_t dimension) {
+    RETURN_IF(hessian.rows() != hessian.cols() || hessian.rows() != bias.rows());
+    RETURN_IF(row_index + dimension > hessian.rows());
+
+    // If elements to be discarded is right-bottom rows and cols, resize directly.
+    const uint32_t size = hessian.rows() - dimension;
+    if (row_index + dimension == hessian.rows()) {
+        hessian.conservativeResize(size, size);
+        bias.conservativeResize(size, 1);
+        return;
+    }
+
+    // Move rows to be discarded to the bottom of hessian matrix.
+    const TMat<Scalar> temp_rows = hessian.block(row_index + dimension, 0, hessian.rows() - row_index - dimension, hessian.cols());
+    hessian.block(row_index, 0, temp_rows.rows(), temp_rows.cols()) = temp_rows;
+    const TMat<Scalar> temp_cols = hessian.block(0, row_index + dimension, hessian.rows(), hessian.cols() - row_index - dimension);
+    hessian.block(0, row_index, temp_cols.rows(), temp_cols.cols()) = temp_cols;
+    hessian.conservativeResize(size, size);
+
+    // Ditto bias vector.
+    const TVec<Scalar> temp_tail = bias.segment(row_index + dimension, bias.rows() - row_index - dimension);
+    bias.segment(row_index, temp_tail.rows()) = temp_tail;
+    bias.conservativeResize(size, 1);
 }
 
 }
