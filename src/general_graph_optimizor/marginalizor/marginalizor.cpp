@@ -25,7 +25,21 @@ bool Marginalizor<Scalar>::Marginalize(std::vector<Vertex<Scalar> *> &vertices,
     MarginalizeSparseVertices();
 
     // Create information by schur complement.
-    CreatePriorInformation();
+    const int32_t reverse = this->problem()->full_size_of_dense_vertices() - size_of_vertices_need_marge_;
+    const int32_t marg = size_of_vertices_need_marge_;
+    CreatePriorInformation(reverse, marg);
+
+    return true;
+}
+
+template <typename Scalar>
+bool Marginalizor<Scalar>::Marginalize(TMat<Scalar> &hessian,
+                                       TVec<Scalar> &bias,
+                                       uint32_t row_index,
+                                       uint32_t dimension) {
+    RETURN_FALSE_IF(hessian.rows() != hessian.cols() || hessian.rows() != bias.rows());
+
+    RETURN_FALSE_IF(!MoveMatrixBlocksNeedMarginalization(hessian, bias, row_index, dimension));
 
     return true;
 }
@@ -95,22 +109,18 @@ void Marginalizor<Scalar>::MarginalizeSparseVertices() {
 
 // Create prior information, and store them in graph problem.
 template <typename Scalar>
-void Marginalizor<Scalar>::CreatePriorInformation() {
-    const int32_t dense_size = this->problem()->full_size_of_dense_vertices();
-    const int32_t reverse = dense_size - size_of_vertices_need_marge_;
-    const int32_t marg = size_of_vertices_need_marge_;
-
+void Marginalizor<Scalar>::CreatePriorInformation(int32_t reverse_size, int32_t marge_size) {
     switch (options_.kSortDirection) {
         // [ Hrr Hrm ] [ br ]
         // [ Hmr Hmm ] [ bm ]
         case SortMargedVerticesDirection::kSortAtBack: {
-            TMat<Scalar> &&Hrr = reverse_hessian_.block(0, 0, reverse, reverse);
-            TMat<Scalar> &&Hrm = reverse_hessian_.block(0, reverse, reverse, marg);
-            TMat<Scalar> &&Hmr = reverse_hessian_.block(reverse, 0, marg, reverse);
-            TMat<Scalar> Hmm = 0.5 * (reverse_hessian_.block(reverse, reverse, marg, marg) +
-                reverse_hessian_.block(reverse, reverse, marg, marg).transpose());
-            TVec<Scalar> &&br = reverse_bias_.head(reverse);
-            TVec<Scalar> &&bm = reverse_bias_.tail(marg);
+            TMat<Scalar> &&Hrr = reverse_hessian_.block(0, 0, reverse_size, reverse_size);
+            TMat<Scalar> &&Hrm = reverse_hessian_.block(0, reverse_size, reverse_size, marge_size);
+            TMat<Scalar> &&Hmr = reverse_hessian_.block(reverse_size, 0, marge_size, reverse_size);
+            TMat<Scalar> Hmm = 0.5 * (reverse_hessian_.block(reverse_size, reverse_size, marge_size, marge_size) +
+                reverse_hessian_.block(reverse_size, reverse_size, marge_size, marge_size).transpose());
+            TVec<Scalar> &&br = reverse_bias_.head(reverse_size);
+            TVec<Scalar> &&bm = reverse_bias_.tail(marge_size);
 
             ComputePriorBySchurComplement(Hrr, Hrm, Hmr, Hmm, br, bm);
             break;
@@ -120,13 +130,13 @@ void Marginalizor<Scalar>::CreatePriorInformation() {
         // [ Hrm Hrr ] [ br ]
         case SortMargedVerticesDirection::kSortAtFront:
         default: {
-            TMat<Scalar> &&Hrr = reverse_hessian_.block(marg, marg, reverse, reverse);
-            TMat<Scalar> &&Hrm = reverse_hessian_.block(marg, 0, reverse, marg);
-            TMat<Scalar> &&Hmr = reverse_hessian_.block(0, marg, marg, reverse);
-            TMat<Scalar> Hmm = 0.5 * (reverse_hessian_.block(0, 0, marg, marg) +
-                reverse_hessian_.block(0, 0, marg, marg).transpose());
-            TVec<Scalar> &&br = reverse_bias_.tail(reverse);
-            TVec<Scalar> &&bm = reverse_bias_.head(marg);
+            TMat<Scalar> &&Hrr = reverse_hessian_.block(marge_size, marge_size, reverse_size, reverse_size);
+            TMat<Scalar> &&Hrm = reverse_hessian_.block(marge_size, 0, reverse_size, marge_size);
+            TMat<Scalar> &&Hmr = reverse_hessian_.block(0, marge_size, marge_size, reverse_size);
+            TMat<Scalar> Hmm = 0.5 * (reverse_hessian_.block(0, 0, marge_size, marge_size) +
+                reverse_hessian_.block(0, 0, marge_size, marge_size).transpose());
+            TVec<Scalar> &&br = reverse_bias_.tail(reverse_size);
+            TVec<Scalar> &&bm = reverse_bias_.head(marge_size);
 
             ComputePriorBySchurComplement(Hrr, Hrm, Hmr, Hmm, br, bm);
             break;
@@ -142,6 +152,7 @@ void Marginalizor<Scalar>::ComputePriorBySchurComplement(const TMat<Scalar> &Hrr
                                                          const TMat<Scalar> &Hmm,
                                                          const TVec<Scalar> &br,
                                                          const TVec<Scalar> &bm) {
+    RETURN_IF(this->problem() == nullptr);
     auto &prior_hessian = this->problem()->prior_hessian();
     auto &prior_bias = this->problem()->prior_bias();
     auto &prior_jacobian = this->problem()->prior_jacobian();
@@ -149,13 +160,25 @@ void Marginalizor<Scalar>::ComputePriorBySchurComplement(const TMat<Scalar> &Hrr
     auto &prior_residual = this->problem()->prior_residual();
 
     // Compute schur complement.
-    TMat<Scalar> Hmm_inv = SLAM_UTILITY::Utility::Inverse(Hmm);
-    TMat<Scalar> Hrm_Hmm_inv = Hrm * Hmm_inv;
-    prior_hessian = Hrr - Hrm_Hmm_inv * Hmr;
-    prior_bias = br - Hrm_Hmm_inv * bm;
+    SchurComplement(Hrr, Hrm, Hmr, Hmm, br, bm, prior_hessian, prior_bias);
 
     // Decompose prior hessian matrix and bias vector.
     DecomposeHessianAndBias(prior_hessian, prior_bias, prior_jacobian, prior_residual, prior_jacobian_t_inv);
+}
+
+template <typename Scalar>
+void Marginalizor<Scalar>::SchurComplement(const TMat<Scalar> &Hrr,
+                                           const TMat<Scalar> &Hrm,
+                                           const TMat<Scalar> &Hmr,
+                                           const TMat<Scalar> &Hmm,
+                                           const TVec<Scalar> &br,
+                                           const TVec<Scalar> &bm,
+                                           TMat<Scalar> &hessian,
+                                           TVec<Scalar> &bias) const {
+    TMat<Scalar> Hmm_inv = SLAM_UTILITY::Utility::Inverse(Hmm);
+    TMat<Scalar> Hrm_Hmm_inv = Hrm * Hmm_inv;
+    hessian = Hrr - Hrm_Hmm_inv * Hmr;
+    bias = br - Hrm_Hmm_inv * bm;
 }
 
 // Decompose hessian and bias to be jacobian and residual.
@@ -184,19 +207,19 @@ void Marginalizor<Scalar>::DecomposeHessianAndBias(TMat<Scalar> &hessian,
 
 // Discard specified cols and rows of hessian and bias.
 template <typename Scalar>
-void Marginalizor<Scalar>::DiscardPriorInformation(TMat<Scalar> &hessian,
+bool Marginalizor<Scalar>::DiscardPriorInformation(TMat<Scalar> &hessian,
                                                    TVec<Scalar> &bias,
                                                    uint32_t row_index,
                                                    uint32_t dimension) {
-    RETURN_IF(hessian.rows() != hessian.cols() || hessian.rows() != bias.rows());
-    RETURN_IF(row_index + dimension > hessian.rows());
+    RETURN_FALSE_IF(hessian.rows() != hessian.cols() || hessian.rows() != bias.rows());
+    RETURN_FALSE_IF(row_index + dimension > hessian.rows());
 
     // If elements to be discarded is right-bottom rows and cols, resize directly.
     const uint32_t size = hessian.rows() - dimension;
     if (row_index + dimension == hessian.rows()) {
         hessian.conservativeResize(size, size);
         bias.conservativeResize(size, 1);
-        return;
+        return true;
     }
 
     // Move rows to be discarded to the bottom of hessian matrix.
@@ -210,6 +233,20 @@ void Marginalizor<Scalar>::DiscardPriorInformation(TMat<Scalar> &hessian,
     const TVec<Scalar> temp_tail = bias.segment(row_index + dimension, bias.rows() - row_index - dimension);
     bias.segment(row_index, temp_tail.rows()) = temp_tail;
     bias.conservativeResize(size, 1);
+
+    return true;
+}
+
+    // Move the matrix block which needs to be margnalized to the bound of matrix.
+template <typename Scalar>
+bool Marginalizor<Scalar>::MoveMatrixBlocksNeedMarginalization(TMat<Scalar> &hessian,
+                                                               TVec<Scalar> &bias,
+                                                               uint32_t row_index,
+                                                               uint32_t dimension) {
+    RETURN_FALSE_IF(hessian.rows() != hessian.cols() || hessian.rows() != bias.rows());
+    RETURN_FALSE_IF(row_index + dimension > hessian.rows());
+
+    return true;
 }
 
 }

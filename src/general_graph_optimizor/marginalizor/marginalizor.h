@@ -33,19 +33,12 @@ public:
     // Marginalize graph optimization problem.
     bool Marginalize(std::vector<Vertex<Scalar> *> &vertices,
                      bool use_prior = true);
+    bool Marginalize(TMat<Scalar> &hessian,
+                     TVec<Scalar> &bias,
+                     uint32_t row_index,
+                     uint32_t dimension);
 
-    // Sort vertices to be marged to the front or back of vertices vector.
-    // Keep the other vertices the same order.
-    void SortVerticesToBeMarged(std::vector<Vertex<Scalar> *> &vertices);
 
-    // Construct information.
-    void ConstructInformation(bool use_prior = true);
-
-    // Marginalize sparse vertices in information.
-    void MarginalizeSparseVertices();
-
-    // Create prior information, and store them in graph problem.
-    void CreatePriorInformation();
 
     // Decompose hessian and bias to be jacobian and residual.
     void DecomposeHessianAndBias(TMat<Scalar> &hessian,
@@ -55,7 +48,7 @@ public:
                                  TMat<Scalar> &jacobian_t_inv);
 
     // Discard specified cols and rows of hessian and bias.
-    void DiscardPriorInformation(TMat<Scalar> &hessian,
+    bool DiscardPriorInformation(TMat<Scalar> &hessian,
                                  TVec<Scalar> &bias,
                                  uint32_t row_index,
                                  uint32_t dimension);
@@ -75,6 +68,19 @@ public:
     const TVec<Scalar> &reverse_bias() const { return reverse_bias_; }
 
 private:
+    // Sort vertices to be marged to the front or back of vertices vector.
+    // Keep the other vertices the same order.
+    void SortVerticesToBeMarged(std::vector<Vertex<Scalar> *> &vertices);
+
+    // Construct information.
+    void ConstructInformation(bool use_prior = true);
+
+    // Marginalize sparse vertices in information.
+    void MarginalizeSparseVertices();
+
+    // Create prior information, and store them in graph problem.
+    void CreatePriorInformation(int32_t reverse_size, int32_t marge_size);
+
     // Compute prior information with schur complement.
     void ComputePriorBySchurComplement(const TMat<Scalar> &Hrr,
                                        const TMat<Scalar> &Hrm,
@@ -82,6 +88,22 @@ private:
                                        const TMat<Scalar> &Hmm,
                                        const TVec<Scalar> &br,
                                        const TVec<Scalar> &bm);
+
+    // Do schur complement.
+    void SchurComplement(const TMat<Scalar> &Hrr,
+                         const TMat<Scalar> &Hrm,
+                         const TMat<Scalar> &Hmr,
+                         const TMat<Scalar> &Hmm,
+                         const TVec<Scalar> &br,
+                         const TVec<Scalar> &bm,
+                         TMat<Scalar> &hessian,
+                         TVec<Scalar> &bias) const;
+
+    // Move the matrix block which needs to be margnalized to the bound of matrix.
+    bool MoveMatrixBlocksNeedMarginalization(TMat<Scalar> &hessian,
+                                             TVec<Scalar> &bias,
+                                             uint32_t row_index,
+                                             uint32_t dimension);
 
 private:
     // General options for marginalizor.
