@@ -78,8 +78,14 @@ private:
     // Marginalize sparse vertices in information.
     void MarginalizeSparseVertices();
 
-    // Create prior information, and store them in graph problem.
+    // Create prior information, decompose hessian and bias, and store them in graph problem.
     void CreatePriorInformation(int32_t reverse_size, int32_t marge_size);
+
+    // Create prior information, but only hessian and bias.
+    void CreatePriorInformationOnlyHessianAndBias(const TMat<Scalar> &hessian,
+                                                  const TVec<Scalar> &bias,
+                                                  int32_t reverse_size,
+                                                  int32_t marge_size);
 
     // Compute prior information with schur complement.
     void ComputePriorBySchurComplement(const TMat<Scalar> &Hrr,

@@ -39,7 +39,17 @@ bool Marginalizor<Scalar>::Marginalize(TMat<Scalar> &hessian,
                                        uint32_t dimension) {
     RETURN_FALSE_IF(hessian.rows() != hessian.cols() || hessian.rows() != bias.rows());
 
+    // Move the matrix block which needs to be marginalized to the bound of hessian.
     RETURN_FALSE_IF(!MoveMatrixBlocksNeedMarginalization(hessian, bias, row_index, dimension));
+
+    // Only create prior hessian and bias. Store them in reverse_hessian/bias.
+    const int32_t reverse = hessian.rows() - dimension;
+    const int32_t marg = dimension;
+    CreatePriorInformationOnlyHessianAndBias(hessian, bias, reverse, marg);
+
+    // Generate output.
+    hessian = reverse_hessian_;
+    bias = reverse_bias_;
 
     return true;
 }
@@ -114,13 +124,13 @@ void Marginalizor<Scalar>::CreatePriorInformation(int32_t reverse_size, int32_t 
         // [ Hrr Hrm ] [ br ]
         // [ Hmr Hmm ] [ bm ]
         case SortMargedVerticesDirection::kSortAtBack: {
-            TMat<Scalar> &&Hrr = reverse_hessian_.block(0, 0, reverse_size, reverse_size);
-            TMat<Scalar> &&Hrm = reverse_hessian_.block(0, reverse_size, reverse_size, marge_size);
-            TMat<Scalar> &&Hmr = reverse_hessian_.block(reverse_size, 0, marge_size, reverse_size);
-            TMat<Scalar> Hmm = 0.5 * (reverse_hessian_.block(reverse_size, reverse_size, marge_size, marge_size) +
+            const TMat<Scalar> &&Hrr = reverse_hessian_.block(0, 0, reverse_size, reverse_size);
+            const TMat<Scalar> &&Hrm = reverse_hessian_.block(0, reverse_size, reverse_size, marge_size);
+            const TMat<Scalar> &&Hmr = reverse_hessian_.block(reverse_size, 0, marge_size, reverse_size);
+            const TMat<Scalar> Hmm = 0.5 * (reverse_hessian_.block(reverse_size, reverse_size, marge_size, marge_size) +
                 reverse_hessian_.block(reverse_size, reverse_size, marge_size, marge_size).transpose());
-            TVec<Scalar> &&br = reverse_bias_.head(reverse_size);
-            TVec<Scalar> &&bm = reverse_bias_.tail(marge_size);
+            const TVec<Scalar> &&br = reverse_bias_.head(reverse_size);
+            const TVec<Scalar> &&bm = reverse_bias_.tail(marge_size);
 
             ComputePriorBySchurComplement(Hrr, Hrm, Hmr, Hmm, br, bm);
             break;
@@ -130,15 +140,55 @@ void Marginalizor<Scalar>::CreatePriorInformation(int32_t reverse_size, int32_t 
         // [ Hrm Hrr ] [ br ]
         case SortMargedVerticesDirection::kSortAtFront:
         default: {
-            TMat<Scalar> &&Hrr = reverse_hessian_.block(marge_size, marge_size, reverse_size, reverse_size);
-            TMat<Scalar> &&Hrm = reverse_hessian_.block(marge_size, 0, reverse_size, marge_size);
-            TMat<Scalar> &&Hmr = reverse_hessian_.block(0, marge_size, marge_size, reverse_size);
-            TMat<Scalar> Hmm = 0.5 * (reverse_hessian_.block(0, 0, marge_size, marge_size) +
+            const TMat<Scalar> &&Hrr = reverse_hessian_.block(marge_size, marge_size, reverse_size, reverse_size);
+            const TMat<Scalar> &&Hrm = reverse_hessian_.block(marge_size, 0, reverse_size, marge_size);
+            const TMat<Scalar> &&Hmr = reverse_hessian_.block(0, marge_size, marge_size, reverse_size);
+            const TMat<Scalar> Hmm = 0.5 * (reverse_hessian_.block(0, 0, marge_size, marge_size) +
                 reverse_hessian_.block(0, 0, marge_size, marge_size).transpose());
-            TVec<Scalar> &&br = reverse_bias_.tail(reverse_size);
-            TVec<Scalar> &&bm = reverse_bias_.head(marge_size);
+            const TVec<Scalar> &&br = reverse_bias_.tail(reverse_size);
+            const TVec<Scalar> &&bm = reverse_bias_.head(marge_size);
 
             ComputePriorBySchurComplement(Hrr, Hrm, Hmr, Hmm, br, bm);
+            break;
+        }
+    }
+}
+
+// Create prior information, but only hessian and bias.
+template <typename Scalar>
+void Marginalizor<Scalar>::CreatePriorInformationOnlyHessianAndBias(const TMat<Scalar> &hessian,
+                                                                    const TVec<Scalar> &bias,
+                                                                    int32_t reverse_size,
+                                                                    int32_t marge_size) {
+    switch (options_.kSortDirection) {
+        // [ Hrr Hrm ] [ br ]
+        // [ Hmr Hmm ] [ bm ]
+        case SortMargedVerticesDirection::kSortAtBack: {
+            const TMat<Scalar> &&Hrr = hessian.block(0, 0, reverse_size, reverse_size);
+            const TMat<Scalar> &&Hrm = hessian.block(0, reverse_size, reverse_size, marge_size);
+            const TMat<Scalar> &&Hmr = hessian.block(reverse_size, 0, marge_size, reverse_size);
+            const TMat<Scalar> Hmm = 0.5 * (hessian.block(reverse_size, reverse_size, marge_size, marge_size) +
+                hessian.block(reverse_size, reverse_size, marge_size, marge_size).transpose());
+            const TVec<Scalar> &&br = bias.head(reverse_size);
+            const TVec<Scalar> &&bm = bias.tail(marge_size);
+
+            SchurComplement(Hrr, Hrm, Hmr, Hmm, br, bm, reverse_hessian_, reverse_bias_);
+            break;
+        }
+
+        // [ Hmm Hmr ] [ bm ]
+        // [ Hrm Hrr ] [ br ]
+        case SortMargedVerticesDirection::kSortAtFront:
+        default: {
+            const TMat<Scalar> &&Hrr = hessian.block(marge_size, marge_size, reverse_size, reverse_size);
+            const TMat<Scalar> &&Hrm = hessian.block(marge_size, 0, reverse_size, marge_size);
+            const TMat<Scalar> &&Hmr = hessian.block(0, marge_size, marge_size, reverse_size);
+            const TMat<Scalar> Hmm = 0.5 * (hessian.block(0, 0, marge_size, marge_size) +
+                hessian.block(0, 0, marge_size, marge_size).transpose());
+            const TVec<Scalar> &&br = bias.tail(reverse_size);
+            const TVec<Scalar> &&bm = bias.head(marge_size);
+
+            SchurComplement(Hrr, Hrm, Hmr, Hmm, br, bm, reverse_hessian_, reverse_bias_);
             break;
         }
     }
@@ -243,8 +293,58 @@ bool Marginalizor<Scalar>::MoveMatrixBlocksNeedMarginalization(TMat<Scalar> &hes
                                                                TVec<Scalar> &bias,
                                                                uint32_t row_index,
                                                                uint32_t dimension) {
-    RETURN_FALSE_IF(hessian.rows() != hessian.cols() || hessian.rows() != bias.rows());
     RETURN_FALSE_IF(row_index + dimension > hessian.rows());
+
+    const int32_t size = static_cast<int32_t>(hessian.rows());
+    const int32_t idx = static_cast<int32_t>(row_index);
+    const int32_t dim = static_cast<int32_t>(dimension);
+
+    switch (options_.kSortDirection) {
+        // [ Hrr Hrm ] [ br ]
+        // [ Hmr Hmm ] [ bm ]
+        case SortMargedVerticesDirection::kSortAtBack: {
+            // Move rows to be discarded to the bottom of hessian matrix.
+            const TMat<Scalar> temp_rows = hessian.block(idx, 0, dim, size);
+            const TMat<Scalar> temp_bottom_rows = hessian.block(idx + dim, 0, size - dim - idx, size);
+            hessian.block(size - dim, 0, temp_rows.rows(), temp_rows.cols()).noalias() = temp_rows;
+            hessian.block(idx, 0, temp_bottom_rows.rows(), temp_bottom_rows.cols()).noalias() = temp_bottom_rows;
+            // Move rows to be discarded to the right of hessian matrix.
+            const TMat<Scalar> temp_cols = hessian.block(0, idx, size, dim);
+            const TMat<Scalar> temp_right_cols = hessian.block(0, idx + dim, size, size - dim - idx);
+            hessian.block(0, size - dim, temp_cols.rows(), temp_cols.cols()).noalias() = temp_cols;
+            hessian.block(0, idx, temp_right_cols.rows(), temp_right_cols.cols()).noalias() = temp_right_cols;
+            // Move rows to be discarded to the bottom of bias vector.
+            const TVec<Scalar> temp_bias = bias.segment(idx, dim);
+            const TVec<Scalar> temp_bias_tail = bias.segment(idx + dim, size - dim - idx);
+            bias.segment(size - dim, temp_bias.rows()).noalias() = temp_bias;
+            bias.segment(idx, temp_bias_tail.rows()).noalias() = temp_bias_tail;
+
+            break;
+        }
+
+        // [ Hmm Hmr ] [ bm ]
+        // [ Hrm Hrr ] [ br ]
+        case SortMargedVerticesDirection::kSortAtFront:
+        default: {
+            // Move rows to be discarded to the top of hessian matrix.
+            const TMat<Scalar> temp_rows = hessian.block(idx, 0, dim, size);
+            const TMat<Scalar> temp_top_rows = hessian.block(0, 0, idx, size);
+            hessian.block(dim, 0, temp_top_rows.rows(), temp_top_rows.cols()).noalias() = temp_top_rows;
+            hessian.block(0, 0, temp_rows.rows(), temp_rows.cols()).noalias() = temp_rows;
+            // Move rows to be discarded to the left of hessian matrix.
+            const TMat<Scalar> temp_cols = hessian.block(0, idx, size, dim);
+            const TMat<Scalar> temp_left_cols = hessian.block(0, 0, size, idx);
+            hessian.block(0, dim, temp_left_cols.rows(), temp_left_cols.cols()).noalias() = temp_left_cols;
+            hessian.block(0, 0, temp_cols.rows(), temp_cols.cols()).noalias() = temp_cols;
+            // Move rows to be discarded to the top of bias vector.
+            const TVec<Scalar> temp_bias = bias.segment(idx, dim);
+            const TVec<Scalar> temp_bias_head = bias.segment(0, idx);
+            bias.segment(dim, temp_bias_head.rows()).noalias() = temp_bias_head;
+            bias.segment(0, temp_bias.rows()).noalias() = temp_bias;
+
+            break;
+        }
+    }
 
     return true;
 }
