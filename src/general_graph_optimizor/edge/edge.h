@@ -51,6 +51,7 @@ public:
 
     // Check if this edge valid.
     bool SelfCheck();
+    bool SelfCheckJacobians();
 
     // Compute Mahalanobis distance of residual.
     Scalar CalculateSquaredResidual() const { return residual_.transpose() * information_ * residual_; }
