@@ -100,6 +100,15 @@ target_link_libraries( test_general_graph_optimizor_invdep_unit_sphere_BA
     lib_stack_backward
 )
 
+# Add test_general_graph_optimizor_invdep_one_cam_two_frame.
+add_executable( test_general_graph_optimizor_invdep_one_cam_two_frame
+    test/test_general_graph_optimizor_invdep_one_cam_two_frame.cpp
+)
+target_link_libraries( test_general_graph_optimizor_invdep_one_cam_two_frame
+    lib_general_graph_optimizor
+    lib_stack_backward
+)
+
 # Add test_general_graph_optimizor_marginalization.
 add_executable( test_general_graph_optimizor_marginalization
     test/test_general_graph_optimizor_marginalization.cpp

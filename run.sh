@@ -7,5 +7,6 @@ cd build/
 ./test_general_graph_optimizor_pos_unit_sphere_BA
 ./test_general_graph_optimizor_invdep_norm_plane_BA
 ./test_general_graph_optimizor_invdep_unit_sphere_BA
+./test_general_graph_optimizor_invdep_one_cam_two_frame
 ./test_prior_operation
 cd ..

@@ -1,5 +1,6 @@
 constexpr int32_t kCameraFrameNumber = 10;
 constexpr int32_t kPointsNumber = 300;
+constexpr int32_t kCameraExtrinsicNumber = 1;
 
 template <typename Scalar>
 struct Pose {
