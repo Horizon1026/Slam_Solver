@@ -14,7 +14,10 @@ bool Solver<Scalar>::Solve(bool use_prior) {
     if (problem_ == nullptr) {
         return false;
     }
+
+    float time_cost = 0.0f;
     SLAM_UTILITY::TickTock timer;
+    timer.TockTickInSecond();
 
     // Sort all vertices, determine their location in incremental function.
     problem_->SortVertices(false);
@@ -49,6 +52,15 @@ bool Solver<Scalar>::Solve(bool use_prior) {
         if (IsConvergedAfterUpdate(iter)) {
             break;
         }
+
+        // If not converged, check for timeout.
+        const float time_cost_this_step = timer.TockInSecond() - time_cost;
+        time_cost = timer.TockInSecond();
+        if (time_cost + time_cost_this_step > options_.kMaxCostTimeInSecond) {
+            ReportWarn("[Solver] Time out but not converged.");
+            break;
+        }
+
     }
 
     return true;

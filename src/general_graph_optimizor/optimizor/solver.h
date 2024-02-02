@@ -13,6 +13,7 @@ struct SolverOptions {
     Scalar kMaxPcgSolverCostDecreaseRate = 1e-6;
     Scalar kMaxPcgSolverConvergedResidual = 1e-6;
     bool kEnableReportEachIteration = true;
+    float kMaxCostTimeInSecond = 1.0f;
 };
 
 /* Class Solver Declaration. */
