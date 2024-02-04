@@ -22,6 +22,8 @@ General solver for slam problem, such as graph optimization problem solver.
 
 # Dependence
 - Slam_Utility
+- oneTBB
 
 # Tips
 - 欢迎一起交流学习，不同意商用；
+- 使用方法参考 /test，暂时没时间写详细文档；
