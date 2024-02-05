@@ -68,10 +68,6 @@ public:
     const TVec<Scalar> &reverse_bias() const { return reverse_bias_; }
 
 private:
-    // Sort vertices to be marged to the front or back of vertices vector.
-    // Keep the other vertices the same order.
-    void SortVerticesToBeMarged(std::vector<Vertex<Scalar> *> &vertices);
-
     // Construct information.
     void ConstructInformation(bool use_prior = true);
 

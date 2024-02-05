@@ -15,7 +15,6 @@ bool Marginalizor<Scalar>::Marginalize(std::vector<Vertex<Scalar> *> &vertices,
     RETURN_FALSE_IF(problem_ == nullptr);
 
     // Sort all vertices, determine their location in incremental function.
-    SortVerticesToBeMarged(vertices);
     problem_->SortVertices(false);
 
     // Linearize the non-linear problem, construct incremental function.
@@ -23,6 +22,14 @@ bool Marginalizor<Scalar>::Marginalize(std::vector<Vertex<Scalar> *> &vertices,
 
     // Marginalize sparse vertices.
     MarginalizeSparseVertices();
+
+    // Move the matrix block which needs to be marginalized to the bound of hessian.
+    // Statis full size of vertices need to be marged.
+    size_of_vertices_need_marge_ = 0;
+    for (const auto &vertex : vertices) {
+        RETURN_FALSE_IF(!MoveMatrixBlocksNeedMarginalization(reverse_hessian_, reverse_bias_, vertex->ColIndex(), vertex->GetIncrementDimension()));
+        size_of_vertices_need_marge_ += vertex->GetIncrementDimension();
+    }
 
     // Create information by schur complement.
     const int32_t reverse = this->problem()->full_size_of_dense_vertices() - size_of_vertices_need_marge_;
@@ -52,49 +59,6 @@ bool Marginalizor<Scalar>::Marginalize(TMat<Scalar> &hessian,
     bias = reverse_bias_;
 
     return true;
-}
-
-// Sort vertices to be marged to the front or back of vertices vector.
-// Keep the other vertices the same order.
-template <typename Scalar>
-void Marginalizor<Scalar>::SortVerticesToBeMarged(std::vector<Vertex<Scalar> *> &vertices) {
-    auto &dense_vertices = problem_->dense_vertices();
-    size_of_vertices_need_marge_ = 0;
-
-    for (const auto &vertex : vertices) {
-        // Statis full size of vertices need to be marged.
-        size_of_vertices_need_marge_ += vertex->GetIncrementDimension();
-
-        // Find the vertex to be marged from back to front.
-        auto vertex_to_be_marged = std::find(dense_vertices.rbegin(), dense_vertices.rend(), vertex);
-        CONTINUE_IF(vertex_to_be_marged == dense_vertices.rend());
-
-        // If vertex is found, compute its index in std::vector<>.
-        const int32_t idx = std::distance(vertex_to_be_marged, dense_vertices.rend()) - 1;
-
-        switch (options_.kSortDirection) {
-            case SortMargedVerticesDirection::kSortAtBack: {
-                // Move the vertex to be marged to the back of this std::vector<>.
-                const int32_t max_idx = dense_vertices.size() - 1;
-                for (int32_t i = idx; i < max_idx; ++i) {
-                    const auto temp_vertex = dense_vertices[i];
-                    dense_vertices[i] = dense_vertices[i + 1];
-                    dense_vertices[i + 1] = temp_vertex;
-                }
-                break;
-            }
-            case SortMargedVerticesDirection::kSortAtFront:
-            default: {
-                // Move the vertex to be marged to the front of this std::vector<>.
-                for (int32_t i = idx; i > 0; --i) {
-                    const auto temp_vertex = dense_vertices[i];
-                    dense_vertices[i] = dense_vertices[i - 1];
-                    dense_vertices[i - 1] = temp_vertex;
-                }
-                break;
-            }
-        }
-    }
 }
 
 // Construct information.
@@ -287,7 +251,7 @@ bool Marginalizor<Scalar>::DiscardPriorInformation(TMat<Scalar> &hessian,
     return true;
 }
 
-    // Move the matrix block which needs to be margnalized to the bound of matrix.
+// Move the matrix block which needs to be margnalized to the bound of matrix.
 template <typename Scalar>
 bool Marginalizor<Scalar>::MoveMatrixBlocksNeedMarginalization(TMat<Scalar> &hessian,
                                                                TVec<Scalar> &bias,
