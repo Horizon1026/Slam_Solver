@@ -108,7 +108,7 @@ bool Solver<Scalar>::IsConvergedAfterUpdate(int32_t iter) {
     }
 
     if (dx_.squaredNorm() < options_.kMaxConvergedSquaredStepLength) {
-        ReportInfo("[Solver] Converged.");
+        ReportInfo("[Solver] Converged with final cost [" << cost_at_latest_step_ << "].");
         return true;
     }
 
