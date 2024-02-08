@@ -65,7 +65,7 @@ void Graph<Scalar>::EdgesInformation() {
     for (const auto &edge : edges_) {
         ReportInfo(" - [name] " << edge->name() << ", [id] " << edge->GetId() << ", relative vertices:");
         for (const auto &vertex : edge->GetVertices()) {
-            const std::string fix_status = vertex->IsFixed() ? "fixed." : "unfixed.";
+            const std::string fix_status = vertex->IsFixed() ? "fixed" : "unfixed";
             ReportInfo(" - [name] " << vertex->name() <<
                 ",\t[col id] " << vertex->ColIndex() << ", " << fix_status <<
                 ",\t[param] " << vertex->param().transpose());
