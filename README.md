@@ -7,6 +7,8 @@ General solver for slam problem, such as graph optimization problem solver.
     - [x] Edge template.
     - [x] Graph problem template.
     - [x] Non-linear optimization solver template.
+        - [x] Dog-leg solver.
+        - [x] Levenberg-Marquardt solver.
     - [x] Marginalization.
     - [x] Support tbb parallel.
 - [ ] Square root BA problem solver.
@@ -26,4 +28,4 @@ General solver for slam problem, such as graph optimization problem solver.
 
 # Tips
 - 欢迎一起交流学习，不同意商用；
-- 使用方法参考 /test，暂时没时间写详细文档；
+- 使用方法参考 ./test/test_xxx.cpp，暂时没时间写详细文档；
