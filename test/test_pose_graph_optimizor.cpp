@@ -12,38 +12,24 @@ using namespace SLAM_VISUALIZOR;
 
 template <typename Scalar>
 struct Pose {
-    TQuat<Scalar> q_wc = TQuat<Scalar>::Identity();
-    TVec3<Scalar> p_wc = TVec3<Scalar>::Zero();
+    TQuat<Scalar> q_wb = TQuat<Scalar>::Identity();
+    TVec3<Scalar> p_wb = TVec3<Scalar>::Zero();
 };
 
-void GenerateSimulationData(std::vector<Pose<Scalar>> &cameras,
-                            std::vector<TVec3<Scalar>> &points) {
-    cameras.clear();
-    points.clear();
+void GenerateSimulationData(std::vector<Pose<Scalar>> &poses) {
+    poses.clear();
 
-    // Cameras.
+    // Poses.
     for (int32_t i = 0; i < 20; ++i) {
-        Pose<Scalar> camera_pose;
+        Pose<Scalar> pose;
         const TVec3<Scalar> euler = TVec3<Scalar>(0, -90 + i * 18, 0);
-        camera_pose.q_wc = Utility::EulerToQuaternion(euler);
-        camera_pose.p_wc = TVec3<Scalar>(0, 0, 0) - camera_pose.q_wc * TVec3<Scalar>(0, 0, 8);
-        cameras.emplace_back(camera_pose);
-    }
-
-    // Points.
-    int32_t offset = -2;
-    for (int32_t i = 0; i < 5; ++i) {
-        for (int32_t j = 0; j < 5; ++j) {
-            for (int32_t k = 0; k < 5; ++k) {
-                const TVec3<Scalar> point(i + offset, j + offset, k + offset);
-                points.emplace_back(point);
-            }
-        }
+        pose.q_wb = Utility::EulerToQuaternion(euler);
+        pose.p_wb = TVec3<Scalar>(0, 0, 0) - pose.q_wb * TVec3<Scalar>(0, 0, 8);
+        poses.emplace_back(pose);
     }
 }
 
-void AddAllCamerasPoseAndPointsPosition(const std::vector<Pose<Scalar>> &cameras,
-                                        const std::vector<TVec3<Scalar>> &points) {
+void AddAllCamerasPoseAndPointsPosition(const std::vector<Pose<Scalar>> &poses) {
     Visualizor3D::Clear();
 
     // Add word frame.
@@ -52,28 +38,24 @@ void AddAllCamerasPoseAndPointsPosition(const std::vector<Pose<Scalar>> &cameras
         .q_wb = Quat::Identity(),
         .scale = 10.0f,
     });
+    Visualizor3D::points().emplace_back(PointType{
+        .p_w = Vec3::Zero(),
+        .color = RgbColor::kWhite,
+        .radius = 2,
+    });
 
-    // Add all points.
-    for (const auto &point : points) {
-        Visualizor3D::points().emplace_back(PointType{
-            .p_w = point.cast<float>(),
-            .color = RgbColor::kCyan,
-            .radius = 2,
-        });
-    }
-
-    // Add all cameras pose.
-    for (uint32_t i = 0; i < cameras.size(); ++i) {
+    // Add all poses.
+    for (uint32_t i = 0; i < poses.size(); ++i) {
         Visualizor3D::poses().emplace_back(PoseType{
-            .p_wb = cameras[i].p_wc,
-            .q_wb = cameras[i].q_wc,
+            .p_wb = poses[i].p_wb,
+            .q_wb = poses[i].q_wb,
             .scale = 1.0,
         });
 
         if (i) {
             Visualizor3D::lines().emplace_back(LineType{
-                .p_w_i = cameras[i - 1].p_wc,
-                .p_w_j = cameras[i].p_wc,
+                .p_w_i = poses[i - 1].p_wb,
+                .p_w_j = poses[i].p_wb,
                 .color = RgbColor::kWhite,
             });
         }
@@ -84,14 +66,13 @@ int main(int argc, char **argv) {
     LogFixPercision(3);
     ReportInfo(YELLOW ">> Test linear pose graph optimizor." RESET_COLOR);
 
-    std::vector<Pose<Scalar>> cameras;
-    std::vector<TVec3<Scalar>> points;
-    GenerateSimulationData(cameras, points);
+    std::vector<Pose<Scalar>> poses;
+    GenerateSimulationData(poses);
 
     // TODO: do pose graph optimization.
 
-    // Add cameras pose and points position.
-    AddAllCamerasPoseAndPointsPosition(cameras, points);
+    // Add poses for visualizor.
+    AddAllCamerasPoseAndPointsPosition(poses);
 
     do {
         Visualizor3D::Refresh("Visualizor", 50);
