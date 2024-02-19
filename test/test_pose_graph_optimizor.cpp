@@ -24,12 +24,12 @@ void GenerateSimulationData(std::vector<Pose<Scalar>> &poses) {
         Pose<Scalar> pose;
         const TVec3<Scalar> euler = TVec3<Scalar>(0, -90 + i * 18, 0);
         pose.q_wb = Utility::EulerToQuaternion(euler);
-        pose.p_wb = TVec3<Scalar>(0, 0, 0) - pose.q_wb * TVec3<Scalar>(0, 0, 8);
+        pose.p_wb = TVec3<Scalar>(0, 0, 0) - pose.q_wb * TVec3<Scalar>(0, 0, 8 + i * 0.1);
         poses.emplace_back(pose);
     }
 }
 
-void AddAllCamerasPoseAndPointsPosition(const std::vector<Pose<Scalar>> &poses) {
+void AddAllPosesIntoVisualizor(const std::vector<Pose<Scalar>> &poses) {
     Visualizor3D::Clear();
 
     // Add word frame.
@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
     // TODO: do pose graph optimization.
 
     // Add poses for visualizor.
-    AddAllCamerasPoseAndPointsPosition(poses);
+    AddAllPosesIntoVisualizor(poses);
 
     do {
         Visualizor3D::Refresh("Visualizor", 50);
