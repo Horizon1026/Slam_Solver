@@ -9,4 +9,5 @@ cd build/
 ./test_general_graph_optimizor_invdep_unit_sphere_BA
 ./test_general_graph_optimizor_invdep_one_cam_two_frame
 ./test_prior_operation
+./test_pose_graph_optimizor
 cd ..

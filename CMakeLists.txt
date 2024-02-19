@@ -2,8 +2,8 @@ cmake_minimum_required( VERSION 3.10 )
 
 project( slam_solver )
 
-set( CMAKE_BUILD_TYPE "Release" )
-set( CMAKE_CXX_FLAGS "-std=c++17 -O3 -Wall" )
+set( CMAKE_BUILD_TYPE "RelWithDegInfo" )
+set( CMAKE_CXX_FLAGS "-std=c++17 -O3 -g -Wall -lpthread" )
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 set( CMAKE_CXX_STANDARD 17 )
 
@@ -43,6 +43,12 @@ if ( NOT TARGET lib_polynomial_solver )
     add_subdirectory( ${POLYNOMIAL_SOLVER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_polynomial_solver )
 endif()
 
+# Add pose graph optimizor.
+set( POSE_GRAPH_OPTIMIZOR ${PROJECT_SOURCE_DIR}/src/pose_graph_optimizor )
+if ( NOT TARGET lib_pose_graph_optimizor )
+    add_subdirectory( ${POSE_GRAPH_OPTIMIZOR} ${PROJECT_SOURCE_DIR}/build/lib_pose_graph_optimizor )
+endif()
+
 # Add all 3rd libraries.
 set( SLAM_UTILITY_PATH ${PROJECT_SOURCE_DIR}/../Slam_Utility )
 if ( NOT TARGET lib_stack_backward )
@@ -50,9 +56,13 @@ if ( NOT TARGET lib_stack_backward )
 endif()
 
 # Add visualizor.
-set( VISUALIZOR_PATH ${PROJECT_SOURCE_DIR}/../Visualizor2D )
+set( VISUALIZOR_2D_PATH ${PROJECT_SOURCE_DIR}/../Visualizor2D )
 if ( NOT TARGET lib_image_visualizor )
-    add_subdirectory( ${VISUALIZOR_PATH}/src ${PROJECT_SOURCE_DIR}/build/lib_image_visualizor )
+    add_subdirectory( ${VISUALIZOR_2D_PATH}/src ${PROJECT_SOURCE_DIR}/build/lib_image_visualizor )
+endif()
+set( VISUALIZOR_3D_PATH ${PROJECT_SOURCE_DIR}/../Visualizor3D )
+if ( NOT TARGET lib_3d_visualizor )
+    add_subdirectory( ${VISUALIZOR_3D_PATH}/src ${PROJECT_SOURCE_DIR}/build/lib_3d_visualizor )
 endif()
 
 # Add test_general_graph_optimizor_polynomial_problem.
@@ -152,5 +162,15 @@ target_link_libraries( test_kalman_filter_imu_attitude
 
     lib_imu_model
 
+    lib_stack_backward
+)
+
+# Add test_pose_graph_optimizor.
+add_executable( test_pose_graph_optimizor
+    test/test_pose_graph_optimizor.cpp
+)
+target_link_libraries( test_pose_graph_optimizor
+    lib_pose_graph_optimizor
+    lib_3d_visualizor
     lib_stack_backward
 )
