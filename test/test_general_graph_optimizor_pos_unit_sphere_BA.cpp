@@ -3,15 +3,7 @@
 #include "tick_tock.h"
 #include "math_kinematics.h"
 
-#include "vertex.h"
-#include "vertex_quaternion.h"
-#include "edge.h"
-#include "kernel.h"
-#include "kernel_huber.h"
-#include "kernel_cauchy.h"
-#include "kernel_tukey.h"
-#include "solver_lm.h"
-#include "solver_dogleg.h"
+#include "general_graph_optimizor.h"
 
 #include "enable_stack_backward.h"
 

@@ -4,12 +4,16 @@
 #include "math_kinematics.h"
 #include "visualizor_3d.h"
 
+#include "general_graph_optimizor.h"
 #include "pose_graph_optimizor.h"
+
+#include "enable_stack_backward.h"
 
 using Scalar = float;
 using namespace SLAM_SOLVER;
 using namespace SLAM_VISUALIZOR;
 
+/* Simulation Data. */
 template <typename Scalar>
 struct Pose {
     TQuat<Scalar> q_wb = TQuat<Scalar>::Identity();
@@ -29,7 +33,35 @@ void GenerateSimulationData(std::vector<Pose<Scalar>> &poses) {
     }
 }
 
-void AddAllPosesIntoVisualizor(const std::vector<Pose<Scalar>> &poses) {
+/* Class Edge Relative Pose. */
+template <typename Scalar>
+class EdgeRelativePose : public Edge<Scalar> {
+// Vertices : [ref_pose, p_wb0]
+//            [ref_pose, q_wb0]
+//            [cur_pose, p_wb1]
+//            [cur_pose, q_wb1]
+
+public:
+    EdgeRelativePose() : Edge<Scalar>(6, 4) {}
+    virtual ~EdgeRelativePose() = default;
+
+    // Compute residual and jacobians for each vertex. These operations should be defined by subclass.
+    virtual void ComputeResidual() override {
+
+    }
+
+    virtual void ComputeJacobians() override {
+
+    }
+
+private:
+    // Parameters will be calculated in ComputeResidual().
+    // It should not be repeatedly calculated in ComputeJacobians().
+    TVec3<Scalar> p_b0b1 = TVec3<Scalar>::Zero();
+    TQuat<Scalar> q_b0b1 = TQuat<Scalar>::Identity();
+};
+
+void AddAllRawPosesIntoVisualizor(const std::vector<Pose<Scalar>> &poses) {
     Visualizor3D::Clear();
 
     // Add word frame.
@@ -62,17 +94,26 @@ void AddAllPosesIntoVisualizor(const std::vector<Pose<Scalar>> &poses) {
     }
 }
 
+void DoPgoByGeneralGraphOptimizor(const std::vector<Pose<Scalar>> &poses) {
+    // TODO:
+}
+
+void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses) {
+    // TODO:
+}
+
 int main(int argc, char **argv) {
     LogFixPercision(3);
     ReportInfo(YELLOW ">> Test linear pose graph optimizor." RESET_COLOR);
 
     std::vector<Pose<Scalar>> poses;
     GenerateSimulationData(poses);
+    // Add raw poses for visualizor.
+    AddAllRawPosesIntoVisualizor(poses);
 
-    // TODO: do pose graph optimization.
-
-    // Add poses for visualizor.
-    AddAllPosesIntoVisualizor(poses);
+    // Do pose graph optimization.
+    DoPgoByGeneralGraphOptimizor(poses);
+    DoPgoByPoseGraphOptimizor(poses);
 
     do {
         Visualizor3D::Refresh("Visualizor", 50);
