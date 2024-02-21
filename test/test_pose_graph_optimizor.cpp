@@ -176,9 +176,11 @@ void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses) {
             p_M.emplace_back(temp_p_M);
             q_M.emplace_back(temp_q_M);
         } else {
-            p_M.emplace_back(TVec3<Scalar>::Zero());
-            q_M.emplace_back(TQuat<Scalar>::Identity());
+            p_M.emplace_back(poses[i].p_wb);
+            q_M.emplace_back(poses[i].q_wb);
         }
+
+        ReportInfo("Mi " << i << " : " << LogVec(p_M.back()) << ", " << LogQuat(q_M.back()));
     }
 
     // Compute A and target A(A_).
@@ -194,7 +196,7 @@ void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses) {
         if (i) {
             TVec3<Scalar> temp_int_p_M;
             TQuat<Scalar> temp_int_q_M;
-            Utility::ComputeTransformTransform(p_M[i - 1], q_M[i - 1],
+            Utility::ComputeTransformTransform(int_p_M.back(), int_q_M.back(),
                 p_M[i], q_M[i], temp_int_p_M, temp_int_q_M);
             int_p_M.emplace_back(temp_int_p_M);
             int_q_M.emplace_back(temp_int_q_M);
