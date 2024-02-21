@@ -26,7 +26,7 @@ void GenerateSimulationData(std::vector<Pose<Scalar>> &poses) {
     poses.clear();
 
     // Poses.
-    for (int32_t i = 0; i < 20; ++i) {
+    for (int32_t i = 0; i <= 20; ++i) {
         Pose<Scalar> pose;
         const TVec3<Scalar> euler = TVec3<Scalar>(0, -90 + i * 18, 0);
         pose.q_wb = Utility::EulerToQuaternion(euler);
@@ -131,7 +131,12 @@ void J(const TVec3<Scalar> &p_A, const TQuat<Scalar> &q_A,
     Utility::ComputeTransformTransform(p_A, q_A, p_exp, q_exp, p_out, q_out);
 }
 
-void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses) {
+void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses,
+                               std::vector<TVec3<Scalar>> &corr_p_wb,
+                               std::vector<TQuat<Scalar>> &corr_q_wb) {
+    corr_p_wb.clear();
+    corr_q_wb.clear();
+
     // Compute trace of each pose covariance.
     std::vector<Scalar> trace_cov_p;
     std::vector<Scalar> trace_cov_q;
@@ -186,7 +191,7 @@ void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses) {
     // Compute A and target A(A_).
     const TVec3<Scalar> p_A = poses.back().p_wb;
     const TQuat<Scalar> q_A = poses.back().q_wb;
-    const TVec3<Scalar> p_A_ = poses.front().p_wb;
+    const TVec3<Scalar> p_A_ = poses.front().p_wb;  // This should depend on loop closure pnp.
     const TQuat<Scalar> q_A_ = poses.front().q_wb;
 
     // Compute integration of relative pose M.
@@ -209,7 +214,10 @@ void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses) {
     ReportInfo("A is " << LogVec(p_A) << ", " << LogQuat(q_A));
 
     // Iterate each poses.
+    std::vector<TVec3<Scalar>> all_p_Um_;
+    std::vector<TQuat<Scalar>> all_q_Um_;
     for (uint32_t i = 0; i < poses.size(); ++i) {
+        // Compute Um.
         Scalar weight_left = 0;
         for (uint32_t j = 0; j < i; ++j) {
             weight_left += weights[j];
@@ -231,6 +239,36 @@ void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses) {
         Utility::ComputeTransformInverseTransform(p_U_left, q_U_left, p_U_right, q_U_right, p_U, q_U);
 
         ReportInfo("Um " << i << " : " << LogVec(p_U) << ", " << LogQuat(q_U));
+
+        // Compute A_.inv * M1 * M2 *...* Mi.
+        TVec3<Scalar> p_A_inv_int_Mi;
+        TQuat<Scalar> q_A_inv_int_Mi;
+        Utility::ComputeTransformInverseTransform(p_A_, q_A_, int_p_M[i], int_q_M[i],
+            p_A_inv_int_Mi, q_A_inv_int_Mi);
+
+        // Compute Um_.
+        TVec3<Scalar> p_U__right;
+        TQuat<Scalar> q_U__right;
+        Utility::ComputeTransformTransform(p_U, q_U, p_A_inv_int_Mi, q_A_inv_int_Mi, p_U__right, q_U__right);
+        TVec3<Scalar> p_U_;
+        TQuat<Scalar> q_U_;
+        Utility::ComputeTransformInverseTransform(p_A_inv_int_Mi, q_A_inv_int_Mi,
+            p_U__right, q_U__right, p_U_, q_U_);
+
+        all_p_Um_.emplace_back(p_U_);
+        all_q_Um_.emplace_back(q_U_);
+
+        ReportInfo("Um_ " << i << " : " << LogVec(p_U) << ", " << LogQuat(q_U));
+    }
+
+    // Correct poses.
+    for (uint32_t i = 0; i < p_M.size(); ++i) {
+        if (i) {
+
+        } else {
+            TVec3<Scalar> corr_p;
+            TQuat<Scalar> corr_q;
+        }
     }
 }
 
@@ -243,10 +281,17 @@ int main(int argc, char **argv) {
     // Add raw poses for visualizor.
     AddAllRawPosesIntoVisualizor(poses);
 
+    std::vector<TVec3<Scalar>> corr_p_wb;
+    std::vector<TQuat<Scalar>> corr_q_wb;
+
     // Do pose graph optimization.
     DoPgoByGeneralGraphOptimizor(poses);
-    DoPgoByPoseGraphOptimizor(poses);
+    DoPgoByPoseGraphOptimizor(poses, corr_p_wb, corr_q_wb);
 
+    // Add correct poses for visualizor.
+    // TODO:
+
+    // Visualize.
     Visualizor3D::camera_view().p_wc = Vec3(0, 0, -20);
     do {
         Visualizor3D::Refresh("Visualizor", 50);
