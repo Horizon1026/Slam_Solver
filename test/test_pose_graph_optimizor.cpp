@@ -16,8 +16,10 @@ using namespace SLAM_VISUALIZOR;
 /* Simulation Data. */
 template <typename Scalar>
 struct Pose {
-    TQuat<Scalar> q_wb = TQuat<Scalar>::Identity();
     TVec3<Scalar> p_wb = TVec3<Scalar>::Zero();
+    TQuat<Scalar> q_wb = TQuat<Scalar>::Identity();
+    TMat3<Scalar> cov_p = TMat3<Scalar>::Identity();
+    TMat3<Scalar> cov_q = TMat3<Scalar>::Identity();
 };
 
 void GenerateSimulationData(std::vector<Pose<Scalar>> &poses) {
@@ -98,8 +100,136 @@ void DoPgoByGeneralGraphOptimizor(const std::vector<Pose<Scalar>> &poses) {
     // TODO:
 }
 
+void log(const TVec3<Scalar> &p_in, const TQuat<Scalar> &q_in, const Scalar alpha,
+         TVec6<Scalar> &v_out) {
+    v_out.head<3>() = Utility::Logarithm(q_in);
+    v_out.tail<3>() = alpha * p_in;
+}
+
+void exp(const TVec6<Scalar> &v_in, const Scalar alpha,
+         TVec3<Scalar> &p_out, TQuat<Scalar> &q_out) {
+    const TVec3<Scalar> vec = v_in.head<3>();
+    q_out = Utility::Exponent(vec);
+    p_out = v_in.tail<3>() / alpha;
+}
+
+void J(const TVec3<Scalar> &p_A, const TQuat<Scalar> &q_A,
+       const TVec3<Scalar> &p_A_, const TQuat<Scalar> &q_A_,
+       const Scalar s, const Scalar alpha,
+       TVec3<Scalar> &p_out, TQuat<Scalar> &q_out) {
+    TVec3<Scalar> p_AinvA_;
+    TQuat<Scalar> q_AinvA_;
+    Utility::ComputeTransformInverseTransform(p_A, q_A, p_A_, q_A_, p_AinvA_, q_AinvA_);
+    TVec6<Scalar> se3;
+    log(p_AinvA_, q_AinvA_, alpha, se3);
+    se3 = se3 * s;
+
+    TVec3<Scalar> p_exp;
+    TQuat<Scalar> q_exp;
+    exp(se3, alpha, p_exp, q_exp);
+
+    Utility::ComputeTransformTransform(p_A, q_A, p_exp, q_exp, p_out, q_out);
+}
+
 void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses) {
-    // TODO:
+    // Compute trace of each pose covariance.
+    std::vector<Scalar> trace_cov_p;
+    std::vector<Scalar> trace_cov_q;
+    for (const auto &pose : poses) {
+        trace_cov_p.emplace_back(pose.cov_p.trace());
+        trace_cov_q.emplace_back(pose.cov_q.trace());
+    }
+
+    // Compute parameter alpha.
+    Scalar numerator = 0;
+    Scalar denominator = 0;
+    for (uint32_t i = 0; i < trace_cov_p.size(); ++i) {
+        numerator += std::sqrt(trace_cov_q[i]);
+        denominator += std::sqrt(trace_cov_p[i]);
+    }
+    const Scalar alpha = numerator / denominator;
+
+    // Compute summary of covariance trace.
+    Scalar sum_of_trace_q = 0;
+    Scalar sum_of_trace_p = 0;
+    for (uint32_t i = 0; i < trace_cov_p.size(); ++i) {
+        sum_of_trace_q += trace_cov_q[i];
+        sum_of_trace_p += trace_cov_p[i];
+    }
+
+    // Compute weight of each pose.
+    std::vector<Scalar> weights;
+    denominator = sum_of_trace_q + alpha * alpha * sum_of_trace_p;
+    for (uint32_t i = 0; i < trace_cov_p.size(); ++i) {
+        weights.emplace_back((trace_cov_q[i] + alpha * alpha * trace_cov_p[i]) / denominator);
+    }
+
+    // Compute each relative pose M.
+    std::vector<TVec3<Scalar>> p_M;
+    std::vector<TQuat<Scalar>> q_M;
+    for (uint32_t i = 0; i < poses.size(); ++i) {
+        if (i) {
+            TVec3<Scalar> temp_p_M;
+            TQuat<Scalar> temp_q_M;
+            Utility::ComputeTransformInverseTransform(poses[i - 1].p_wb, poses[i - 1].q_wb,
+                poses[i].p_wb, poses[i].q_wb, temp_p_M, temp_q_M);
+            p_M.emplace_back(temp_p_M);
+            q_M.emplace_back(temp_q_M);
+        } else {
+            p_M.emplace_back(TVec3<Scalar>::Zero());
+            q_M.emplace_back(TQuat<Scalar>::Identity());
+        }
+    }
+
+    // Compute A and target A(A_).
+    const TVec3<Scalar> p_A = poses.back().p_wb;
+    const TQuat<Scalar> q_A = poses.back().q_wb;
+    const TVec3<Scalar> p_A_ = poses.front().p_wb;
+    const TQuat<Scalar> q_A_ = poses.front().q_wb;
+
+    // Compute integration of relative pose M.
+    std::vector<TVec3<Scalar>> int_p_M;
+    std::vector<TQuat<Scalar>> int_q_M;
+    for (uint32_t i = 0; i < p_M.size(); ++i) {
+        if (i) {
+            TVec3<Scalar> temp_int_p_M;
+            TQuat<Scalar> temp_int_q_M;
+            Utility::ComputeTransformTransform(p_M[i - 1], q_M[i - 1],
+                p_M[i], q_M[i], temp_int_p_M, temp_int_q_M);
+            int_p_M.emplace_back(temp_int_p_M);
+            int_q_M.emplace_back(temp_int_q_M);
+        } else {
+            int_p_M.emplace_back(p_M[i]);
+            int_q_M.emplace_back(q_M[i]);
+        }
+    }
+    ReportInfo("M1M2...Mn is " << LogVec(int_p_M.back()) << ", " << LogQuat(int_q_M.back()));
+    ReportInfo("A is " << LogVec(p_A) << ", " << LogQuat(q_A));
+
+    // Iterate each poses.
+    for (uint32_t i = 0; i < poses.size(); ++i) {
+        Scalar weight_left = 0;
+        for (uint32_t j = 0; j < i; ++j) {
+            weight_left += weights[j];
+        }
+        TVec3<Scalar> p_U_left;
+        TQuat<Scalar> q_U_left;
+        J(p_A, q_A, p_A_, q_A_, weight_left, alpha, p_U_left, q_U_left);
+
+        Scalar weight_right = 0;
+        for (uint32_t j = i; j < weights.size(); ++j) {
+            weight_right += weights[j];
+        }
+        TVec3<Scalar> p_U_right;
+        TQuat<Scalar> q_U_right;
+        J(p_A, q_A, p_A_, q_A_, weight_right, alpha, p_U_right, q_U_right);
+
+        TVec3<Scalar> p_U;
+        TQuat<Scalar> q_U;
+        Utility::ComputeTransformInverseTransform(p_U_left, q_U_left, p_U_right, q_U_right, p_U, q_U);
+
+        ReportInfo("Um " << i << " : " << LogVec(p_U) << ", " << LogQuat(q_U));
+    }
 }
 
 int main(int argc, char **argv) {
@@ -115,6 +245,7 @@ int main(int argc, char **argv) {
     DoPgoByGeneralGraphOptimizor(poses);
     DoPgoByPoseGraphOptimizor(poses);
 
+    Visualizor3D::camera_view().p_wc = Vec3(0, 0, -20);
     do {
         Visualizor3D::Refresh("Visualizor", 50);
     } while (!Visualizor3D::ShouldQuit());

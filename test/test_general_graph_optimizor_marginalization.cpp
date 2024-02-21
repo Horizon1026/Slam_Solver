@@ -2,11 +2,7 @@
 #include "log_report.h"
 #include "visualizor.h"
 
-#include "vertex.h"
-#include "vertex_quaternion.h"
-#include "edge.h"
-#include "math_kinematics.h"
-#include "marginalizor.h"
+#include "general_graph_optimizor.h"
 
 using Scalar = float;
 using namespace SLAM_SOLVER;

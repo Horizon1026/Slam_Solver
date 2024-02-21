@@ -1,11 +1,7 @@
 #include "datatype_basic.h"
 #include "log_report.h"
 
-#include "vertex.h"
-#include "edge.h"
-#include "graph.h"
-#include "solver_lm.h"
-#include "solver_dogleg.h"
+#include "general_graph_optimizor.h"
 
 using Scalar = float;
 using namespace SLAM_SOLVER;

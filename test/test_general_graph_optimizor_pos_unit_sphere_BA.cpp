@@ -4,7 +4,6 @@
 #include "math_kinematics.h"
 
 #include "general_graph_optimizor.h"
-
 #include "enable_stack_backward.h"
 
 using Scalar = float;

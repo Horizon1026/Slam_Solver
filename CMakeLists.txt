@@ -170,6 +170,7 @@ add_executable( test_pose_graph_optimizor
     test/test_pose_graph_optimizor.cpp
 )
 target_link_libraries( test_pose_graph_optimizor
+    lib_general_graph_optimizor
     lib_pose_graph_optimizor
     lib_3d_visualizor
     lib_stack_backward
