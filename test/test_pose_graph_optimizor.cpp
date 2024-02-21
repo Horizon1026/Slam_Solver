@@ -4,9 +4,7 @@
 #include "math_kinematics.h"
 #include "visualizor_3d.h"
 
-#include "general_graph_optimizor.h"
 #include "pose_graph_optimizor.h"
-
 #include "enable_stack_backward.h"
 
 using Scalar = float;
@@ -34,34 +32,6 @@ void GenerateSimulationData(std::vector<Pose<Scalar>> &poses) {
         poses.emplace_back(pose);
     }
 }
-
-/* Class Edge Relative Pose. */
-template <typename Scalar>
-class EdgeRelativePose : public Edge<Scalar> {
-// Vertices : [ref_pose, p_wb0]
-//            [ref_pose, q_wb0]
-//            [cur_pose, p_wb1]
-//            [cur_pose, q_wb1]
-
-public:
-    EdgeRelativePose() : Edge<Scalar>(6, 4) {}
-    virtual ~EdgeRelativePose() = default;
-
-    // Compute residual and jacobians for each vertex. These operations should be defined by subclass.
-    virtual void ComputeResidual() override {
-
-    }
-
-    virtual void ComputeJacobians() override {
-
-    }
-
-private:
-    // Parameters will be calculated in ComputeResidual().
-    // It should not be repeatedly calculated in ComputeJacobians().
-    TVec3<Scalar> p_b0b1 = TVec3<Scalar>::Zero();
-    TQuat<Scalar> q_b0b1 = TQuat<Scalar>::Identity();
-};
 
 void AddAllRawPosesIntoVisualizor(const std::vector<Pose<Scalar>> &poses) {
     Visualizor3D::Clear();
@@ -96,8 +66,26 @@ void AddAllRawPosesIntoVisualizor(const std::vector<Pose<Scalar>> &poses) {
     }
 }
 
-void DoPgoByGeneralGraphOptimizor(const std::vector<Pose<Scalar>> &poses) {
-    // TODO:
+void AddAllCorrectPosesIntoVisualizor(const std::vector<TVec3<Scalar>> &corr_p_wb,
+                                      const std::vector<TQuat<Scalar>> &corr_q_wb) {
+
+
+    // Add all poses.
+    for (uint32_t i = 0; i < corr_p_wb.size(); ++i) {
+        Visualizor3D::poses().emplace_back(PoseType{
+            .p_wb = corr_p_wb[i],
+            .q_wb = corr_q_wb[i],
+            .scale = 1.0,
+        });
+
+        if (i) {
+            Visualizor3D::lines().emplace_back(LineType{
+                .p_w_i = corr_p_wb[i - 1],
+                .p_w_j = corr_p_wb[i],
+                .color = RgbColor::kGreen,
+            });
+        }
+    }
 }
 
 void log(const TVec3<Scalar> &p_in, const TQuat<Scalar> &q_in, const Scalar alpha,
@@ -214,8 +202,8 @@ void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses,
     ReportInfo("A is " << LogVec(p_A) << ", " << LogQuat(q_A));
 
     // Iterate each poses.
-    std::vector<TVec3<Scalar>> all_p_Um_;
-    std::vector<TQuat<Scalar>> all_q_Um_;
+    std::vector<TVec3<Scalar>> p_Um_;
+    std::vector<TQuat<Scalar>> q_Um_;
     for (uint32_t i = 0; i < poses.size(); ++i) {
         // Compute Um.
         Scalar weight_left = 0;
@@ -255,19 +243,30 @@ void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses,
         Utility::ComputeTransformInverseTransform(p_A_inv_int_Mi, q_A_inv_int_Mi,
             p_U__right, q_U__right, p_U_, q_U_);
 
-        all_p_Um_.emplace_back(p_U_);
-        all_q_Um_.emplace_back(q_U_);
+        p_Um_.emplace_back(p_U_);
+        q_Um_.emplace_back(q_U_);
 
         ReportInfo("Um_ " << i << " : " << LogVec(p_U) << ", " << LogQuat(q_U));
     }
 
     // Correct poses.
     for (uint32_t i = 0; i < p_M.size(); ++i) {
+        TVec3<Scalar> corr_p;
+        TQuat<Scalar> corr_q;
         if (i) {
-
+            TVec3<Scalar> delta_p;
+            TQuat<Scalar> delta_q;
+            Utility::ComputeTransformTransform(p_M[i], q_M[i],
+                p_Um_[i], q_Um_[i], delta_p, delta_q);
+            Utility::ComputeTransformTransform(corr_p_wb.back(), corr_q_wb.back(),
+                delta_p, delta_q, corr_p, corr_q);
+            corr_p_wb.emplace_back(corr_p);
+            corr_q_wb.emplace_back(corr_q);
         } else {
-            TVec3<Scalar> corr_p;
-            TQuat<Scalar> corr_q;
+            Utility::ComputeTransformTransform(p_M[i], q_M[i], p_Um_[i], q_Um_[i],
+                corr_p, corr_q);
+            corr_p_wb.emplace_back(corr_p);
+            corr_q_wb.emplace_back(corr_q);
         }
     }
 }
@@ -281,15 +280,13 @@ int main(int argc, char **argv) {
     // Add raw poses for visualizor.
     AddAllRawPosesIntoVisualizor(poses);
 
+    // Do pose graph optimization.
     std::vector<TVec3<Scalar>> corr_p_wb;
     std::vector<TQuat<Scalar>> corr_q_wb;
-
-    // Do pose graph optimization.
-    DoPgoByGeneralGraphOptimizor(poses);
     DoPgoByPoseGraphOptimizor(poses, corr_p_wb, corr_q_wb);
 
     // Add correct poses for visualizor.
-    // TODO:
+    AddAllCorrectPosesIntoVisualizor(corr_p_wb, corr_q_wb);
 
     // Visualize.
     Visualizor3D::camera_view().p_wc = Vec3(0, 0, -20);
