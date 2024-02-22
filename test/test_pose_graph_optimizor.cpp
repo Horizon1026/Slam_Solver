@@ -53,7 +53,7 @@ void AddAllRawPosesIntoVisualizor(const std::vector<Pose<Scalar>> &poses) {
         Visualizor3D::poses().emplace_back(PoseType{
             .p_wb = poses[i].p_wb,
             .q_wb = poses[i].q_wb,
-            .scale = 1.0,
+            .scale = i == 0 ? 2.0f : 1.0f,
         });
 
         if (i) {
@@ -124,87 +124,89 @@ void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses,
                                std::vector<TQuat<Scalar>> &corr_q_wb) {
     corr_p_wb.clear();
     corr_q_wb.clear();
+    const uint32_t N = poses.size() - 1;
+    ReportInfo("N is " << N);
 
     // Compute trace of each pose covariance.
     std::vector<Scalar> trace_cov_p;
     std::vector<Scalar> trace_cov_q;
-    for (const auto &pose : poses) {
-        trace_cov_p.emplace_back(pose.cov_p.trace());
-        trace_cov_q.emplace_back(pose.cov_q.trace());
+    for (uint32_t i = 0; i < N; ++i) {
+        trace_cov_p.emplace_back((poses[i].cov_p + poses[i + 1].cov_p).trace());
+        trace_cov_q.emplace_back((poses[i].cov_q + poses[i + 1].cov_q).trace());
     }
 
     // Compute parameter alpha.
     Scalar numerator = 0;
     Scalar denominator = 0;
-    for (uint32_t i = 0; i < trace_cov_p.size(); ++i) {
+    for (uint32_t i = 0; i < N; ++i) {
         numerator += std::sqrt(trace_cov_q[i]);
         denominator += std::sqrt(trace_cov_p[i]);
     }
     const Scalar alpha = numerator / denominator;
+    const Scalar alpha_2 = alpha * alpha;
 
     // Compute summary of covariance trace.
     Scalar sum_of_trace_q = 0;
     Scalar sum_of_trace_p = 0;
-    for (uint32_t i = 0; i < trace_cov_p.size(); ++i) {
+    for (uint32_t i = 0; i < N; ++i) {
         sum_of_trace_q += trace_cov_q[i];
         sum_of_trace_p += trace_cov_p[i];
     }
 
     // Compute weight of each pose.
     std::vector<Scalar> weights;
-    denominator = sum_of_trace_q + alpha * alpha * sum_of_trace_p;
-    for (uint32_t i = 0; i < trace_cov_p.size(); ++i) {
-        weights.emplace_back((trace_cov_q[i] + alpha * alpha * trace_cov_p[i]) / denominator);
+    denominator = sum_of_trace_q + alpha_2 * sum_of_trace_p;
+    for (uint32_t i = 0; i < N; ++i) {
+        weights.emplace_back((trace_cov_q[i] + alpha_2 * trace_cov_p[i]) / denominator);
+        ReportInfo("Weight " << i << " : " << weights[i]);
     }
 
     // Compute each relative pose M.
-    std::vector<TVec3<Scalar>> p_M;
-    std::vector<TQuat<Scalar>> q_M;
-    for (uint32_t i = 0; i < poses.size(); ++i) {
-        if (i) {
-            TVec3<Scalar> temp_p_M;
-            TQuat<Scalar> temp_q_M;
-            Utility::ComputeTransformInverseTransform(poses[i - 1].p_wb, poses[i - 1].q_wb,
-                poses[i].p_wb, poses[i].q_wb, temp_p_M, temp_q_M);
-            p_M.emplace_back(temp_p_M);
-            q_M.emplace_back(temp_q_M);
-        } else {
-            p_M.emplace_back(poses[i].p_wb);
-            q_M.emplace_back(poses[i].q_wb);
-        }
+    std::vector<TVec3<Scalar>> all_p_M;
+    std::vector<TQuat<Scalar>> all_q_M;
+    for (uint32_t i = 0; i < N; ++i) {
+        TVec3<Scalar> temp_p_M;
+        TQuat<Scalar> temp_q_M;
+        Utility::ComputeTransformInverseTransform(poses[i].p_wb, poses[i].q_wb,
+            poses[i + 1].p_wb, poses[i + 1].q_wb, temp_p_M, temp_q_M);
+        all_p_M.emplace_back(temp_p_M);
+        all_q_M.emplace_back(temp_q_M);
 
-        ReportInfo("Mi " << i << " : " << LogVec(p_M.back()) << ", " << LogQuat(q_M.back()));
+        ReportInfo("Mi " << i << " : " << LogVec(all_p_M.back()) << ", " << LogQuat(all_q_M.back()));
     }
 
     // Compute A and target A(A_).
-    const TVec3<Scalar> p_A = poses.back().p_wb;
-    const TQuat<Scalar> q_A = poses.back().q_wb;
-    const TVec3<Scalar> p_A_ = poses.front().p_wb;  // This should depend on loop closure pnp.
-    const TQuat<Scalar> q_A_ = poses.front().q_wb;
+    TVec3<Scalar> p_A = poses.back().p_wb;
+    TQuat<Scalar> q_A = poses.back().q_wb;
+    Utility::ComputeTransformInverseTransform(poses.front().p_wb, poses.front().q_wb,
+        poses.back().p_wb, poses.back().q_wb, p_A, q_A);
+    const TVec3<Scalar> p_A_ = TVec3<Scalar>::Zero();  // This should depend on loop closure pnp.
+    const TQuat<Scalar> q_A_ = TQuat<Scalar>::Identity();
+    ReportInfo("A " << " : " << LogVec(p_A) << ", " << LogQuat(q_A));
+    ReportInfo("A_ " << " : " << LogVec(p_A_) << ", " << LogQuat(q_A_));
 
     // Compute integration of relative pose M.
     std::vector<TVec3<Scalar>> int_p_M;
     std::vector<TQuat<Scalar>> int_q_M;
-    for (uint32_t i = 0; i < p_M.size(); ++i) {
+    for (uint32_t i = 0; i < all_p_M.size(); ++i) {
         if (i) {
             TVec3<Scalar> temp_int_p_M;
             TQuat<Scalar> temp_int_q_M;
             Utility::ComputeTransformTransform(int_p_M.back(), int_q_M.back(),
-                p_M[i], q_M[i], temp_int_p_M, temp_int_q_M);
+                all_p_M[i], all_q_M[i], temp_int_p_M, temp_int_q_M);
             int_p_M.emplace_back(temp_int_p_M);
             int_q_M.emplace_back(temp_int_q_M);
         } else {
-            int_p_M.emplace_back(p_M[i]);
-            int_q_M.emplace_back(q_M[i]);
+            int_p_M.emplace_back(all_p_M[i]);
+            int_q_M.emplace_back(all_q_M[i]);
         }
     }
     ReportInfo("M1M2...Mn is " << LogVec(int_p_M.back()) << ", " << LogQuat(int_q_M.back()));
-    ReportInfo("A is " << LogVec(p_A) << ", " << LogQuat(q_A));
 
     // Iterate each poses.
-    std::vector<TVec3<Scalar>> p_Um_;
-    std::vector<TQuat<Scalar>> q_Um_;
-    for (uint32_t i = 0; i < poses.size(); ++i) {
+    std::vector<TVec3<Scalar>> all_p_U_;
+    std::vector<TQuat<Scalar>> all_q_U_;
+    for (uint32_t i = 0; i < N; ++i) {
         // Compute Um.
         Scalar weight_left = 0;
         for (uint32_t j = 0; j < i; ++j) {
@@ -215,7 +217,7 @@ void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses,
         J(p_A, q_A, p_A_, q_A_, weight_left, alpha, p_U_left, q_U_left);
 
         Scalar weight_right = 0;
-        for (uint32_t j = i; j < weights.size(); ++j) {
+        for (uint32_t j = i; j < N; ++j) {
             weight_right += weights[j];
         }
         TVec3<Scalar> p_U_right;
@@ -226,7 +228,7 @@ void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses,
         TQuat<Scalar> q_U;
         Utility::ComputeTransformInverseTransform(p_U_left, q_U_left, p_U_right, q_U_right, p_U, q_U);
 
-        ReportInfo("Um " << i << " : " << LogVec(p_U) << ", " << LogQuat(q_U));
+        ReportInfo("U " << i << " : " << LogVec(p_U) << ", " << LogQuat(q_U));
 
         // Compute A_.inv * M1 * M2 *...* Mi.
         TVec3<Scalar> p_A_inv_int_Mi;
@@ -243,30 +245,28 @@ void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses,
         Utility::ComputeTransformInverseTransform(p_A_inv_int_Mi, q_A_inv_int_Mi,
             p_U__right, q_U__right, p_U_, q_U_);
 
-        p_Um_.emplace_back(p_U_);
-        q_Um_.emplace_back(q_U_);
+        all_p_U_.emplace_back(p_U_);
+        all_q_U_.emplace_back(q_U_);
 
-        ReportInfo("Um_ " << i << " : " << LogVec(p_U) << ", " << LogQuat(q_U));
+        ReportInfo("U_ " << i << " : " << LogVec(p_U) << ", " << LogQuat(q_U));
     }
 
     // Correct poses.
-    for (uint32_t i = 0; i < p_M.size(); ++i) {
+    for (uint32_t i = 0; i < poses.size(); ++i) {
         TVec3<Scalar> corr_p;
         TQuat<Scalar> corr_q;
         if (i) {
             TVec3<Scalar> delta_p;
             TQuat<Scalar> delta_q;
-            Utility::ComputeTransformTransform(p_M[i], q_M[i],
-                p_Um_[i], q_Um_[i], delta_p, delta_q);
+            Utility::ComputeTransformTransform(all_p_M[i - 1], all_q_M[i - 1],
+                all_p_U_[i - 1], all_q_U_[i - 1], delta_p, delta_q);
             Utility::ComputeTransformTransform(corr_p_wb.back(), corr_q_wb.back(),
                 delta_p, delta_q, corr_p, corr_q);
             corr_p_wb.emplace_back(corr_p);
             corr_q_wb.emplace_back(corr_q);
         } else {
-            Utility::ComputeTransformTransform(p_M[i], q_M[i], p_Um_[i], q_Um_[i],
-                corr_p, corr_q);
-            corr_p_wb.emplace_back(corr_p);
-            corr_q_wb.emplace_back(corr_q);
+            corr_p_wb.emplace_back(poses[0].p_wb);
+            corr_q_wb.emplace_back(poses[0].q_wb);
         }
     }
 }
