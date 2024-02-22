@@ -217,7 +217,7 @@ void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses,
         J(p_A, q_A, p_A_, q_A_, weight_left, alpha, p_U_left, q_U_left);
 
         Scalar weight_right = 0;
-        for (uint32_t j = i; j < N; ++j) {
+        for (uint32_t j = 0; j <= i; ++j) {
             weight_right += weights[j];
         }
         TVec3<Scalar> p_U_right;
