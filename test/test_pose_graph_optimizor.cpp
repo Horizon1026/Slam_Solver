@@ -26,7 +26,7 @@ void GenerateSimulationData(std::vector<Pose<Scalar>> &poses) {
     // Poses.
     for (int32_t i = 0; i <= 20; ++i) {
         Pose<Scalar> pose;
-        const TVec3<Scalar> euler = TVec3<Scalar>(0, -90 + i * 18, 0);
+        const TVec3<Scalar> euler = TVec3<Scalar>(0, -90 + i * 20, 0);
         pose.q_wb = Utility::EulerToQuaternion(euler);
         pose.p_wb = TVec3<Scalar>(0, 0, 0) - pose.q_wb * TVec3<Scalar>(0, 0, 8 + i * 0.1);
         poses.emplace_back(pose);
@@ -68,8 +68,6 @@ void AddAllRawPosesIntoVisualizor(const std::vector<Pose<Scalar>> &poses) {
 
 void AddAllCorrectPosesIntoVisualizor(const std::vector<TVec3<Scalar>> &corr_p_wb,
                                       const std::vector<TQuat<Scalar>> &corr_q_wb) {
-
-
     // Add all poses.
     for (uint32_t i = 0; i < corr_p_wb.size(); ++i) {
         Visualizor3D::poses().emplace_back(PoseType{
@@ -119,13 +117,14 @@ void J(const TVec3<Scalar> &p_A, const TQuat<Scalar> &q_A,
     Utility::ComputeTransformTransform(p_A, q_A, p_exp, q_exp, p_out, q_out);
 }
 
-void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses,
-                               std::vector<TVec3<Scalar>> &corr_p_wb,
-                               std::vector<TQuat<Scalar>> &corr_q_wb) {
+void DoPgoForTest(const std::vector<Pose<Scalar>> &poses,
+                  std::vector<TVec3<Scalar>> &corr_p_wb,
+                  std::vector<TQuat<Scalar>> &corr_q_wb) {
+    ReportColorInfo("Do PGO for test.");
+
     corr_p_wb.clear();
     corr_q_wb.clear();
     const uint32_t N = poses.size() - 1;
-    ReportInfo("N is " << N);
 
     // Compute trace of each pose covariance.
     std::vector<Scalar> trace_cov_p;
@@ -158,7 +157,6 @@ void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses,
     denominator = sum_of_trace_q + alpha_2 * sum_of_trace_p;
     for (uint32_t i = 0; i < N; ++i) {
         weights.emplace_back((trace_cov_q[i] + alpha_2 * trace_cov_p[i]) / denominator);
-        ReportInfo("Weight " << i << " : " << weights[i]);
     }
 
     // Compute each relative pose M.
@@ -171,8 +169,6 @@ void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses,
             poses[i + 1].p_wb, poses[i + 1].q_wb, temp_p_M, temp_q_M);
         all_p_M.emplace_back(temp_p_M);
         all_q_M.emplace_back(temp_q_M);
-
-        ReportInfo("Mi " << i << " : " << LogVec(all_p_M.back()) << ", " << LogQuat(all_q_M.back()));
     }
 
     // Compute A and target A(A_).
@@ -182,8 +178,6 @@ void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses,
         poses.back().p_wb, poses.back().q_wb, p_A, q_A);
     const TVec3<Scalar> p_A_ = TVec3<Scalar>::Zero();  // This should depend on loop closure pnp.
     const TQuat<Scalar> q_A_ = TQuat<Scalar>::Identity();
-    ReportInfo("A " << " : " << LogVec(p_A) << ", " << LogQuat(q_A));
-    ReportInfo("A_ " << " : " << LogVec(p_A_) << ", " << LogQuat(q_A_));
 
     // Compute integration of relative pose M.
     std::vector<TVec3<Scalar>> int_p_M;
@@ -201,7 +195,6 @@ void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses,
             int_q_M.emplace_back(all_q_M[i]);
         }
     }
-    ReportInfo("M1M2...Mn is " << LogVec(int_p_M.back()) << ", " << LogQuat(int_q_M.back()));
 
     // Iterate each poses.
     std::vector<TVec3<Scalar>> all_p_U_;
@@ -228,8 +221,6 @@ void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses,
         TQuat<Scalar> q_U;
         Utility::ComputeTransformInverseTransform(p_U_left, q_U_left, p_U_right, q_U_right, p_U, q_U);
 
-        ReportInfo("U " << i << " : " << LogVec(p_U) << ", " << LogQuat(q_U));
-
         // Compute A_.inv * M1 * M2 *...* Mi.
         TVec3<Scalar> p_A_inv_int_Mi;
         TQuat<Scalar> q_A_inv_int_Mi;
@@ -247,8 +238,6 @@ void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses,
 
         all_p_U_.emplace_back(p_U_);
         all_q_U_.emplace_back(q_U_);
-
-        ReportInfo("U_ " << i << " : " << LogVec(p_U) << ", " << LogQuat(q_U));
     }
 
     // Correct poses.
@@ -271,6 +260,31 @@ void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses,
     }
 }
 
+void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses,
+                               std::vector<TVec3<Scalar>> &corr_p_wb,
+                               std::vector<TQuat<Scalar>> &corr_q_wb) {
+    ReportColorInfo("Do PGO by pose graph optimizor.");
+
+    PoseGraphOptimizor<Scalar> solver;
+    solver.Reset();
+    for (const auto &pose : poses) {
+        solver.all_p_wb().emplace_back(pose.p_wb);
+        solver.all_q_wb().emplace_back(pose.q_wb);
+        solver.all_cov_p().emplace_back(pose.cov_p);
+        solver.all_cov_q().emplace_back(pose.cov_q);
+    }
+    solver.desired_p_wb() = poses.front().p_wb;
+    solver.desired_q_wb() = poses.front().q_wb;
+
+    if (!solver.Solve()) {
+        ReportError("PoseGraphOptimizor failed to solve problem.");
+        return;
+    }
+
+    corr_p_wb = solver.all_p_wb();
+    corr_q_wb = solver.all_q_wb();
+}
+
 int main(int argc, char **argv) {
     LogFixPercision(3);
     ReportInfo(YELLOW ">> Test linear pose graph optimizor." RESET_COLOR);
@@ -283,6 +297,7 @@ int main(int argc, char **argv) {
     // Do pose graph optimization.
     std::vector<TVec3<Scalar>> corr_p_wb;
     std::vector<TQuat<Scalar>> corr_q_wb;
+    // DoPgoForTest(poses, corr_p_wb, corr_q_wb);
     DoPgoByPoseGraphOptimizor(poses, corr_p_wb, corr_q_wb);
 
     // Add correct poses for visualizor.
