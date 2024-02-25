@@ -16,7 +16,8 @@ General solver for slam problem, such as graph optimization problem solver.
     - [x] Error state kalman filter.
     - [x] Square root error state kalman filter.
     - [ ] Iteration kalman filter.
-- [ ] Linear pose graph solver.
+- [x] Polynomial solver. (3rd lib)
+- [x] Linear pose graph solver.
 
 # Dependence
 - Slam_Utility
