@@ -11,8 +11,8 @@ using namespace SENSOR_MODEL;
 using namespace SLAM_SOLVER;
 
 namespace {
-    constexpr float kGyroNoiseSigma = 0.01f;
-    constexpr float kGyroRandomWalkSigma = 0.01f;
+    constexpr float kGyroNoiseSigmaSigma = 0.01f;
+    constexpr float kGyroRandomWalkSigmaSigma = 0.01f;
 }
 
 bool LoadImuMeasurements(const std::string &imu_file,
@@ -88,8 +88,8 @@ void TestErrorKalmanFilter(const std::vector<ImuMeasurement> &meas,
         // Propagate covariance.
         filter.F().block<3, 3>(0, 0) = Mat3::Identity() - Utility::SkewSymmetricMatrix(gyro) * dt;
         filter.F().block<3, 3>(0, 3) = -dt * Mat3::Identity();
-        filter.Q().block<3, 3>(0, 0) = Mat3::Identity() * kGyroNoiseSigma * kGyroNoiseSigma * dt * dt;
-        filter.Q().block<3, 3>(3, 3) = Mat3::Identity() * kGyroRandomWalkSigma * kGyroRandomWalkSigma * dt * dt;
+        filter.Q().block<3, 3>(0, 0) = Mat3::Identity() * kGyroNoiseSigmaSigma * kGyroNoiseSigmaSigma * dt * dt;
+        filter.Q().block<3, 3>(3, 3) = Mat3::Identity() * kGyroRandomWalkSigmaSigma * kGyroRandomWalkSigmaSigma * dt * dt;
         filter.PropagateCovariance();
 
         // Update state and covariance with observations.
@@ -139,8 +139,8 @@ void TestSquareRootKalmanFilter(const std::vector<ImuMeasurement> &meas,
         // Propagate covariance.
         filter.F().block<3, 3>(0, 0) = Mat3::Identity() - Utility::SkewSymmetricMatrix(gyro) * dt;
         filter.F().block<3, 3>(0, 3) = -dt * Mat3::Identity();
-        filter.square_Q_t().block<3, 3>(0, 0) = Mat3::Identity() * kGyroNoiseSigma * dt;
-        filter.square_Q_t().block<3, 3>(3, 3) = Mat3::Identity() * kGyroRandomWalkSigma * dt;
+        filter.square_Q_t().block<3, 3>(0, 0) = Mat3::Identity() * kGyroNoiseSigmaSigma * dt;
+        filter.square_Q_t().block<3, 3>(3, 3) = Mat3::Identity() * kGyroRandomWalkSigmaSigma * dt;
         filter.PropagateCovariance();
 
         // Update state and covariance with observations.
