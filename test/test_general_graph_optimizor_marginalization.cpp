@@ -1,12 +1,14 @@
 #include "datatype_basic.h"
 #include "log_report.h"
 #include "visualizor.h"
+#include "image_painter.h"
 
 #include "general_graph_optimizor.h"
 
 using Scalar = float;
 using namespace SLAM_SOLVER;
 using namespace SLAM_VISUALIZOR;
+using namespace IMAGE_PAINTER;
 namespace {
     constexpr int32_t kVisualizeMatrixScale = 3;
     constexpr int32_t kCameraFrameNumber = 10;
@@ -99,7 +101,7 @@ void GenerateSimulationData(std::vector<Pose<Scalar>> &cameras,
 void ShowMatrixImage(const std::string &title, const TMat<Scalar> &matrix) {
     uint8_t *buf = (uint8_t *)malloc(matrix.rows() * matrix.cols() * kVisualizeMatrixScale * kVisualizeMatrixScale * sizeof(uint8_t));
     GrayImage image_matrix(buf, matrix.rows() * kVisualizeMatrixScale, matrix.cols() * kVisualizeMatrixScale, true);
-    Visualizor::ConvertMatrixToImage<float>(matrix, image_matrix, 2.0f, kVisualizeMatrixScale);
+    ImagePainter::ConvertMatrixToImage<float>(matrix, image_matrix, 2.0f, kVisualizeMatrixScale);
     Visualizor::ShowImage(title, image_matrix);
 }
 

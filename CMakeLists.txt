@@ -55,6 +55,12 @@ if ( NOT TARGET lib_stack_backward )
     add_subdirectory( ${SLAM_UTILITY_PATH}/3rd_libraries/backward ${PROJECT_SOURCE_DIR}/build/lib_stack_backward )
 endif()
 
+# Add image painter.
+set( IMAGE_PAINTER_PATH ${PROJECT_SOURCE_DIR}/../Image_Painter/src )
+if ( NOT TARGET lib_image_painter )
+    add_subdirectory( ${IMAGE_PAINTER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_image_painter )
+endif()
+
 # Add visualizor.
 set( VISUALIZOR_2D_PATH ${PROJECT_SOURCE_DIR}/../Visualizor2D )
 if ( NOT TARGET lib_image_visualizor )
@@ -127,6 +133,7 @@ target_link_libraries( test_general_graph_optimizor_marginalization
     lib_general_graph_optimizor
     lib_stack_backward
     lib_image_visualizor
+    lib_image_painter
 )
 
 # Add test_prior_operation.
@@ -137,6 +144,7 @@ target_link_libraries( test_prior_operation
     lib_general_graph_optimizor
     lib_stack_backward
     lib_image_visualizor
+    lib_image_painter
 )
 
 # Add test_kalman_filter_constant.
