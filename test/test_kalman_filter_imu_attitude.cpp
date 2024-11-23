@@ -1,5 +1,5 @@
-#include "log_report.h"
-#include "math_kinematics.h"
+#include "slam_log_reporter.h"
+#include "slam_basic_math.h"
 #include "imu_measurement.h"
 #include "error_kalman_filter.h"
 #include "square_root_kalman_filter.h"

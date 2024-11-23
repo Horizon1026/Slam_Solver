@@ -1,6 +1,6 @@
 #include "pose_graph_optimizor.h"
-#include "math_kinematics.h"
-#include "log_report.h"
+#include "slam_basic_math.h"
+#include "slam_log_reporter.h"
 #include "slam_operations.h"
 
 namespace SLAM_SOLVER {

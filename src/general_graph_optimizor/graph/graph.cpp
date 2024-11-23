@@ -1,5 +1,5 @@
 #include "graph.h"
-#include "log_report.h"
+#include "slam_log_reporter.h"
 #include "slam_operations.h"
 
 #ifdef ENABLE_TBB_PARALLEL

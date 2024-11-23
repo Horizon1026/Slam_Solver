@@ -1,5 +1,5 @@
 #include "datatype_basic.h"
-#include "log_report.h"
+#include "slam_log_reporter.h"
 
 #include "general_graph_optimizor.h"
 

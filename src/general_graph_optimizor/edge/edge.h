@@ -2,7 +2,7 @@
 #define _GENERAL_GRAPH_OPTIMIZOR_EDGE_H_
 
 #include "datatype_basic.h"
-#include "log_report.h"
+#include "slam_log_reporter.h"
 #include "vertex.h"
 #include "kernel.h"
 

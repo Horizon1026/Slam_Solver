@@ -1,4 +1,4 @@
-#include "log_report.h"
+#include "slam_log_reporter.h"
 #include "kalman_filter.h"
 #include "error_kalman_filter.h"
 #include "square_root_kalman_filter.h"
