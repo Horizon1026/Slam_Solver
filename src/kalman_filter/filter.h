@@ -1,7 +1,7 @@
-#ifndef _SLAM_FILTER_
-#define _SLAM_FILTER_
+#ifndef _SLAM_FILTER_H_
+#define _SLAM_FILTER_H_
 
-#include "datatype_basic.h"
+#include "basic_type.h"
 #include "memory"
 
 namespace SLAM_SOLVER {
@@ -36,4 +36,4 @@ public:
 
 }
 
-#endif
+#endif // end of _SLAM_FILTER_H_

@@ -1,7 +1,7 @@
 #ifndef _GENERAL_POSE_GRAPH_OPTIMIZOR_H_
 #define _GENERAL_POSE_GRAPH_OPTIMIZOR_H_
 
-#include "datatype_basic.h"
+#include "basic_type.h"
 #include "vector"
 
 namespace SLAM_SOLVER {

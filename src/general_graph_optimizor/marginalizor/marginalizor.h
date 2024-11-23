@@ -1,7 +1,7 @@
 #ifndef _GENERAL_GRAPH_OPTIMIZOR_MARGINALIZOR_H_
 #define _GENERAL_GRAPH_OPTIMIZOR_MARGINALIZOR_H_
 
-#include "datatype_basic.h"
+#include "basic_type.h"
 #include "slam_basic_math.h"
 #include "slam_log_reporter.h"
 

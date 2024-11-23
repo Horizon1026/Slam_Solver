@@ -1,4 +1,4 @@
-#include "datatype_basic.h"
+#include "basic_type.h"
 #include "slam_log_reporter.h"
 #include "visualizor.h"
 

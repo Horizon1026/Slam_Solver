@@ -32,7 +32,7 @@
 #ifndef _SLAM_SOLVER_POLYNOMIAL_SOLVER_H_
 #define _SLAM_SOLVER_POLYNOMIAL_SOLVER_H_
 
-#include "datatype_basic.h"
+#include "basic_type.h"
 
 namespace SLAM_SOLVER {
 

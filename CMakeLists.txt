@@ -54,6 +54,10 @@ set( SLAM_UTILITY_PATH ${PROJECT_SOURCE_DIR}/../Slam_Utility )
 if ( NOT TARGET lib_stack_backward )
     add_subdirectory( ${SLAM_UTILITY_PATH}/3rd_libraries/backward ${PROJECT_SOURCE_DIR}/build/lib_stack_backward )
 endif()
+# Add all relative components of Slam_Utility。
+if ( NOT TARGET lib_slam_utility_log )
+    add_subdirectory( ${SLAM_UTILITY_PATH}/src/log ${PROJECT_SOURCE_DIR}/build/lib_slam_utility_log )
+endif()
 
 # Add image painter.
 set( IMAGE_PAINTER_PATH ${PROJECT_SOURCE_DIR}/../Image_Painter/src )
@@ -63,8 +67,8 @@ endif()
 
 # Add visualizor.
 set( VISUALIZOR_2D_PATH ${PROJECT_SOURCE_DIR}/../Visualizor2D )
-if ( NOT TARGET lib_image_visualizor )
-    add_subdirectory( ${VISUALIZOR_2D_PATH}/src ${PROJECT_SOURCE_DIR}/build/lib_image_visualizor )
+if ( NOT TARGET lib_2d_visualizor )
+    add_subdirectory( ${VISUALIZOR_2D_PATH}/src ${PROJECT_SOURCE_DIR}/build/lib_2d_visualizor )
 endif()
 set( VISUALIZOR_3D_PATH ${PROJECT_SOURCE_DIR}/../Visualizor3D )
 if ( NOT TARGET lib_3d_visualizor )
@@ -132,7 +136,7 @@ add_executable( test_general_graph_optimizor_marginalization
 target_link_libraries( test_general_graph_optimizor_marginalization
     lib_general_graph_optimizor
     lib_stack_backward
-    lib_image_visualizor
+    lib_2d_visualizor
     lib_image_painter
 )
 
@@ -143,7 +147,7 @@ add_executable( test_prior_operation
 target_link_libraries( test_prior_operation
     lib_general_graph_optimizor
     lib_stack_backward
-    lib_image_visualizor
+    lib_2d_visualizor
     lib_image_painter
 )
 
@@ -155,8 +159,8 @@ target_link_libraries( test_kalman_filter_constant
     lib_kalman_filter
     lib_error_kalman_filter
     lib_square_root_kalman_filter
-
     lib_stack_backward
+    lib_slam_utility_log
 )
 
 # Add test_kalman_filter_imu_attitude.
@@ -169,7 +173,6 @@ target_link_libraries( test_kalman_filter_imu_attitude
     lib_square_root_kalman_filter
 
     lib_imu_model
-
     lib_stack_backward
 )
 

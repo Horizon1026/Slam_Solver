@@ -1,7 +1,7 @@
 #ifndef _SQUARE_ROOT_KALMAN_FILTER_SOLVER_H_
 #define _SQUARE_ROOT_KALMAN_FILTER_SOLVER_H_
 
-#include "datatype_basic.h"
+#include "basic_type.h"
 #include "filter.h"
 
 namespace SLAM_SOLVER {
