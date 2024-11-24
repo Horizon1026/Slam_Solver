@@ -1,6 +1,6 @@
 #include "basic_type.h"
 #include "slam_log_reporter.h"
-#include "visualizor.h"
+#include "visualizor_2d.h"
 #include "image_painter.h"
 
 #include "general_graph_optimizor.h"
