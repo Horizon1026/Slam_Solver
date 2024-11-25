@@ -2,69 +2,37 @@ cmake_minimum_required( VERSION 3.10 )
 
 project( slam_solver )
 
-set( CMAKE_BUILD_TYPE "RelWithDegInfo" )
+set( CMAKE_BUILD_TYPE "Debug" )
 set( CMAKE_CXX_FLAGS "-std=c++17 -O3 -g -Wall -lpthread" )
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 set( CMAKE_CXX_STANDARD 17 )
 
-# In order to test kalman filter, add imu model from 'Sensor_Model'.
-set( SENSOR_MODEL_PATH ${PROJECT_SOURCE_DIR}/../Sensor_Model/src )
-if ( NOT TARGET lib_imu_model )
-	add_subdirectory( ${SENSOR_MODEL_PATH}/imu ${PROJECT_SOURCE_DIR}/build/lib_imu_model )
-endif()
-
-# Add general graph optimizor.
-set( GENERAL_GRAPH_OPTIMIZOR_PATH ${PROJECT_SOURCE_DIR}/src/general_graph_optimizor )
-if ( NOT TARGET lib_general_graph_optimizor )
-    add_subdirectory( ${GENERAL_GRAPH_OPTIMIZOR_PATH} ${PROJECT_SOURCE_DIR}/build/lib_general_graph_optimizor )
-endif()
-
-# Add kalman filter.
-set( KALMAN_FILTER_PATH ${PROJECT_SOURCE_DIR}/src/kalman_filter/kalman_filter )
-if ( NOT TARGET lib_kalman_filter )
-    add_subdirectory( ${KALMAN_FILTER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_kalman_filter )
-endif()
-
-# Add error kalman filter.
-set( ERROR_KALMAN_FILTER_PATH ${PROJECT_SOURCE_DIR}/src/kalman_filter/error_kalman_filter )
-if ( NOT TARGET lib_error_kalman_filter )
-    add_subdirectory( ${ERROR_KALMAN_FILTER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_error_kalman_filter )
-endif()
-
-# Add square root kalman filter.
-set( SQUARE_ROOT_KALMAN_FILTER_PATH ${PROJECT_SOURCE_DIR}/src/kalman_filter/square_root_kalman_filter )
-if ( NOT TARGET lib_square_root_kalman_filter )
-    add_subdirectory( ${SQUARE_ROOT_KALMAN_FILTER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_square_root_kalman_filter )
-endif()
-
-# Add polynomial solver.
-set( POLYNOMIAL_SOLVER_PATH ${PROJECT_SOURCE_DIR}/src/polynomial_solver )
-if ( NOT TARGET lib_polynomial_solver )
-    add_subdirectory( ${POLYNOMIAL_SOLVER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_polynomial_solver )
-endif()
-
-# Add pose graph optimizor.
-set( POSE_GRAPH_OPTIMIZOR ${PROJECT_SOURCE_DIR}/src/pose_graph_optimizor )
-if ( NOT TARGET lib_pose_graph_optimizor )
-    add_subdirectory( ${POSE_GRAPH_OPTIMIZOR} ${PROJECT_SOURCE_DIR}/build/lib_pose_graph_optimizor )
-endif()
-
-# Add all 3rd libraries.
 set( SLAM_UTILITY_PATH ${PROJECT_SOURCE_DIR}/../Slam_Utility )
-if ( NOT TARGET lib_stack_backward )
-    add_subdirectory( ${SLAM_UTILITY_PATH}/3rd_libraries/backward ${PROJECT_SOURCE_DIR}/build/lib_stack_backward )
-endif()
 # Add all relative components of Slam_Utility。
 if ( NOT TARGET lib_slam_utility_log )
     add_subdirectory( ${SLAM_UTILITY_PATH}/src/log ${PROJECT_SOURCE_DIR}/build/lib_slam_utility_log )
 endif()
-
-# Add image painter.
-set( IMAGE_PAINTER_PATH ${PROJECT_SOURCE_DIR}/../Image_Painter/src )
-if ( NOT TARGET lib_image_painter )
-    add_subdirectory( ${IMAGE_PAINTER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_image_painter )
+# Add all relative components of slam utility data type.
+if ( NOT TARGET lib_line_segment )
+    add_subdirectory( ${SLAM_UTILITY_PATH}/src/data_type/line_segment ${PROJECT_SOURCE_DIR}/build/lib_line_segment )
 endif()
-
+if ( NOT TARGET lib_plane )
+    add_subdirectory( ${SLAM_UTILITY_PATH}/src/data_type/plane ${PROJECT_SOURCE_DIR}/build/lib_plane )
+endif()
+# Add all 3rd libraries.
+if ( NOT TARGET lib_stack_backward )
+    add_subdirectory( ${SLAM_UTILITY_PATH}/3rd_libraries/backward ${PROJECT_SOURCE_DIR}/build/lib_stack_backward )
+endif()
+# In order to test kalman filter, add imu model from 'Sensor_Model'.
+set( SENSOR_MODEL_PATH ${PROJECT_SOURCE_DIR}/../Sensor_Model )
+if ( NOT TARGET lib_imu_model )
+	add_subdirectory( ${SENSOR_MODEL_PATH}/src/imu ${PROJECT_SOURCE_DIR}/build/lib_imu_model )
+endif()
+# Add image painter.
+set( IMAGE_PAINTER_PATH ${PROJECT_SOURCE_DIR}/../Image_Painter )
+if ( NOT TARGET lib_image_painter )
+    add_subdirectory( ${IMAGE_PAINTER_PATH}/src ${PROJECT_SOURCE_DIR}/build/lib_image_painter )
+endif()
 # Add visualizor.
 set( VISUALIZOR_2D_PATH ${PROJECT_SOURCE_DIR}/../Visualizor2D )
 if ( NOT TARGET lib_2d_visualizor )
@@ -73,6 +41,37 @@ endif()
 set( VISUALIZOR_3D_PATH ${PROJECT_SOURCE_DIR}/../Visualizor3D )
 if ( NOT TARGET lib_3d_visualizor )
     add_subdirectory( ${VISUALIZOR_3D_PATH}/src ${PROJECT_SOURCE_DIR}/build/lib_3d_visualizor )
+endif()
+
+# Add general graph optimizor.
+set( GENERAL_GRAPH_OPTIMIZOR_PATH ${PROJECT_SOURCE_DIR}/src/general_graph_optimizor )
+if ( NOT TARGET lib_general_graph_optimizor )
+    add_subdirectory( ${GENERAL_GRAPH_OPTIMIZOR_PATH} ${PROJECT_SOURCE_DIR}/build/lib_general_graph_optimizor )
+endif()
+# Add kalman filter.
+set( KALMAN_FILTER_PATH ${PROJECT_SOURCE_DIR}/src/kalman_filter/kalman_filter )
+if ( NOT TARGET lib_kalman_filter )
+    add_subdirectory( ${KALMAN_FILTER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_kalman_filter )
+endif()
+# Add error kalman filter.
+set( ERROR_KALMAN_FILTER_PATH ${PROJECT_SOURCE_DIR}/src/kalman_filter/error_kalman_filter )
+if ( NOT TARGET lib_error_kalman_filter )
+    add_subdirectory( ${ERROR_KALMAN_FILTER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_error_kalman_filter )
+endif()
+# Add square root kalman filter.
+set( SQUARE_ROOT_KALMAN_FILTER_PATH ${PROJECT_SOURCE_DIR}/src/kalman_filter/square_root_kalman_filter )
+if ( NOT TARGET lib_square_root_kalman_filter )
+    add_subdirectory( ${SQUARE_ROOT_KALMAN_FILTER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_square_root_kalman_filter )
+endif()
+# Add polynomial solver.
+set( POLYNOMIAL_SOLVER_PATH ${PROJECT_SOURCE_DIR}/src/polynomial_solver )
+if ( NOT TARGET lib_polynomial_solver )
+    add_subdirectory( ${POLYNOMIAL_SOLVER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_polynomial_solver )
+endif()
+# Add pose graph optimizor.
+set( POSE_GRAPH_OPTIMIZOR ${PROJECT_SOURCE_DIR}/src/pose_graph_optimizor )
+if ( NOT TARGET lib_pose_graph_optimizor )
+    add_subdirectory( ${POSE_GRAPH_OPTIMIZOR} ${PROJECT_SOURCE_DIR}/build/lib_pose_graph_optimizor )
 endif()
 
 # Add test_general_graph_optimizor_polynomial_problem.
@@ -185,4 +184,17 @@ target_link_libraries( test_pose_graph_optimizor
     lib_pose_graph_optimizor
     lib_3d_visualizor
     lib_stack_backward
+)
+
+# Add test_general_graph_optimizor_line_BA.
+add_executable( test_general_graph_optimizor_line_BA
+    test/test_general_graph_optimizor_line_BA.cpp
+)
+target_link_libraries( test_general_graph_optimizor_line_BA
+    lib_general_graph_optimizor
+    lib_3d_visualizor
+    lib_stack_backward
+    lib_3d_visualizor
+    lib_line_segment
+    lib_plane
 )
