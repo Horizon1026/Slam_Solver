@@ -11,8 +11,7 @@ template <typename Scalar>
 class VertexQuat : public Vertex<Scalar> {
 
 public:
-    VertexQuat() = delete;
-    VertexQuat(int32_t param_dim, int32_t delta_dim) : Vertex<Scalar>(param_dim, delta_dim) {}
+    VertexQuat() : Vertex<Scalar>(4, 3) {}
     virtual ~VertexQuat() = default;
 
     // Update param with delta_param solved by solver.

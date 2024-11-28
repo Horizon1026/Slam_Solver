@@ -5,7 +5,7 @@ for (int32_t i = 0; i < kCameraFrameNumber; ++i) {
     all_camera_pos[i] = std::make_unique<Vertex<Scalar>>(3, 3);
     all_camera_pos[i]->param() = cameras[i].p_wc;
     all_camera_pos[i]->name() = std::string("p_wc") + std::to_string(i);
-    all_camera_rot[i] = std::make_unique<VertexQuat<Scalar>>(4, 3);
+    all_camera_rot[i] = std::make_unique<VertexQuat<Scalar>>();
     all_camera_rot[i]->param() << cameras[i].q_wc.w(), cameras[i].q_wc.x(), cameras[i].q_wc.y(), cameras[i].q_wc.z();
     all_camera_rot[i]->name() = std::string("q_wc") + std::to_string(i);
 

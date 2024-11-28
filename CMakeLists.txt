@@ -192,9 +192,9 @@ add_executable( test_general_graph_optimizor_line_BA
 )
 target_link_libraries( test_general_graph_optimizor_line_BA
     lib_general_graph_optimizor
-    lib_3d_visualizor
     lib_stack_backward
-    lib_3d_visualizor
     lib_line_segment
     lib_plane
+    lib_2d_visualizor
+    lib_3d_visualizor
 )

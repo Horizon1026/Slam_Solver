@@ -121,6 +121,7 @@ int main(int argc, char **argv) {
             reprojection_edges[idx]->observation() = obv;
             #include "embeded_add_kernel.h"
             reprojection_edges[idx]->SelfCheck();
+            reprojection_edges[idx]->SelfCheckJacobians();
             ++idx;
         }
     }

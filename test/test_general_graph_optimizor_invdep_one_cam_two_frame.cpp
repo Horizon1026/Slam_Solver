@@ -194,7 +194,7 @@ int main(int argc, char **argv) {
         all_camera_ex_pos[i] = std::make_unique<Vertex<Scalar>>(3, 3);
         all_camera_ex_pos[i]->param() = p_ic;
         all_camera_ex_pos[i]->name() = std::string("p_ic") + std::to_string(i);
-        all_camera_ex_rot[i] = std::make_unique<VertexQuat<Scalar>>(4, 3);
+        all_camera_ex_rot[i] = std::make_unique<VertexQuat<Scalar>>();
         all_camera_ex_rot[i]->param() << q_ic.w(), q_ic.x(), q_ic.y(), q_ic.z();
         all_camera_ex_rot[i]->name() = std::string("q_ic") + std::to_string(i);
     }

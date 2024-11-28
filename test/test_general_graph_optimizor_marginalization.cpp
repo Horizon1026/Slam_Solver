@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
     for (int32_t i = 0; i < kCameraFrameNumber; ++i) {
         all_camera_pos[i] = std::make_unique<Vertex<Scalar>>(3, 3);
         all_camera_pos[i]->param() = cameras[i].p_wc;
-        all_camera_rot[i] = std::make_unique<VertexQuat<Scalar>>(4, 3);
+        all_camera_rot[i] = std::make_unique<VertexQuat<Scalar>>();
         all_camera_rot[i]->param() << cameras[i].q_wc.w(), cameras[i].q_wc.x(), cameras[i].q_wc.y(), cameras[i].q_wc.z();
     }
     all_camera_pos.back()->param() += TVec3<Scalar>(1, 0, 0);
