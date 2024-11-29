@@ -131,4 +131,19 @@ bool Edge<Scalar>::SelfCheckJacobians() {
     return is_jacobian_error;
 }
 
+template <typename Scalar>
+void Edge<Scalar>::ComputeNumbericalJacobians() {
+    for (uint32_t i = 0; i < vertices_.size(); ++i) {
+        auto &vertex = vertices_[i];
+        ComputeResidual();
+        const Vec residual = residual_;
+
+        vertex->BackupParam();
+        for (uint32_t j = 0; j < vertex->GetIncrementDimension(); ++j) {
+            // TODO:
+        }
+
+    }
+}
+
 }

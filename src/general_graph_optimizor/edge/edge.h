@@ -62,7 +62,9 @@ public:
         for (auto &jacobian : jacobians_) {
             jacobian.setZero();
         }
+        ComputeNumbericalJacobians();
     }
+    void ComputeNumbericalJacobians();
 
 private:
     // Global index for every vertex.
