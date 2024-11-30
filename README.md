@@ -11,6 +11,7 @@ General solver for slam problem, such as graph optimization problem solver.
         - [x] Levenberg-Marquardt solver.
     - [x] Marginalization.
     - [x] Support tbb parallel.
+    - [x] Audo compute jacobians.(Only work on 'double')
 - [x] Kalman filter problem solver.
     - [x] Basic kalman filter.
     - [x] Error state kalman filter.

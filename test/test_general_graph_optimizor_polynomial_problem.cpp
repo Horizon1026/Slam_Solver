@@ -3,7 +3,7 @@
 
 #include "general_graph_optimizor.h"
 
-using Scalar = float;
+using Scalar = double;
 using namespace SLAM_SOLVER;
 
 /* Class Vertex param a, b, c */
@@ -38,12 +38,13 @@ public:
         this->residual() = res;
     }
 
-    virtual void ComputeJacobians() override {
-        // Compute jacobian.
-        this->GetJacobian(0) << x_ * x_ * x_;
-        this->GetJacobian(1) << x_ * x_;
-        this->GetJacobian(2) << x_;
-    }
+    // If do not override, audo-diff will work.
+    // virtual void ComputeJacobians() override {
+    //     // Compute jacobian.
+    //     this->GetJacobian(0) << x_ * x_ * x_;
+    //     this->GetJacobian(1) << x_ * x_;
+    //     this->GetJacobian(2) << x_;
+    // }
 
 private:
     Scalar x_, y_, a_, b_, c_;
@@ -77,6 +78,7 @@ int main(int argc, char **argv) {
         TVec2<Scalar> obv = TVec2<Scalar>(x, a * x * x * x + b * x * x + c * x);
         edges[i]->observation() = obv;
         edges[i]->SelfCheck();
+        edges[i]->SelfCheckJacobians();
     }
 
     Graph<Scalar> problem;

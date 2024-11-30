@@ -59,9 +59,6 @@ public:
     // Compute residual and jacobians for each vertex. These operations should be defined by subclass.
     virtual void ComputeResidual() { residual_.setZero(); }
     virtual void ComputeJacobians() {
-        for (auto &jacobian : jacobians_) {
-            jacobian.setZero();
-        }
         ComputeNumbericalJacobians();
     }
     void ComputeNumbericalJacobians();
