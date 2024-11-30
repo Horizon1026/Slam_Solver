@@ -13,7 +13,7 @@
 #include "general_graph_optimizor.h"
 #include "enable_stack_backward.h"
 
-using Scalar = float;
+using Scalar = double;
 using namespace SLAM_UTILITY;
 using namespace SLAM_SOLVER;
 using namespace SLAM_VISUALIZOR;
@@ -36,9 +36,9 @@ public:
 
     // Update param with delta_param solved by solver.
     virtual void UpdateParam(const TVec<Scalar> &delta_param) override {
-        LinePlucker3D plucker(Vec6(this->param()));
-        plucker.UpdateParameters(delta_param);
-        this->param() = plucker.param();
+        LinePlucker3D plucker(Vec6(this->param().template cast<float>()));
+        plucker.UpdateParameters(delta_param.template cast<float>());
+        this->param() = plucker.param().cast<Scalar>();
     }
 
 };
@@ -57,33 +57,33 @@ public:
     // Compute residual and jacobians for each vertex. These operations should be defined by subclass.
     virtual void ComputeResidual() override {
         // Extract parameters.
-        const LinePlucker3D plucker_w(Vec6(this->GetVertex(0)->param()));
-        n_w = plucker_w.normal_vector();
-        d_w = plucker_w.direction_vector();
-        p_wc = this->GetVertex(1)->param();
+        const LinePlucker3D plucker_w(Vec6(this->GetVertex(0)->param().template cast<float>()));
+        n_w = plucker_w.normal_vector().cast<Scalar>();
+        d_w = plucker_w.direction_vector().template cast<Scalar>();
+        p_wc = this->GetVertex(1)->param().template cast<Scalar>();
         const TVec4<Scalar> &parameter = this->GetVertex(2)->param();
         q_wc = TQuat<Scalar>(parameter(0), parameter(1), parameter(2), parameter(3));
         // Extract observation.
-        const LineSegment2D line_2d(this->observation());
-        const Vec3 s_point = line_2d.start_point_homogeneous();
-        const Vec3 e_point = line_2d.end_point_homogeneous();
+        const LineSegment2D line_2d(this->observation().template cast<float>());
+        const TVec3<Scalar> s_point = line_2d.start_point_homogeneous().cast<Scalar>();
+        const TVec3<Scalar> e_point = line_2d.end_point_homogeneous().cast<Scalar>();
         // Do reprojection.
-        const LinePlucker3D plucker_c = plucker_w.TransformTo(p_wc, q_wc);
-        l = plucker_c.ProjectToNormalPlane();
-        const float l_2_2 = l.head<2>().squaredNorm();
-        const float l_1_2 = std::sqrt(l_2_2);
+        const LinePlucker3D plucker_c = plucker_w.TransformTo(p_wc.template cast<float>(), q_wc.template cast<float>());
+        l = plucker_c.ProjectToNormalPlane().cast<Scalar>();
+        const Scalar l_2_2 = l.template head<2>().squaredNorm();
+        const Scalar l_1_2 = std::sqrt(l_2_2);
         // Compute residual. Define it by distance from point to line.
-        this->residual() = Vec2(s_point.dot(l) / l_1_2,
-                                e_point.dot(l) / l_1_2);
+        this->residual() = TVec2<Scalar>(s_point.dot(l) / l_1_2,
+                                         e_point.dot(l) / l_1_2);
     }
 
     virtual void ComputeJacobians() override {
-        const float l_2_2 = l.head<2>().squaredNorm();
-        const float l_1_2 = std::sqrt(l_2_2);
-        const float l_3_2 = l_2_2 * l_1_2;
-        const Mat3 R_cw(q_wc.inverse());
+        const Scalar l_2_2 = l.template head<2>().squaredNorm();
+        const Scalar l_1_2 = std::sqrt(l_2_2);
+        const Scalar l_3_2 = l_2_2 * l_1_2;
+        const TMat3<Scalar> R_cw(q_wc.inverse());
         // Compute jacobian of d_residual to d_line_in_c.
-        Mat2x3 jacobian_residual_line_in_c = Mat2x3::Zero();
+        TMat2x3<Scalar> jacobian_residual_line_in_c = TMat2x3<Scalar>::Zero();
         jacobian_residual_line_in_c << s_point.x() / l_1_2 - l[0] * s_point.dot(l) / l_3_2,
                                        s_point.y() / l_1_2 - l[1] * s_point.dot(l) / l_3_2,
                                        1.0f / l_1_2,
@@ -91,25 +91,25 @@ public:
                                        e_point.y() / l_1_2 - l[1] * e_point.dot(l) / l_3_2,
                                        1.0f / l_1_2;
         // Compute jacobian of d_line_in_c to d_plucker_in_c.
-        Mat3x6 jacobian_line_to_plucker = Mat3x6::Zero();
-        jacobian_line_to_plucker.block<3, 3>(0, 0).setIdentity();
+        TMat3x6<Scalar> jacobian_line_to_plucker = TMat3x6<Scalar>::Zero();
+        jacobian_line_to_plucker.template block<3, 3>(0, 0) = TMat3<Scalar>::Identity();
         // Compute jacobian of d_plucker_in_c to d_plucker_in_w.
-        Mat6 jacobian_plucker_c_to_w = Mat6::Zero();
-        jacobian_plucker_c_to_w.block<3, 3>(0, 0) = R_cw;
-        jacobian_plucker_c_to_w.block<3, 3>(0, 3) = - R_cw * Utility::SkewSymmetricMatrix(p_wc);
-        jacobian_plucker_c_to_w.block<3, 3>(3, 3) = R_cw;
+        TMat6<Scalar> jacobian_plucker_c_to_w = TMat6<Scalar>::Zero();
+        jacobian_plucker_c_to_w.template block<3, 3>(0, 0) = R_cw;
+        jacobian_plucker_c_to_w.template block<3, 3>(0, 3) = - R_cw * Utility::SkewSymmetricMatrix(p_wc);
+        jacobian_plucker_c_to_w.template block<3, 3>(3, 3) = R_cw;
         // Compute jacobian of d_plucker_in_w to d_orthonormal_in_w.
-        Mat6x4 jacobian_plucker_to_orthonormal = Mat6x4::Zero();
-        jacobian_plucker_to_orthonormal.block<3, 3>(0, 0).setIdentity();
-        jacobian_plucker_to_orthonormal.block<3, 1>(3, 3) = Utility::SkewSymmetricMatrix(n_w.normalized()) * d_w;
+        TMat6x4<Scalar> jacobian_plucker_to_orthonormal = TMat6x4<Scalar>::Zero();
+        jacobian_plucker_to_orthonormal.template block<3, 3>(0, 0) = TMat3<Scalar>::Identity();
+        jacobian_plucker_to_orthonormal.template block<3, 1>(3, 3) = Utility::SkewSymmetricMatrix(n_w.normalized()) * d_w;
         // Compute jacobian of d_plucker_in_c to d_camera_pos.
-        Mat6x3 jacobian_plucker_to_camera_pos = Mat6x3::Zero();
-        jacobian_plucker_to_camera_pos.block<3, 3>(0, 0) = R_cw * Utility::SkewSymmetricMatrix(d_w);
+        TMat6x3<Scalar> jacobian_plucker_to_camera_pos = TMat6x3<Scalar>::Zero();
+        jacobian_plucker_to_camera_pos.template block<3, 3>(0, 0) = R_cw * Utility::SkewSymmetricMatrix(d_w);
         // Compute jacobian of d_plucker_in_c to d_camera_rot.
-        Mat6x3 jacobian_plucker_to_camera_rot = Mat6x3::Zero();
-        jacobian_plucker_to_camera_rot.block<3, 3>(0, 0) = Utility::SkewSymmetricMatrix(
+        TMat6x3<Scalar> jacobian_plucker_to_camera_rot = TMat6x3<Scalar>::Zero();
+        jacobian_plucker_to_camera_rot.template block<3, 3>(0, 0) = Utility::SkewSymmetricMatrix(
             R_cw * (n_w + Utility::SkewSymmetricMatrix(d_w) * p_wc));
-        jacobian_plucker_to_camera_rot.block<3, 3>(3, 0) = Utility::SkewSymmetricMatrix(R_cw * d_w);
+        jacobian_plucker_to_camera_rot.template block<3, 3>(3, 0) = Utility::SkewSymmetricMatrix(R_cw * d_w);
 
         // Set jacobian of d_residual to d_line.
         this->GetJacobian(0) = jacobian_residual_line_in_c *
@@ -123,19 +123,18 @@ public:
         this->GetJacobian(2) = jacobian_residual_line_in_c *
                                jacobian_line_to_plucker *
                                jacobian_plucker_to_camera_rot;
-
     }
 
 private:
     // Parameters will be calculated in ComputeResidual().
     // It should not be repeatedly calculated in ComputeJacobians().
-    Vec3 n_w = Vec3::Zero();
-    Vec3 d_w = Vec3::Zero();
-    Vec3 p_wc = Vec3::Zero();
-    Quat q_wc = Quat::Identity();
-    Vec3 l = Vec3::Zero();
-    Vec3 s_point = Vec3::Zero();
-    Vec3 e_point = Vec3::Zero();
+    TVec3<Scalar> n_w = TVec3<Scalar>::Zero();
+    TVec3<Scalar> d_w = TVec3<Scalar>::Zero();
+    TVec3<Scalar> p_wc = TVec3<Scalar>::Zero();
+    TQuat<Scalar> q_wc = TQuat<Scalar>::Identity();
+    TVec3<Scalar> l = TVec3<Scalar>::Zero();
+    TVec3<Scalar> s_point = TVec3<Scalar>::Zero();
+    TVec3<Scalar> e_point = TVec3<Scalar>::Zero();
 };
 
 int main(int argc, char **argv) {
@@ -156,14 +155,13 @@ int main(int argc, char **argv) {
             Vec3(- i - std::cos(theta), - std::sin(theta), 7 + i + theta)
         });
     }
-    ReportDebug("line_segments_3d " << LogVec(line_segments_3d.front().param()));
 
     // Generate vertex of cameras and lines.
     std::array<std::unique_ptr<Vertex<Scalar>>, kNumberOfCamerasAndLines> all_camera_pos;
     std::array<std::unique_ptr<VertexQuat<Scalar>>, kNumberOfCamerasAndLines> all_camera_rot;
     for (int32_t i = 0; i < kNumberOfCamerasAndLines; ++i) {
         all_camera_pos[i] = std::make_unique<Vertex<Scalar>>(3, 3);
-        all_camera_pos[i]->param() = cameras_pose[i].p_wc;
+        all_camera_pos[i]->param() = cameras_pose[i].p_wc.cast<Scalar>();
         all_camera_rot[i] = std::make_unique<VertexQuat<Scalar>>();
         all_camera_rot[i]->param() << cameras_pose[i].q_wc.w(), cameras_pose[i].q_wc.x(),
             cameras_pose[i].q_wc.y(), cameras_pose[i].q_wc.z();
@@ -174,8 +172,10 @@ int main(int argc, char **argv) {
         const LineSegment3D noised_line_3d = LineSegment3D(
             line_segments_3d[i].start_point() + Vec3::Random() * 0.5f,
             line_segments_3d[i].end_point() + Vec3::Random() * 0.5f);
-        all_lines[i]->param() = LinePlucker3D(LineSegment3D(noised_line_3d)).param();
+        all_lines[i]->param() = LinePlucker3D(LineSegment3D(noised_line_3d)).param().cast<Scalar>();
     }
+    all_camera_pos[0]->SetFixed(true);
+    all_camera_pos[1]->SetFixed(true);
 
     // Generate edge of observations.
     std::array<std::unique_ptr<EdgeOrthonormalLineToNormPlane<Scalar>>,
@@ -190,7 +190,7 @@ int main(int argc, char **argv) {
             // Compute observation.
             const Vec3 p1_c = cameras_pose[i].q_wc.inverse() * (line_segments_3d[j].start_point() - cameras_pose[i].p_wc);
             const Vec3 p2_c = cameras_pose[i].q_wc.inverse() * (line_segments_3d[j].end_point() - cameras_pose[i].p_wc);
-            reprojection_edges[idx]->observation() = LineSegment2D(p1_c.head<2>() / p1_c.z(), p2_c.head<2>() / p2_c.z()).param();
+            reprojection_edges[idx]->observation() = LineSegment2D(p1_c.head<2>() / p1_c.z(), p2_c.head<2>() / p2_c.z()).param().cast<Scalar>();
             // Do self check.
             reprojection_edges[idx]->SelfCheck();
             reprojection_edges[idx]->SelfCheckJacobians();
@@ -241,13 +241,13 @@ int main(int argc, char **argv) {
         q_wc.y() = all_camera_rot[i]->param()(2);
         q_wc.z() = all_camera_rot[i]->param()(3);
         Visualizor3D::camera_poses().emplace_back(CameraPoseType{
-            .p_wc = Vec3(all_camera_pos[i]->param()),
+            .p_wc = Vec3(all_camera_pos[i]->param().cast<float>()),
             .q_wc = q_wc,
             .scale = 0.3f,
         });
     }
     for (const auto &line : all_lines) {
-        const LinePlucker3D plucker(Vec6(line->param()));
+        const LinePlucker3D plucker(Vec6(line->param().cast<float>()));
         Visualizor3D::lines().emplace_back(LineType{
             .p_w_i = plucker.GetPointOnLine(-1),
             .p_w_j = plucker.GetPointOnLine(1),

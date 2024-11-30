@@ -133,7 +133,7 @@ bool Edge<Scalar>::SelfCheckJacobians() {
 
 template <typename Scalar>
 void Edge<Scalar>::ComputeNumbericalJacobians() {
-    const Scalar eps = 1e-5;
+    const Scalar eps = 1e-6;
     for (uint32_t i = 0; i < vertices_.size(); ++i) {
         auto &vertex = vertices_[i];
         ComputeResidual();
