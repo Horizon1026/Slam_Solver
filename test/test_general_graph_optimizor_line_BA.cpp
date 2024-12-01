@@ -26,23 +26,6 @@ struct Pose {
     Quat q_wc = Quat::Identity();
 };
 
-/* Class Vertex Plucker Line. */
-template <typename Scalar>
-class VertexPluckerLine : public Vertex<Scalar> {
-
-public:
-    VertexPluckerLine() : Vertex<Scalar>(6, 4) {}
-    virtual ~VertexPluckerLine() = default;
-
-    // Update param with delta_param solved by solver.
-    virtual void UpdateParam(const TVec<Scalar> &delta_param) override {
-        LinePlucker3D plucker(Vec6(this->param().template cast<float>()));
-        plucker.UpdateParameters(delta_param.template cast<float>());
-        this->param() = plucker.param().cast<Scalar>();
-    }
-
-};
-
 /* Class Edge reprojection. Project orthonormal line (4-dof) on visual norm plane. */
 template <typename Scalar>
 class EdgeOrthonormalLineToNormPlane : public Edge<Scalar> {
@@ -77,6 +60,7 @@ public:
                                          e_point.dot(l) / l_1_2);
     }
 
+    // TODO: Something wrong here.
     virtual void ComputeJacobians() override {
         const Scalar l_2_2 = l.template head<2>().squaredNorm();
         const Scalar l_1_2 = std::sqrt(l_2_2);
@@ -98,10 +82,6 @@ public:
         jacobian_plucker_c_to_w.template block<3, 3>(0, 0) = R_cw;
         jacobian_plucker_c_to_w.template block<3, 3>(0, 3) = - R_cw * Utility::SkewSymmetricMatrix(p_wc);
         jacobian_plucker_c_to_w.template block<3, 3>(3, 3) = R_cw;
-        // Compute jacobian of d_plucker_in_w to d_orthonormal_in_w.
-        TMat6x4<Scalar> jacobian_plucker_to_orthonormal = TMat6x4<Scalar>::Zero();
-        jacobian_plucker_to_orthonormal.template block<3, 3>(0, 0) = TMat3<Scalar>::Identity();
-        jacobian_plucker_to_orthonormal.template block<3, 1>(3, 3) = Utility::SkewSymmetricMatrix(n_w.normalized()) * d_w;
         // Compute jacobian of d_plucker_in_c to d_camera_pos.
         TMat6x3<Scalar> jacobian_plucker_to_camera_pos = TMat6x3<Scalar>::Zero();
         jacobian_plucker_to_camera_pos.template block<3, 3>(0, 0) = R_cw * Utility::SkewSymmetricMatrix(d_w);
@@ -114,8 +94,7 @@ public:
         // Set jacobian of d_residual to d_line.
         this->GetJacobian(0) = jacobian_residual_line_in_c *
                                jacobian_line_to_plucker *
-                               jacobian_plucker_c_to_w *
-                               jacobian_plucker_to_orthonormal;
+                               jacobian_plucker_c_to_w;
         // Set jacobian of d_residual to d_camera_pose.
         this->GetJacobian(1) = jacobian_residual_line_in_c *
                                jacobian_line_to_plucker *
@@ -166,9 +145,9 @@ int main(int argc, char **argv) {
         all_camera_rot[i]->param() << cameras_pose[i].q_wc.w(), cameras_pose[i].q_wc.x(),
             cameras_pose[i].q_wc.y(), cameras_pose[i].q_wc.z();
     }
-    std::array<std::unique_ptr<VertexPluckerLine<Scalar>>, kNumberOfCamerasAndLines> all_lines;
+    std::array<std::unique_ptr<Vertex<Scalar>>, kNumberOfCamerasAndLines> all_lines;
     for (int32_t i = 0; i < kNumberOfCamerasAndLines; ++i) {
-        all_lines[i] = std::make_unique<VertexPluckerLine<Scalar>>();
+        all_lines[i] = std::make_unique<Vertex<Scalar>>(6, 6);
         const LineSegment3D noised_line_3d = LineSegment3D(
             line_segments_3d[i].start_point() + Vec3::Random() * 0.5f,
             line_segments_3d[i].end_point() + Vec3::Random() * 0.5f);

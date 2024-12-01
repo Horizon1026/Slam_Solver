@@ -133,11 +133,9 @@ bool Edge<Scalar>::SelfCheckJacobians() {
 
 template <typename Scalar>
 void Edge<Scalar>::ComputeNumbericalJacobians() {
-    const Scalar eps = 1e-6;
+    const Scalar eps = 1e-8;
     for (uint32_t i = 0; i < vertices_.size(); ++i) {
         auto &vertex = vertices_[i];
-        ComputeResidual();
-        const TVec<Scalar> residual = this->residual();
         vertex->BackupParam();
         for (int32_t j = 0; j < vertex->GetIncrementDimension(); ++j) {
             TVec<Scalar> dx = TVec<Scalar>::Zero(vertex->GetIncrementDimension());
@@ -145,7 +143,15 @@ void Edge<Scalar>::ComputeNumbericalJacobians() {
             vertex->RollbackParam();
             vertex->UpdateParam(dx);
             ComputeResidual();
-            jacobians_[i].col(j) = (this->residual() - residual) / eps;
+            const TVec<Scalar> residual_i = this->residual();
+
+            dx(j) = - eps;
+            vertex->RollbackParam();
+            vertex->UpdateParam(dx);
+            ComputeResidual();
+            const TVec<Scalar> residual_j = this->residual();
+
+            jacobians_[i].col(j) = 0.5 * (residual_i - residual_j) / eps;
         }
     }
 }
