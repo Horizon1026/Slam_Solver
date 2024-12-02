@@ -26,6 +26,22 @@ struct Pose {
     Quat q_wc = Quat::Identity();
 };
 
+/* Class Vertex Quaternion declaration. */
+template <typename Scalar>
+class VertexLine : public Vertex<Scalar> {
+
+public:
+    VertexLine() : Vertex<Scalar>(6, 4) {}
+    virtual ~VertexLine() = default;
+
+    // Update param with delta_param solved by solver.
+    virtual void UpdateParam(const TVec<Scalar> &delta_param) override {
+        LinePlucker3D plucker_w(Vec6(this->param().template cast<float>()));
+        plucker_w.UpdateParameters(Vec4(delta_param.template cast<float>()));
+        this->param() = plucker_w.param().cast<Scalar>();
+    }
+};
+
 /* Class Edge reprojection. Project orthonormal line (4-dof) on visual norm plane. */
 template <typename Scalar>
 class EdgeOrthonormalLineToNormPlane : public Edge<Scalar> {
@@ -43,9 +59,16 @@ public:
         const LinePlucker3D plucker_w(Vec6(this->GetVertex(0)->param().template cast<float>()));
         n_w = plucker_w.normal_vector().cast<Scalar>();
         d_w = plucker_w.direction_vector().template cast<Scalar>();
+        const TMat3<Scalar> matrix_U = plucker_w.matrix_U().cast<Scalar>();
+        const TMat3x2<Scalar> matrix_W = plucker_w.matrix_W().cast<Scalar>();
+        u1 = matrix_U.col(0);
+        u2 = matrix_U.col(1);
+        w1 = matrix_W(0, 0);
+        w2 = matrix_W(1, 1);
         p_wc = this->GetVertex(1)->param().template cast<Scalar>();
         const TVec4<Scalar> &parameter = this->GetVertex(2)->param();
-        q_wc = TQuat<Scalar>(parameter(0), parameter(1), parameter(2), parameter(3));
+        const TQuat<Scalar> q_wc = TQuat<Scalar>(parameter(0), parameter(1), parameter(2), parameter(3));
+        R_wc = TMat3<Scalar>(q_wc);
         // Extract observation.
         const LineSegment2D line_2d(this->observation().template cast<float>());
         const TVec3<Scalar> s_point = line_2d.start_point_homogeneous().cast<Scalar>();
@@ -65,7 +88,9 @@ public:
         const Scalar l_2_2 = l.template head<2>().squaredNorm();
         const Scalar l_1_2 = std::sqrt(l_2_2);
         const Scalar l_3_2 = l_2_2 * l_1_2;
-        const TMat3<Scalar> R_cw(q_wc.inverse());
+        const TMat3<Scalar> R_cw = R_wc.transpose();
+        const TVec3<Scalar> p_cw(- R_cw * p_wc);
+
         // Compute jacobian of d_residual to d_line_in_c.
         TMat2x3<Scalar> jacobian_residual_line_in_c = TMat2x3<Scalar>::Zero();
         jacobian_residual_line_in_c << s_point.x() / l_1_2 - l[0] * s_point.dot(l) / l_3_2,
@@ -80,8 +105,14 @@ public:
         // Compute jacobian of d_plucker_in_c to d_plucker_in_w.
         TMat6<Scalar> jacobian_plucker_c_to_w = TMat6<Scalar>::Zero();
         jacobian_plucker_c_to_w.template block<3, 3>(0, 0) = R_cw;
-        jacobian_plucker_c_to_w.template block<3, 3>(0, 3) = - R_cw * Utility::SkewSymmetricMatrix(p_wc);
+        jacobian_plucker_c_to_w.template block<3, 3>(0, 3) = Utility::SkewSymmetricMatrix(p_cw) * R_cw;
         jacobian_plucker_c_to_w.template block<3, 3>(3, 3) = R_cw;
+        // Compute jacobian of d_plucker_in_w to d_orthonormal_in_w.
+        TMat6x4<Scalar> jacobian_plucker_to_orthonormal = TMat6x4<Scalar>::Zero();
+        jacobian_plucker_to_orthonormal.template block<3, 3>(0, 0) = - Utility::SkewSymmetricMatrix(w1 * u1);
+        jacobian_plucker_to_orthonormal.template block<3, 3>(3, 0) = - Utility::SkewSymmetricMatrix(w2 * u2);
+        jacobian_plucker_to_orthonormal.template block<3, 1>(0, 3) = - w2 * u1;
+        jacobian_plucker_to_orthonormal.template block<3, 1>(3, 3) = w1 * u2;
         // Compute jacobian of d_plucker_in_c to d_camera_pos.
         TMat6x3<Scalar> jacobian_plucker_to_camera_pos = TMat6x3<Scalar>::Zero();
         jacobian_plucker_to_camera_pos.template block<3, 3>(0, 0) = R_cw * Utility::SkewSymmetricMatrix(d_w);
@@ -94,7 +125,8 @@ public:
         // Set jacobian of d_residual to d_line.
         this->GetJacobian(0) = jacobian_residual_line_in_c *
                                jacobian_line_to_plucker *
-                               jacobian_plucker_c_to_w;
+                               jacobian_plucker_c_to_w *
+                               jacobian_plucker_to_orthonormal;
         // Set jacobian of d_residual to d_camera_pose.
         this->GetJacobian(1) = jacobian_residual_line_in_c *
                                jacobian_line_to_plucker *
@@ -110,10 +142,14 @@ private:
     TVec3<Scalar> n_w = TVec3<Scalar>::Zero();
     TVec3<Scalar> d_w = TVec3<Scalar>::Zero();
     TVec3<Scalar> p_wc = TVec3<Scalar>::Zero();
-    TQuat<Scalar> q_wc = TQuat<Scalar>::Identity();
+    TMat3<Scalar> R_wc = TMat3<Scalar>::Identity();
     TVec3<Scalar> l = TVec3<Scalar>::Zero();
     TVec3<Scalar> s_point = TVec3<Scalar>::Zero();
     TVec3<Scalar> e_point = TVec3<Scalar>::Zero();
+    TVec3<Scalar> u1 = TVec3<Scalar>::Zero();
+    TVec3<Scalar> u2 = TVec3<Scalar>::Zero();
+    Scalar w1 = 0;
+    Scalar w2 = 0;
 };
 
 int main(int argc, char **argv) {
@@ -145,9 +181,9 @@ int main(int argc, char **argv) {
         all_camera_rot[i]->param() << cameras_pose[i].q_wc.w(), cameras_pose[i].q_wc.x(),
             cameras_pose[i].q_wc.y(), cameras_pose[i].q_wc.z();
     }
-    std::array<std::unique_ptr<Vertex<Scalar>>, kNumberOfCamerasAndLines> all_lines;
+    std::array<std::unique_ptr<VertexLine<Scalar>>, kNumberOfCamerasAndLines> all_lines;
     for (int32_t i = 0; i < kNumberOfCamerasAndLines; ++i) {
-        all_lines[i] = std::make_unique<Vertex<Scalar>>(6, 6);
+        all_lines[i] = std::make_unique<VertexLine<Scalar>>();
         const LineSegment3D noised_line_3d = LineSegment3D(
             line_segments_3d[i].start_point() + Vec3::Random() * 0.5f,
             line_segments_3d[i].end_point() + Vec3::Random() * 0.5f);
