@@ -19,7 +19,7 @@ using namespace SLAM_SOLVER;
 using namespace SLAM_VISUALIZOR;
 using namespace IMAGE_PAINTER;
 
-constexpr int32_t kNumberOfCamerasAndLines = 10;
+constexpr int32_t kNumberOfCamerasAndLines = 2;
 
 struct Pose {
     Vec3 p_wc = Vec3::Zero();
@@ -57,7 +57,7 @@ public:
     virtual void ComputeResidual() override {
         // Extract parameters.
         const LinePlucker3D plucker_w(Vec6(this->GetVertex(0)->param().template cast<float>()));
-        n_w = plucker_w.normal_vector().cast<Scalar>();
+        n_w = plucker_w.normal_vector().template cast<Scalar>();
         d_w = plucker_w.direction_vector().template cast<Scalar>();
         const TMat3<Scalar> matrix_U = plucker_w.matrix_U().cast<Scalar>();
         const TMat3x2<Scalar> matrix_W = plucker_w.matrix_W().cast<Scalar>();
@@ -71,12 +71,12 @@ public:
         R_wc = TMat3<Scalar>(q_wc);
         // Extract observation.
         const LineSegment2D line_2d(this->observation().template cast<float>());
-        const TVec3<Scalar> s_point = line_2d.start_point_homogeneous().cast<Scalar>();
-        const TVec3<Scalar> e_point = line_2d.end_point_homogeneous().cast<Scalar>();
+        s_point = line_2d.start_point_homogeneous().cast<Scalar>();
+        e_point = line_2d.end_point_homogeneous().cast<Scalar>();
         // Do reprojection.
         const LinePlucker3D plucker_c = plucker_w.TransformTo(p_wc.template cast<float>(), q_wc.template cast<float>());
         l = plucker_c.ProjectToNormalPlane().cast<Scalar>();
-        const Scalar l_2_2 = l.template head<2>().squaredNorm();
+        const Scalar l_2_2 = l(0) * l(0) + l(1) * l(1);
         const Scalar l_1_2 = std::sqrt(l_2_2);
         // Compute residual. Define it by distance from point to line.
         this->residual() = TVec2<Scalar>(s_point.dot(l) / l_1_2,
@@ -85,7 +85,7 @@ public:
 
     // TODO: Something wrong here.
     virtual void ComputeJacobians() override {
-        const Scalar l_2_2 = l.template head<2>().squaredNorm();
+        const Scalar l_2_2 = l(0) * l(0) + l(1) * l(1);
         const Scalar l_1_2 = std::sqrt(l_2_2);
         const Scalar l_3_2 = l_2_2 * l_1_2;
         const TMat3<Scalar> R_cw = R_wc.transpose();
@@ -153,7 +153,7 @@ private:
 };
 
 int main(int argc, char **argv) {
-    LogFixPercision(6);
+    LogFixPercision(3);
     ReportInfo(YELLOW ">> Test general graph optimizor on bundle adjustment with line segment." RESET_COLOR);
 
     // Generate camera views and line segments.
@@ -189,8 +189,6 @@ int main(int argc, char **argv) {
             line_segments_3d[i].end_point() + Vec3::Random() * 0.5f);
         all_lines[i]->param() = LinePlucker3D(LineSegment3D(noised_line_3d)).param().cast<Scalar>();
     }
-    all_camera_pos[0]->SetFixed(true);
-    all_camera_pos[1]->SetFixed(true);
 
     // Generate edge of observations.
     std::array<std::unique_ptr<EdgeOrthonormalLineToNormPlane<Scalar>>,
@@ -222,6 +220,7 @@ int main(int argc, char **argv) {
     for (auto &edge : reprojection_edges) { problem.AddEdge(edge.get()); }
     SolverLm<Scalar> solver;
     solver.problem() = &problem;
+    solver.options().kMaxIteration = 50;
     TickTock tick_tock;
     solver.Solve(false);
     ReportInfo("[Ticktock] Solve cost time " << tick_tock.TockTickInMillisecond() << " ms");
@@ -261,11 +260,13 @@ int main(int argc, char **argv) {
             .scale = 0.3f,
         });
     }
-    for (const auto &line : all_lines) {
+    for (uint32_t i = 0; i < all_lines.size(); ++i) {
+        const auto &line = all_lines[i];
+        const auto &line_segment = line_segments_3d[i];
         const LinePlucker3D plucker(Vec6(line->param().cast<float>()));
         Visualizor3D::lines().emplace_back(LineType{
-            .p_w_i = plucker.GetPointOnLine(-1),
-            .p_w_j = plucker.GetPointOnLine(1),
+            .p_w_i = plucker.ProjectPointOnLine(line_segment.start_point()),
+            .p_w_j = plucker.ProjectPointOnLine(line_segment.end_point()),
             .color = RgbColor::kCyan,
         });
     }
