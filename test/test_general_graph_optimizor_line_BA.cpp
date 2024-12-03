@@ -19,7 +19,8 @@ using namespace SLAM_SOLVER;
 using namespace SLAM_VISUALIZOR;
 using namespace IMAGE_PAINTER;
 
-constexpr int32_t kNumberOfCamerasAndLines = 2;
+constexpr int32_t kNumberOfCameras = 2;
+constexpr int32_t kNumberOfLines = 1;
 
 struct Pose {
     Vec3 p_wc = Vec3::Zero();
@@ -59,12 +60,7 @@ public:
         const LinePlucker3D plucker_w(Vec6(this->GetVertex(0)->param().template cast<float>()));
         n_w = plucker_w.normal_vector().template cast<Scalar>();
         d_w = plucker_w.direction_vector().template cast<Scalar>();
-        const TMat3<Scalar> matrix_U = plucker_w.matrix_U().cast<Scalar>();
-        const TMat3x2<Scalar> matrix_W = plucker_w.matrix_W().cast<Scalar>();
-        u1 = matrix_U.col(0);
-        u2 = matrix_U.col(1);
-        w1 = matrix_W(0, 0);
-        w2 = matrix_W(1, 1);
+        jacobian_plucker_to_orthonormal = plucker_w.LinearizeTo4Dof().cast<Scalar>();
         p_wc = this->GetVertex(1)->param().template cast<Scalar>();
         const TVec4<Scalar> &parameter = this->GetVertex(2)->param();
         const TQuat<Scalar> q_wc = TQuat<Scalar>(parameter(0), parameter(1), parameter(2), parameter(3));
@@ -107,12 +103,6 @@ public:
         jacobian_plucker_c_to_w.template block<3, 3>(0, 0) = R_cw;
         jacobian_plucker_c_to_w.template block<3, 3>(0, 3) = Utility::SkewSymmetricMatrix(p_cw) * R_cw;
         jacobian_plucker_c_to_w.template block<3, 3>(3, 3) = R_cw;
-        // Compute jacobian of d_plucker_in_w to d_orthonormal_in_w.
-        TMat6x4<Scalar> jacobian_plucker_to_orthonormal = TMat6x4<Scalar>::Zero();
-        jacobian_plucker_to_orthonormal.template block<3, 3>(0, 0) = - Utility::SkewSymmetricMatrix(w1 * u1);
-        jacobian_plucker_to_orthonormal.template block<3, 3>(3, 0) = - Utility::SkewSymmetricMatrix(w2 * u2);
-        jacobian_plucker_to_orthonormal.template block<3, 1>(0, 3) = - w2 * u1;
-        jacobian_plucker_to_orthonormal.template block<3, 1>(3, 3) = w1 * u2;
         // Compute jacobian of d_plucker_in_c to d_camera_pos.
         TMat6x3<Scalar> jacobian_plucker_to_camera_pos = TMat6x3<Scalar>::Zero();
         jacobian_plucker_to_camera_pos.template block<3, 3>(0, 0) = R_cw * Utility::SkewSymmetricMatrix(d_w);
@@ -146,10 +136,7 @@ private:
     TVec3<Scalar> l = TVec3<Scalar>::Zero();
     TVec3<Scalar> s_point = TVec3<Scalar>::Zero();
     TVec3<Scalar> e_point = TVec3<Scalar>::Zero();
-    TVec3<Scalar> u1 = TVec3<Scalar>::Zero();
-    TVec3<Scalar> u2 = TVec3<Scalar>::Zero();
-    Scalar w1 = 0;
-    Scalar w2 = 0;
+    TMat6x4<Scalar> jacobian_plucker_to_orthonormal = TMat6x4<Scalar>::Zero();
 };
 
 int main(int argc, char **argv) {
@@ -158,13 +145,16 @@ int main(int argc, char **argv) {
 
     // Generate camera views and line segments.
     std::vector<Pose> cameras_pose;
-    std::vector<LineSegment3D> line_segments_3d;
-    for (int32_t i = 0; i < kNumberOfCamerasAndLines; ++i) {
+    for (int32_t i = 0; i < kNumberOfCameras; ++i) {
         const float theta = i / 2.0f;
         cameras_pose.emplace_back(Pose{
             .p_wc = Vec3(std::cos(theta) * i, i, i * i * 0.1f),
             .q_wc = Quat(Eigen::AngleAxisf(i / 10.0f, Vec3::UnitX())),
         });
+    }
+    std::vector<LineSegment3D> line_segments_3d;
+    for (int32_t i = 0; i < kNumberOfLines; ++i) {
+        const float theta = i / 2.0f;
         line_segments_3d.emplace_back(LineSegment3D{
             Vec3(- 2.0f * i + std::cos(theta), std::sin(theta), 9 + i),
             Vec3(- i - std::cos(theta), - std::sin(theta), 7 + i + theta)
@@ -172,17 +162,17 @@ int main(int argc, char **argv) {
     }
 
     // Generate vertex of cameras and lines.
-    std::array<std::unique_ptr<Vertex<Scalar>>, kNumberOfCamerasAndLines> all_camera_pos;
-    std::array<std::unique_ptr<VertexQuat<Scalar>>, kNumberOfCamerasAndLines> all_camera_rot;
-    for (int32_t i = 0; i < kNumberOfCamerasAndLines; ++i) {
+    std::array<std::unique_ptr<Vertex<Scalar>>, kNumberOfCameras> all_camera_pos;
+    std::array<std::unique_ptr<VertexQuat<Scalar>>, kNumberOfCameras> all_camera_rot;
+    for (int32_t i = 0; i < kNumberOfCameras; ++i) {
         all_camera_pos[i] = std::make_unique<Vertex<Scalar>>(3, 3);
         all_camera_pos[i]->param() = cameras_pose[i].p_wc.cast<Scalar>();
         all_camera_rot[i] = std::make_unique<VertexQuat<Scalar>>();
         all_camera_rot[i]->param() << cameras_pose[i].q_wc.w(), cameras_pose[i].q_wc.x(),
             cameras_pose[i].q_wc.y(), cameras_pose[i].q_wc.z();
     }
-    std::array<std::unique_ptr<VertexLine<Scalar>>, kNumberOfCamerasAndLines> all_lines;
-    for (int32_t i = 0; i < kNumberOfCamerasAndLines; ++i) {
+    std::array<std::unique_ptr<VertexLine<Scalar>>, kNumberOfLines> all_lines;
+    for (int32_t i = 0; i < kNumberOfLines; ++i) {
         all_lines[i] = std::make_unique<VertexLine<Scalar>>();
         const LineSegment3D noised_line_3d = LineSegment3D(
             line_segments_3d[i].start_point() + Vec3::Random() * 0.5f,
@@ -192,10 +182,10 @@ int main(int argc, char **argv) {
 
     // Generate edge of observations.
     std::array<std::unique_ptr<EdgeOrthonormalLineToNormPlane<Scalar>>,
-        kNumberOfCamerasAndLines * kNumberOfCamerasAndLines> reprojection_edges;
-    for (int32_t i = 0; i < kNumberOfCamerasAndLines; ++i) {
-        for (int32_t j = 0; j < kNumberOfCamerasAndLines; ++j) {
-            const int32_t idx = i * kNumberOfCamerasAndLines + j;
+        kNumberOfCameras * kNumberOfLines> reprojection_edges;
+    for (int32_t i = 0; i < kNumberOfCameras; ++i) {
+        for (int32_t j = 0; j < kNumberOfLines; ++j) {
+            const int32_t idx = i * kNumberOfLines + j;
             reprojection_edges[idx] = std::make_unique<EdgeOrthonormalLineToNormPlane<Scalar>>();
             reprojection_edges[idx]->SetVertex(all_lines[j].get(), 0);
             reprojection_edges[idx]->SetVertex(all_camera_pos[i].get(), 1);
@@ -220,7 +210,7 @@ int main(int argc, char **argv) {
     for (auto &edge : reprojection_edges) { problem.AddEdge(edge.get()); }
     SolverLm<Scalar> solver;
     solver.problem() = &problem;
-    solver.options().kMaxIteration = 50;
+    solver.options().kMaxIteration = 1;
     TickTock tick_tock;
     solver.Solve(false);
     ReportInfo("[Ticktock] Solve cost time " << tick_tock.TockTickInMillisecond() << " ms");
@@ -232,6 +222,18 @@ int main(int argc, char **argv) {
         .q_wb = Quat::Identity(),
         .scale = 1.0f,
     });
+    // Draw observations.
+    for (int32_t i = 0; i < kNumberOfCameras; ++i) {
+        for (int32_t j = 0; j < kNumberOfLines; ++j) {
+            const Vec3 p1_c = cameras_pose[i].q_wc.inverse() * (line_segments_3d[j].start_point() - cameras_pose[i].p_wc);
+            const Vec3 p2_c = cameras_pose[i].q_wc.inverse() * (line_segments_3d[j].end_point() - cameras_pose[i].p_wc);
+            Visualizor3D::lines().emplace_back(LineType{
+                .p_w_i = cameras_pose[i].q_wc * p1_c / p1_c.z() + cameras_pose[i].p_wc,
+                .p_w_j = cameras_pose[i].q_wc * p2_c / p2_c.z() + cameras_pose[i].p_wc,
+                .color = RgbColor::kYellow,
+            });
+        }
+    }
     // Draw ground truth of camera pose and line in world frame.
     for (const auto &camera_pose : cameras_pose) {
         Visualizor3D::camera_poses().emplace_back(CameraPoseType{
