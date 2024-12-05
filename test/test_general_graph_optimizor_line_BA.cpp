@@ -19,8 +19,8 @@ using namespace SLAM_SOLVER;
 using namespace SLAM_VISUALIZOR;
 using namespace IMAGE_PAINTER;
 
-constexpr int32_t kNumberOfCameras = 10;
-constexpr int32_t kNumberOfLines = 10;
+constexpr int32_t kNumberOfCameras = 4;
+constexpr int32_t kNumberOfLines = 4;
 
 struct Pose {
     Vec3 p_wc = Vec3::Zero();
@@ -108,8 +108,8 @@ public:
         jacobian_plucker_to_camera_pos.template block<3, 3>(0, 0) = R_cw * Utility::SkewSymmetricMatrix(d_w);
         // TODO: Compute jacobian of d_plucker_in_c to d_camera_rot.
         TMat6x3<Scalar> jacobian_plucker_to_camera_rot = TMat6x3<Scalar>::Zero();
-        jacobian_plucker_to_camera_rot.template block<3, 3>(0, 0) = Utility::SkewSymmetricMatrix(
-            R_cw * (n_w + Utility::SkewSymmetricMatrix(d_w) * p_wc));
+        jacobian_plucker_to_camera_rot.template block<3, 3>(0, 0) = Utility::SkewSymmetricMatrix(R_cw * n_w)
+            - Utility::SkewSymmetricMatrix(R_cw * Utility::SkewSymmetricMatrix(p_wc) * d_w);
         jacobian_plucker_to_camera_rot.template block<3, 3>(3, 0) = Utility::SkewSymmetricMatrix(R_cw * d_w);
 
         // Set jacobian of d_residual to d_line.
@@ -171,6 +171,9 @@ int main(int argc, char **argv) {
         all_camera_rot[i] = std::make_unique<VertexQuat<Scalar>>();
         all_camera_rot[i]->param() << cameras_pose[i].q_wc.w(), cameras_pose[i].q_wc.x(),
             cameras_pose[i].q_wc.y(), cameras_pose[i].q_wc.z();
+        // TODO: remove it.
+        all_camera_pos[i]->SetFixed(true);
+        all_camera_rot[i]->SetFixed(true);
     }
     std::array<std::unique_ptr<VertexLine<Scalar>>, kNumberOfLines> all_lines;
     for (int32_t i = 0; i < kNumberOfLines; ++i) {
