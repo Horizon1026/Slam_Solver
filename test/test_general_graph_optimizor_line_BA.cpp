@@ -103,7 +103,7 @@ public:
         jacobian_plucker_c_to_w.template block<3, 3>(0, 0) = R_cw;
         jacobian_plucker_c_to_w.template block<3, 3>(0, 3) = Utility::SkewSymmetricMatrix(p_cw) * R_cw;
         jacobian_plucker_c_to_w.template block<3, 3>(3, 3) = R_cw;
-        // TODO: Compute jacobian of d_plucker_in_c to d_camera_pos.
+        // Compute jacobian of d_plucker_in_c to d_camera_pos.
         TMat6x3<Scalar> jacobian_plucker_to_camera_pos = TMat6x3<Scalar>::Zero();
         jacobian_plucker_to_camera_pos.template block<3, 3>(0, 0) = R_cw * Utility::SkewSymmetricMatrix(d_w);
         // TODO: Compute jacobian of d_plucker_in_c to d_camera_rot.
@@ -171,8 +171,7 @@ int main(int argc, char **argv) {
         all_camera_rot[i] = std::make_unique<VertexQuat<Scalar>>();
         all_camera_rot[i]->param() << cameras_pose[i].q_wc.w(), cameras_pose[i].q_wc.x(),
             cameras_pose[i].q_wc.y(), cameras_pose[i].q_wc.z();
-        // TODO: remove it.
-        all_camera_pos[i]->SetFixed(true);
+        // TODO: fix bug of rotation jacobian, and remove it.
         all_camera_rot[i]->SetFixed(true);
     }
     std::array<std::unique_ptr<VertexLine<Scalar>>, kNumberOfLines> all_lines;
