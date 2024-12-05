@@ -19,8 +19,8 @@ using namespace SLAM_SOLVER;
 using namespace SLAM_VISUALIZOR;
 using namespace IMAGE_PAINTER;
 
-constexpr int32_t kNumberOfCameras = 2;
-constexpr int32_t kNumberOfLines = 1;
+constexpr int32_t kNumberOfCameras = 10;
+constexpr int32_t kNumberOfLines = 10;
 
 struct Pose {
     Vec3 p_wc = Vec3::Zero();
@@ -38,7 +38,7 @@ public:
     // Update param with delta_param solved by solver.
     virtual void UpdateParam(const TVec<Scalar> &delta_param) override {
         LinePlucker3D plucker_w(Vec6(this->param().template cast<float>()));
-        plucker_w.UpdateParameters(Vec4(delta_param.template cast<float>()));
+        plucker_w.UpdateParameters<true>(Vec4(delta_param.template cast<float>()));
         this->param() = plucker_w.param().cast<Scalar>();
     }
 };
@@ -60,7 +60,7 @@ public:
         const LinePlucker3D plucker_w(Vec6(this->GetVertex(0)->param().template cast<float>()));
         n_w = plucker_w.normal_vector().template cast<Scalar>();
         d_w = plucker_w.direction_vector().template cast<Scalar>();
-        jacobian_plucker_to_orthonormal = plucker_w.LinearizeTo4Dof().cast<Scalar>();
+        jacobian_plucker_to_orthonormal = plucker_w.LinearizeTo4Dof<true>().cast<Scalar>();
         p_wc = this->GetVertex(1)->param().template cast<Scalar>();
         const TVec4<Scalar> &parameter = this->GetVertex(2)->param();
         const TQuat<Scalar> q_wc = TQuat<Scalar>(parameter(0), parameter(1), parameter(2), parameter(3));
@@ -103,10 +103,10 @@ public:
         jacobian_plucker_c_to_w.template block<3, 3>(0, 0) = R_cw;
         jacobian_plucker_c_to_w.template block<3, 3>(0, 3) = Utility::SkewSymmetricMatrix(p_cw) * R_cw;
         jacobian_plucker_c_to_w.template block<3, 3>(3, 3) = R_cw;
-        // Compute jacobian of d_plucker_in_c to d_camera_pos.
+        // TODO: Compute jacobian of d_plucker_in_c to d_camera_pos.
         TMat6x3<Scalar> jacobian_plucker_to_camera_pos = TMat6x3<Scalar>::Zero();
         jacobian_plucker_to_camera_pos.template block<3, 3>(0, 0) = R_cw * Utility::SkewSymmetricMatrix(d_w);
-        // Compute jacobian of d_plucker_in_c to d_camera_rot.
+        // TODO: Compute jacobian of d_plucker_in_c to d_camera_rot.
         TMat6x3<Scalar> jacobian_plucker_to_camera_rot = TMat6x3<Scalar>::Zero();
         jacobian_plucker_to_camera_rot.template block<3, 3>(0, 0) = Utility::SkewSymmetricMatrix(
             R_cw * (n_w + Utility::SkewSymmetricMatrix(d_w) * p_wc));
@@ -145,11 +145,12 @@ int main(int argc, char **argv) {
 
     // Generate camera views and line segments.
     std::vector<Pose> cameras_pose;
+    const float radius = 8.0f;
     for (int32_t i = 0; i < kNumberOfCameras; ++i) {
-        const float theta = i / 2.0f;
+        const float theta = i * 2 * kPai / (kNumberOfCameras * 16);
         cameras_pose.emplace_back(Pose{
-            .p_wc = Vec3(std::cos(theta) * i, i, i * i * 0.1f),
-            .q_wc = Quat(Eigen::AngleAxisf(i / 10.0f, Vec3::UnitX())),
+            .p_wc = Vec3(radius * std::cos(theta) - radius + i * 1.0f, radius * std::sin(theta), 1.0f * std::sin(2 * theta)),
+            .q_wc = Quat(Eigen::AngleAxis<float>(theta, Vec3::UnitX())),
         });
     }
     std::vector<LineSegment3D> line_segments_3d;
@@ -175,8 +176,8 @@ int main(int argc, char **argv) {
     for (int32_t i = 0; i < kNumberOfLines; ++i) {
         all_lines[i] = std::make_unique<VertexLine<Scalar>>();
         const LineSegment3D noised_line_3d = LineSegment3D(
-            line_segments_3d[i].start_point() + Vec3::Random() * 0.5f,
-            line_segments_3d[i].end_point() + Vec3::Random() * 0.5f);
+            line_segments_3d[i].start_point() + Vec3::Random(),
+            line_segments_3d[i].end_point() + Vec3::Random());
         all_lines[i]->param() = LinePlucker3D(LineSegment3D(noised_line_3d)).param().cast<Scalar>();
     }
 
@@ -200,6 +201,12 @@ int main(int argc, char **argv) {
         }
     }
 
+    // Fix first two camera position.
+    if (cameras_pose.size() > 2) {
+        all_camera_pos[0]->SetFixed(true);
+        all_camera_pos[1]->SetFixed(true);
+    }
+
     // Construct graph problem and solver.
     Graph<Scalar> problem;
     for (uint32_t i = 0; i < all_camera_pos.size(); ++i) {
@@ -210,7 +217,7 @@ int main(int argc, char **argv) {
     for (auto &edge : reprojection_edges) { problem.AddEdge(edge.get()); }
     SolverLm<Scalar> solver;
     solver.problem() = &problem;
-    solver.options().kMaxIteration = 1;
+    solver.options();
     TickTock tick_tock;
     solver.Solve(false);
     ReportInfo("[Ticktock] Solve cost time " << tick_tock.TockTickInMillisecond() << " ms");
