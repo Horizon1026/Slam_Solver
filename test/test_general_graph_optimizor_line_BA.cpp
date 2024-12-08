@@ -138,6 +138,34 @@ private:
     TMat6x4<Scalar> jacobian_plucker_to_orthonormal = TMat6x4<Scalar>::Zero();
 };
 
+/* Class Edge position prior. This can be used to fix a position parameter with specified weight. */
+template <typename Scalar>
+class EdgePriorPosition : public Edge<Scalar> {
+// Vertices are [position, p_wc]
+
+public:
+    EdgePriorPosition() : Edge<Scalar>(3, 1) {}
+    virtual ~EdgePriorPosition() = default;
+
+    // Compute residual and jacobians for each vertex. These operations should be defined by subclass.
+    virtual void ComputeResidual() override {
+        p_wc_ = this->GetVertex(0)->param();
+        obv_p_wc_ = this->observation().block(0, 0, 3, 1);
+        this->residual() = p_wc_ - obv_p_wc_;
+    }
+
+    virtual void ComputeJacobians() override {
+        const TMat<Scalar> jacobian_p = TMat<Scalar>::Identity(3, 3);
+        this->GetJacobian(0) = jacobian_p;
+    }
+
+private:
+    // Parameters will be calculated in ComputeResidual().
+    // It should not be repeatedly calculated in ComputeJacobians().
+    TVec3<Scalar> p_wc_ = TVec3<Scalar>::Zero();
+    TVec3<Scalar> obv_p_wc_ = TVec3<Scalar>::Zero();
+};
+
 int main(int argc, char **argv) {
     LogFixPercision(3);
     ReportInfo(YELLOW ">> Test general graph optimizor on bundle adjustment with line segment." RESET_COLOR);
@@ -214,7 +242,20 @@ int main(int argc, char **argv) {
         }
     }
 
-    // Construct graph problem and solver.
+    // Fix first two camera position.
+    std::vector<std::unique_ptr<EdgePriorPosition<Scalar>>> prior_edges;
+    if (all_camera_pos.size() > 2) {
+        for (int32_t i = 0; i < 2; ++i) {
+            std::unique_ptr<EdgePriorPosition<Scalar>> edge = std::make_unique<EdgePriorPosition<Scalar>>();
+            edge->SetVertex(all_camera_pos[i].get(), 0);
+            edge->observation() = cameras_pose[i].p_wc.cast<Scalar>();
+            edge->information() = TMat3<Scalar>::Identity() * 1e6f;
+            edge->SelfCheck();
+            prior_edges.emplace_back(std::move(edge));
+        }
+    }
+
+    // Construct graph problem.
     Graph<Scalar> problem;
     for (uint32_t i = 0; i < all_camera_pos.size(); ++i) {
         problem.AddVertex(all_camera_pos[i].get());
@@ -222,9 +263,12 @@ int main(int argc, char **argv) {
     }
     for (auto &vertex : all_lines) { problem.AddVertex(vertex.get(), false); }
     for (auto &edge : reprojection_edges) { problem.AddEdge(edge.get()); }
+    for (auto &edge : prior_edges) { problem.AddEdge(edge.get()); }
+    problem.EdgesInformation();
+
+    // Construct solver to solve problem.
     SolverLm<Scalar> solver;
     solver.problem() = &problem;
-    solver.options().kMaxIteration = 50;
     TickTock tick_tock;
     solver.Solve(false);
     ReportInfo("[Ticktock] Solve cost time " << tick_tock.TockTickInMillisecond() << " ms");
@@ -245,9 +289,9 @@ int main(int argc, char **argv) {
     }
     // Draw ground truth of camera pose and line in world frame.
     for (const auto &camera_pose : cameras_pose) {
-        Visualizor3D::camera_poses().emplace_back(CameraPoseType{
-            .p_wc = camera_pose.p_wc,
-            .q_wc = camera_pose.q_wc,
+        Visualizor3D::poses().emplace_back(PoseType{
+            .p_wb = camera_pose.p_wc,
+            .q_wb = camera_pose.q_wc,
             .scale = 0.5f,
         });
     }
