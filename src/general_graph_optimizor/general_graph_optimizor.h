@@ -3,6 +3,7 @@
 
 #include "vertex.h"
 #include "vertex_quaternion.h"
+#include "vertex_so3.h"
 
 #include "edge.h"
 

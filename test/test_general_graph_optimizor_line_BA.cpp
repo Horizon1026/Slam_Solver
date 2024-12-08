@@ -19,15 +19,15 @@ using namespace SLAM_SOLVER;
 using namespace SLAM_VISUALIZOR;
 using namespace IMAGE_PAINTER;
 
-constexpr int32_t kNumberOfCameras = 4;
-constexpr int32_t kNumberOfLines = 4;
+constexpr int32_t kNumberOfCameras = 18;
+constexpr int32_t kNumberOfLines = 12;
 
 struct Pose {
     Vec3 p_wc = Vec3::Zero();
     Quat q_wc = Quat::Identity();
 };
 
-/* Class Vertex Quaternion declaration. */
+/* Class Vertex LinePlucker declaration. */
 template <typename Scalar>
 class VertexLine : public Vertex<Scalar> {
 
@@ -79,7 +79,6 @@ public:
                                          e_point.dot(l) / l_1_2);
     }
 
-    // TODO: Something wrong here.
     virtual void ComputeJacobians() override {
         const Scalar l_2_2 = l(0) * l(0) + l(1) * l(1);
         const Scalar l_1_2 = std::sqrt(l_2_2);
@@ -106,7 +105,7 @@ public:
         // Compute jacobian of d_plucker_in_c to d_camera_pos.
         TMat6x3<Scalar> jacobian_plucker_to_camera_pos = TMat6x3<Scalar>::Zero();
         jacobian_plucker_to_camera_pos.template block<3, 3>(0, 0) = R_cw * Utility::SkewSymmetricMatrix(d_w);
-        // TODO: Compute jacobian of d_plucker_in_c to d_camera_rot.
+        // Compute jacobian of d_plucker_in_c to d_camera_rot.
         TMat6x3<Scalar> jacobian_plucker_to_camera_rot = TMat6x3<Scalar>::Zero();
         jacobian_plucker_to_camera_rot.template block<3, 3>(0, 0) = Utility::SkewSymmetricMatrix(R_cw * n_w)
             - Utility::SkewSymmetricMatrix(R_cw * Utility::SkewSymmetricMatrix(p_wc) * d_w);
@@ -147,39 +146,51 @@ int main(int argc, char **argv) {
     std::vector<Pose> cameras_pose;
     const float radius = 8.0f;
     for (int32_t i = 0; i < kNumberOfCameras; ++i) {
-        const float theta = i * 2 * kPai / (kNumberOfCameras * 16);
+        const float theta = i * 2 * kPai / kNumberOfCameras;
         cameras_pose.emplace_back(Pose{
-            .p_wc = Vec3(radius * std::cos(theta) - radius + i * 1.0f, radius * std::sin(theta), 1.0f * std::sin(2 * theta)),
-            .q_wc = Quat(Eigen::AngleAxis<float>(theta, Vec3::UnitX())),
+            .p_wc = Vec3(radius * std::cos(theta), radius * std::sin(theta), 1.0f * std::sin(2.0f * theta)),
+            .q_wc = Quat(Eigen::AngleAxis<float>(theta + kPai, Vec3::UnitZ())) * Quat(Eigen::AngleAxis<float>(kPai / 2.0f, Vec3::UnitY())),
         });
     }
+    std::vector<LineSegment3D> lines_in_a_cube = std::vector{
+        LineSegment3D{Vec3(0, 0, 0), Vec3(0, 0, 1)},
+        LineSegment3D{Vec3(0, 0, 0), Vec3(0, 1, 0)},
+        LineSegment3D{Vec3(0, 1, 1), Vec3(0, 1, 0)},
+        LineSegment3D{Vec3(0, 1, 1), Vec3(0, 0, 1)},
+        LineSegment3D{Vec3(1, 0, 0), Vec3(1, 0, 1)},
+        LineSegment3D{Vec3(1, 0, 0), Vec3(1, 1, 0)},
+        LineSegment3D{Vec3(1, 1, 1), Vec3(1, 1, 0)},
+        LineSegment3D{Vec3(1, 1, 1), Vec3(1, 0, 1)},
+        LineSegment3D{Vec3(0, 0, 0), Vec3(1, 0, 0)},
+        LineSegment3D{Vec3(0, 1, 1), Vec3(1, 1, 1)},
+        LineSegment3D{Vec3(0, 1, 0), Vec3(1, 1, 0)},
+        LineSegment3D{Vec3(0, 0, 1), Vec3(1, 0, 1)},
+    };
     std::vector<LineSegment3D> line_segments_3d;
     for (int32_t i = 0; i < kNumberOfLines; ++i) {
-        const float theta = i / 2.0f;
+        BREAK_IF(i >= static_cast<int32_t>(lines_in_a_cube.size()));
         line_segments_3d.emplace_back(LineSegment3D{
-            Vec3(- 2.0f * i + std::cos(theta), std::sin(theta), 9 + i),
-            Vec3(- i - std::cos(theta), - std::sin(theta), 7 + i + theta)
+            lines_in_a_cube[i].start_point() - Vec3::Ones() * 0.5f,
+            lines_in_a_cube[i].end_point() - Vec3::Ones() * 0.5f,
         });
     }
 
-    // Generate vertex of cameras and lines.
+    // Generate vertex of cameras and lines with noise.
     std::array<std::unique_ptr<Vertex<Scalar>>, kNumberOfCameras> all_camera_pos;
     std::array<std::unique_ptr<VertexQuat<Scalar>>, kNumberOfCameras> all_camera_rot;
     for (int32_t i = 0; i < kNumberOfCameras; ++i) {
         all_camera_pos[i] = std::make_unique<Vertex<Scalar>>(3, 3);
-        all_camera_pos[i]->param() = cameras_pose[i].p_wc.cast<Scalar>();
+        all_camera_pos[i]->param() = (cameras_pose[i].p_wc + Vec3::Random() * 0.05f).cast<Scalar>();
         all_camera_rot[i] = std::make_unique<VertexQuat<Scalar>>();
         all_camera_rot[i]->param() << cameras_pose[i].q_wc.w(), cameras_pose[i].q_wc.x(),
             cameras_pose[i].q_wc.y(), cameras_pose[i].q_wc.z();
-        // TODO: fix bug of rotation jacobian, and remove it.
-        all_camera_rot[i]->SetFixed(true);
     }
     std::array<std::unique_ptr<VertexLine<Scalar>>, kNumberOfLines> all_lines;
     for (int32_t i = 0; i < kNumberOfLines; ++i) {
         all_lines[i] = std::make_unique<VertexLine<Scalar>>();
         const LineSegment3D noised_line_3d = LineSegment3D(
-            line_segments_3d[i].start_point() + Vec3::Random(),
-            line_segments_3d[i].end_point() + Vec3::Random());
+            line_segments_3d[i].start_point() + Vec3::Random() * 0.2f,
+            line_segments_3d[i].end_point() + Vec3::Random() * 0.2f);
         all_lines[i]->param() = LinePlucker3D(LineSegment3D(noised_line_3d)).param().cast<Scalar>();
     }
 
@@ -203,12 +214,6 @@ int main(int argc, char **argv) {
         }
     }
 
-    // Fix first two camera position.
-    if (cameras_pose.size() > 2) {
-        all_camera_pos[0]->SetFixed(true);
-        all_camera_pos[1]->SetFixed(true);
-    }
-
     // Construct graph problem and solver.
     Graph<Scalar> problem;
     for (uint32_t i = 0; i < all_camera_pos.size(); ++i) {
@@ -219,18 +224,13 @@ int main(int argc, char **argv) {
     for (auto &edge : reprojection_edges) { problem.AddEdge(edge.get()); }
     SolverLm<Scalar> solver;
     solver.problem() = &problem;
-    solver.options();
+    solver.options().kMaxIteration = 50;
     TickTock tick_tock;
     solver.Solve(false);
     ReportInfo("[Ticktock] Solve cost time " << tick_tock.TockTickInMillisecond() << " ms");
 
     // Visualize.
     Visualizor3D::Clear();
-    Visualizor3D::poses().emplace_back(PoseType{
-        .p_wb = Vec3::Zero(),
-        .q_wb = Quat::Identity(),
-        .scale = 1.0f,
-    });
     // Draw observations.
     for (int32_t i = 0; i < kNumberOfCameras; ++i) {
         for (int32_t j = 0; j < kNumberOfLines; ++j) {
