@@ -5,7 +5,7 @@ project( slam_solver )
 set( CMAKE_BUILD_TYPE "Debug" )
 set( CMAKE_CXX_FLAGS "-std=c++17 -O3 -g -Wall -lpthread" )
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
-set( CMAKE_CXX_STANDARD 17 )
+set( CMAKE_CXX_STANDARD 20 )
 
 set( SLAM_UTILITY_PATH ${PROJECT_SOURCE_DIR}/../Slam_Utility )
 # Add all relative components of Slam_Utility。
