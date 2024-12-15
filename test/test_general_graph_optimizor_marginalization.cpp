@@ -102,7 +102,7 @@ void ShowMatrixImage(const std::string &title, const TMat<Scalar> &matrix) {
     uint8_t *buf = (uint8_t *)malloc(matrix.rows() * matrix.cols() * kVisualizeMatrixScale * kVisualizeMatrixScale * sizeof(uint8_t));
     GrayImage image_matrix(buf, matrix.rows() * kVisualizeMatrixScale, matrix.cols() * kVisualizeMatrixScale, true);
     ImagePainter::ConvertMatrixToImage<float>(matrix, image_matrix, 2.0f, kVisualizeMatrixScale);
-    Visualizor::ShowImage(title, image_matrix);
+    Visualizor2D::ShowImage(title, image_matrix);
 }
 
 int main(int argc, char **argv) {
@@ -169,7 +169,7 @@ int main(int argc, char **argv) {
     ShowMatrixImage("reverse hessian", marger.reverse_hessian());
     ShowMatrixImage("prior hessian", marger.problem()->prior_hessian());
     ShowMatrixImage("prior jacobian", marger.problem()->prior_jacobian());
-    Visualizor::WaitKey(0);
+    Visualizor2D::WaitKey(0);
 
     return 0;
 }
