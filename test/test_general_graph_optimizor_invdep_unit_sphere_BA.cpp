@@ -46,7 +46,7 @@ public:
         const Scalar p_c_norm = p_cj.norm();
         const Scalar p_c_norm3 = p_c_norm * p_c_norm * p_c_norm;
         TMat3<Scalar> jacobian_norm = TMat3<Scalar>::Zero();
-        if (p_c_norm3 > kZero) {
+        if (p_c_norm3 > kZerofloat) {
             jacobian_norm << 1.0 / p_c_norm - p_cj.x() * p_cj.x() / p_c_norm3, - p_cj.x() * p_cj.y() / p_c_norm3,                - p_cj.x() * p_cj.z() / p_c_norm3,
                              - p_cj.x() * p_cj.y() / p_c_norm3,                1.0 / p_c_norm - p_cj.y() * p_cj.y() / p_c_norm3, - p_cj.y() * p_cj.z() / p_c_norm3,
                              - p_cj.x() * p_cj.z() / p_c_norm3,                - p_cj.y() * p_cj.z() / p_c_norm3,                1.0 / p_c_norm - p_cj.z() * p_cj.z() / p_c_norm3;
