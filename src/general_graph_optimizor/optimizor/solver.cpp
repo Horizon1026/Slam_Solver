@@ -111,57 +111,75 @@ bool Solver<Scalar>::IsConvergedAfterUpdate(int32_t iter) {
     return false;
 }
 
-// Use PCG solver to solve linearlized function.
+// Default Use PCG solver to solve linearlized function. Other solvers can also be added here.
 template <typename Scalar>
 void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A,
                                               const TVec<Scalar> &b,
                                               TVec<Scalar> &x) {
-    const int32_t size = b.rows();
-    const int32_t maxIteration = size;
+    switch (options_.kLinearFunctionSolverType) {
+        case LinearFunctionSolverType::kPcgSolver: {
+            const int32_t size = b.rows();
+            const int32_t maxIteration = size;
 
-    // If initial value is ok, return.
-    x.setZero(size);
-    TVec<Scalar> r0(b);  // initial r = b - A*0 = b
-    if (r0.norm() < options_.kMaxPcgSolverConvergedResidual) {
-        return;
-    }
+            // If initial value is ok, return.
+            x.setZero(size);
+            TVec<Scalar> r0(b);  // initial r = b - A*0 = b
+            if (r0.norm() < options_.kMaxPcgSolverConvergedResidual) {
+                return;
+            }
 
-    // Compute precondition matrix.
-    TVec<Scalar> M_inv_diag = A.diagonal();
-    M_inv_diag.array() = static_cast<Scalar>(1) / M_inv_diag.array();
-    for (int32_t i = 0; i < M_inv_diag.rows(); ++i) {
-        if (std::isinf(M_inv_diag(i))) {
-            M_inv_diag(i) = 0;
+            // Compute precondition matrix.
+            TVec<Scalar> M_inv_diag = A.diagonal();
+            M_inv_diag.array() = static_cast<Scalar>(1) / M_inv_diag.array();
+            for (int32_t i = 0; i < M_inv_diag.rows(); ++i) {
+                if (std::isinf(M_inv_diag(i))) {
+                    M_inv_diag(i) = 0;
+                }
+            }
+            TVec<Scalar> z0 = M_inv_diag.array() * r0.array();    // solve M * z0 = r0
+
+            // Get first basis vector, compute weight alpha, update x.
+            TVec<Scalar> p(z0);
+            TVec<Scalar> w = A * p;
+            Scalar r0z0 = r0.dot(z0);
+            Scalar alpha = r0z0 / p.dot(w);
+            x += alpha * p;
+            TVec<Scalar> r1 = r0 - alpha * w;
+
+            // Set threshold to check if converged.
+            const Scalar threshold = options_.kMaxPcgSolverCostDecreaseRate * r0.norm();
+
+            int32_t i = 0;
+            TVec<Scalar> z1;
+            while (r1.norm() > threshold && i < maxIteration) {
+                i++;
+                z1 = M_inv_diag.array() * r1.array();
+                const Scalar r1z1 = r1.dot(z1);
+                const Scalar belta = r1z1 / r0z0;
+                z0 = z1;
+                r0z0 = r1z1;
+                r0 = r1;
+                p = belta * p + z1;
+                w = A * p;
+                alpha = r1z1 / p.dot(w);
+                x += alpha * p;
+                r1 -= alpha * w;
+            }
+            break;
         }
-    }
-    TVec<Scalar> z0 = M_inv_diag.array() * r0.array();    // solve M * z0 = r0
 
-    // Get first basis vector, compute weight alpha, update x.
-    TVec<Scalar> p(z0);
-    TVec<Scalar> w = A * p;
-    Scalar r0z0 = r0.dot(z0);
-    Scalar alpha = r0z0 / p.dot(w);
-    x += alpha * p;
-    TVec<Scalar> r1 = r0 - alpha * w;
-
-    // Set threshold to check if converged.
-    const Scalar threshold = options_.kMaxPcgSolverCostDecreaseRate * r0.norm();
-
-    int32_t i = 0;
-    TVec<Scalar> z1;
-    while (r1.norm() > threshold && i < maxIteration) {
-        i++;
-        z1 = M_inv_diag.array() * r1.array();
-        const Scalar r1z1 = r1.dot(z1);
-        const Scalar belta = r1z1 / r0z0;
-        z0 = z1;
-        r0z0 = r1z1;
-        r0 = r1;
-        p = belta * p + z1;
-        w = A * p;
-        alpha = r1z1 / p.dot(w);
-        x += alpha * p;
-        r1 -= alpha * w;
+        case LinearFunctionSolverType::kCholeskySolver: {
+            x = A.template ldlt().solve(b);
+            break;
+        }
+        case LinearFunctionSolverType::kQrSolver: {
+            x = A.template colPivHouseholderQr().solve(b);
+            break;
+        }
+        default: {
+            ReportError("[Solver] Linear function solver type not supported.");
+            break;
+        }
     }
 }
 

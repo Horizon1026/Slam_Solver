@@ -6,6 +6,12 @@
 
 namespace SLAM_SOLVER {
 
+enum class LinearFunctionSolverType {
+    kCholeskySolver = 0,
+    kPcgSolver = 1,
+    kQrSolver = 2,
+};
+
 template <typename Scalar>
 struct SolverOptions {
     int32_t kMaxIteration = 30;
@@ -15,6 +21,7 @@ struct SolverOptions {
     bool kEnableReportEachIteration = true;
     bool kOnlyUseFirstEstimatedJacobian = false;
     float kMaxCostTimeInSecond = 1.0f;
+    LinearFunctionSolverType kLinearFunctionSolverType = LinearFunctionSolverType::kPcgSolver;
 };
 
 /* Class Solver Declaration. */
