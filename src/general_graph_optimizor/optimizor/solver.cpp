@@ -14,7 +14,6 @@ bool Solver<Scalar>::Solve(bool use_prior) {
     if (problem_ == nullptr) {
         return false;
     }
-
     float time_cost = 0.0f;
     SLAM_UTILITY::TickTock timer;
     timer.TockTickInSecond();
@@ -25,24 +24,22 @@ bool Solver<Scalar>::Solve(bool use_prior) {
     cost_at_latest_step_ = problem_->ComputeResidualForAllEdges(use_prior);
     problem_->ComputeJacobiansForAllEdges();
     ConstructIncrementalFunction(use_prior);
-
     // Initialize solver.
     InitializeSolver();
 
     for (int32_t iter = 0; iter < options_.kMaxIteration; ++iter) {
         // Solve function to get increment of all parameters.
         SolveIncrementalFunction();
-
         // Update all parameters.
         UpdateParameters(use_prior);
-
         // Recompute residual after update.
         cost_at_latest_step_ = problem_->ComputeResidualForAllEdges(use_prior);
-
         // If this step is valid, perpare for next iteration.
         if (IsUpdateValid()) {
             cost_at_linearized_point_ = cost_at_latest_step_;
-            problem_->ComputeJacobiansForAllEdges();
+            if (!options_.kOnlyUseFirstEstimatedJacobian) {
+                problem_->ComputeJacobiansForAllEdges();
+            }
             ConstructIncrementalFunction(use_prior);
         } else {
             RollBackParameters(use_prior);
@@ -52,7 +49,6 @@ bool Solver<Scalar>::Solve(bool use_prior) {
         if (IsConvergedAfterUpdate(iter)) {
             break;
         }
-
         // If not converged, check for timeout.
         const float time_cost_this_step = timer.TockInSecond() - time_cost;
         time_cost = timer.TockInSecond();
