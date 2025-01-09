@@ -1,6 +1,7 @@
 #include "solver.h"
 #include "tick_tock.h"
 #include "slam_log_reporter.h"
+#include "slam_basic_math.h"
 
 namespace SLAM_SOLVER {
 
@@ -176,11 +177,39 @@ void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A,
             x = A.template colPivHouseholderQr().solve(b);
             break;
         }
+        case LinearFunctionSolverType::kSvdSolver: {
+            x = A.template jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+            break;
+        }
         default: {
             ReportError("[Solver] Linear function solver type not supported.");
             break;
         }
     }
+
+    if (options_.kEnableDegenerateElimination) {
+        return;
+    }
+
+    // Reference: On Degeneracy of Optimization-based State Estimation Problems.pdf
+    // Compute eigen value and vector of A.
+    Eigen::SelfAdjointEigenSolver<TMat<Scalar>> solver(A);
+    if (solver.info() != Eigen::Success) {
+        return;
+    }
+    // Eigen values are sorted in increasing order.
+    const TVec<Scalar> eigen_values = solver.eigenvalues();
+    const TMat<Scalar> eigen_vectors = solver.eigenvectors();
+    // Select the eigen vectors whose eigen values are smaller than kZeroDouble.
+    TMat<Scalar> vectors_p = TMat<Scalar>::Zero(eigen_vectors.rows(), eigen_vectors.cols());
+    for (uint32_t i = 0; i < eigen_values.rows(); ++i) {
+        if (eigen_values(i) <= kZeroDouble) {
+            vectors_p.col(i) = eigen_vectors.col(i);
+        }
+    }
+    // Eliminate the degenerate directions of x.
+    const TVec<Scalar> x_f = vectors_p * (vectors_p.transpose() * x);
+    x += x_f;
 }
 
 }

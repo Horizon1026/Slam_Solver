@@ -10,6 +10,7 @@ enum class LinearFunctionSolverType {
     kCholeskySolver = 0,
     kPcgSolver = 1,
     kQrSolver = 2,
+    kSvdSolver = 3,
 };
 
 template <typename Scalar>
@@ -20,6 +21,7 @@ struct SolverOptions {
     Scalar kMaxPcgSolverConvergedResidual = 1e-6;
     bool kEnableReportEachIteration = true;
     bool kOnlyUseFirstEstimatedJacobian = false;
+    bool kEnableDegenerateElimination = true;
     float kMaxCostTimeInSecond = 1.0f;
     LinearFunctionSolverType kLinearFunctionSolverType = LinearFunctionSolverType::kPcgSolver;
 };
