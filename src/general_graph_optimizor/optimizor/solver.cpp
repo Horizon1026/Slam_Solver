@@ -198,17 +198,25 @@ void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A,
         return;
     }
     // Eigen values are sorted in increasing order.
-    const TVec<Scalar> eigen_values = solver.eigenvalues();
-    const TMat<Scalar> eigen_vectors = solver.eigenvectors();
+    const TVec<Scalar> &eigen_values = solver.eigenvalues();
+    const TMat<Scalar> &eigen_vectors = solver.eigenvectors();
+    // If the smallest eigen value is larger than 0, no need to the following steps.
+    if (eigen_values(0) > kZeroDouble) {
+        return;
+    }
     // Select the eigen vectors whose eigen values are smaller than kZeroDouble.
-    TMat<Scalar> vectors_p = TMat<Scalar>::Zero(eigen_vectors.rows(), eigen_vectors.cols());
-    for (uint32_t i = 0; i < eigen_values.rows(); ++i) {
+    std::vector<int32_t> degenerate_indices;
+    degenerate_indices.reserve(eigen_values.size());
+    for (int32_t i = 0; i < eigen_values.size(); ++i) {
         if (eigen_values(i) <= kZeroDouble) {
-            vectors_p.col(i) = eigen_vectors.col(i);
+            degenerate_indices.push_back(i);
         }
     }
     // Eliminate the degenerate directions of x.
-    const TVec<Scalar> x_f = vectors_p * (vectors_p.transpose() * x);
+    TVec<Scalar> x_f = TVec<Scalar>::Zero(x.size());
+    for (const auto &idx : degenerate_indices) {
+        x_f += eigen_vectors.col(idx) * (eigen_vectors.col(idx).transpose() * x);
+    }
     x += x_f;
 }
 
