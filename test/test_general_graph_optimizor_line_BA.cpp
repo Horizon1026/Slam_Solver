@@ -19,7 +19,7 @@ using namespace SLAM_SOLVER;
 using namespace SLAM_VISUALIZOR;
 using namespace IMAGE_PAINTER;
 
-constexpr int32_t kNumberOfCameras = 18;
+constexpr int32_t kNumberOfCameras = 8;
 constexpr int32_t kNumberOfLines = 12;
 
 struct Pose {

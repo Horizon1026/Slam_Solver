@@ -22,6 +22,7 @@ struct SolverOptions {
     bool kEnableReportEachIteration = true;
     bool kOnlyUseFirstEstimatedJacobian = false;
     bool kEnableDegenerateElimination = true;
+    Scalar kMinEigenValueThresholdForDegenerateElimination = 1e-6;
     float kMaxCostTimeInSecond = 1.0f;
     LinearFunctionSolverType kLinearFunctionSolverType = LinearFunctionSolverType::kPcgSolver;
 };

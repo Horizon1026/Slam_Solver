@@ -189,33 +189,32 @@ void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A,
         return;
     }
 
-    // Reference: On Degeneracy of Optimization-based State Estimation Problems.pdf
+    // Reference: On Degeneracy of Optimization-based State Estimation Problems.pdf (There is typo in this paper.)
+    // For Hx = b, which can be written as J.transpose() * J * dx = -J.transpose() * r. Actually we solve J * dx = -r.
     // Compute eigen value and vector of A.
     Eigen::SelfAdjointEigenSolver<TMat<Scalar>> solver(A);
     if (solver.info() != Eigen::Success) {
         return;
     }
-    // Eigen values are sorted in increasing order.
-    const TVec<Scalar> &eigen_values = solver.eigenvalues();
-    const TMat<Scalar> &eigen_vectors = solver.eigenvectors();
-    // If the smallest eigen value is larger than 0, no need to the following steps.
-    if (eigen_values(0) > kZeroDouble) {
+    // Eigen values are sorted in increasing order. The smallest eigen value is at the first position.
+    const TVec<Scalar> &eigen_values = solver.eigenvalues().real();
+    if (eigen_values(0) > options_.kMinEigenValueThresholdForDegenerateElimination) {
         return;
     }
-    // Select the eigen vectors whose eigen values are smaller than kZeroDouble.
-    std::vector<int32_t> degenerate_indices;
-    degenerate_indices.reserve(eigen_values.size());
-    for (int32_t i = 0; i < eigen_values.size(); ++i) {
-        if (eigen_values(i) <= kZeroDouble) {
-            degenerate_indices.push_back(i);
+    // Eigen vectors are sorted by eigen values as columns.
+    const TMat<Scalar> &eigen_vectors = solver.eigenvectors().real();
+    const TMat<Scalar> &matrix_f_inv = eigen_vectors;   // For eigen vectors matrix, transpose is equal to inverse.
+    // Matrix f and matrix u are both rows of eigen vectors. So the inverse of them are cols of eigen vectors.
+    // Select the directions of full-conditioned subspace.
+    TMat<Scalar> matrix_u_inv = eigen_vectors;
+    for (int32_t i = 0; i < matrix_u_inv.cols(); ++i) {
+        if (eigen_values(i) < options_.kMinEigenValueThresholdForDegenerateElimination) {
+            matrix_u_inv.col(i).setZero();
         }
     }
-    // Eliminate the degenerate directions of x.
-    TVec<Scalar> x_f = TVec<Scalar>::Zero(x.size());
-    for (const auto &idx : degenerate_indices) {
-        x_f += eigen_vectors.col(idx) * (eigen_vectors.col(idx).transpose() * x);
-    }
-    x -= x_f;
+    // Compute the result projected into full-conditioned subspace.
+    x = matrix_f_inv * matrix_u_inv.transpose() * x;
+
 }
 
 }
