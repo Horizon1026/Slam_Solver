@@ -269,6 +269,7 @@ int main(int argc, char **argv) {
     // Construct solver to solve problem.
     SolverLm<Scalar> solver;
     solver.problem() = &problem;
+    solver.options().kEnableDegenerateElimination = true;
     TickTock tick_tock;
     solver.Solve(false);
     ReportInfo("[Ticktock] Solve cost time " << tick_tock.TockTickInMillisecond() << " ms");

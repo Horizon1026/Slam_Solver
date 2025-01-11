@@ -54,7 +54,6 @@ bool Solver<Scalar>::Solve(bool use_prior) {
         const float time_cost_this_step = timer.TockInSecond() - time_cost;
         time_cost = timer.TockInSecond();
         if (time_cost + time_cost_this_step > options_.kMaxCostTimeInSecond) {
-            ReportWarn("[Solver] Time out but not converged.");
             break;
         }
 
@@ -105,7 +104,6 @@ bool Solver<Scalar>::IsConvergedAfterUpdate(int32_t iter) {
     }
 
     if (dx_.squaredNorm() < options_.kMaxConvergedSquaredStepLength) {
-        ReportInfo("[Solver] Converged with final cost [" << cost_at_latest_step_ << "].");
         return true;
     }
 
@@ -187,7 +185,7 @@ void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A,
         }
     }
 
-    if (options_.kEnableDegenerateElimination) {
+    if (!options_.kEnableDegenerateElimination) {
         return;
     }
 
