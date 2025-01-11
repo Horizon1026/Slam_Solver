@@ -215,7 +215,7 @@ void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A,
     for (const auto &idx : degenerate_indices) {
         x_f += eigen_vectors.col(idx) * (eigen_vectors.col(idx).transpose() * x);
     }
-    x += x_f;
+    x -= x_f;
 }
 
 }
