@@ -27,10 +27,8 @@ bool KalmanFilterDynamic<Scalar>::UpdateStateAndCovarianceImpl(const TMat<Scalar
     predict_S_ = H_ * predict_P_ * H_t + R_;
     const TMat<Scalar> K_ = predict_P_ * H_t * predict_S_.inverse();
 
-    // Compute new information.
-    const TVec<Scalar> v_ = observation - H_ * predict_x_;
-
     // Update new state.
+    const TVec<Scalar> v_ = observation - H_ * predict_x_;
     x_ = predict_x_ + K_ * v_;
 
     // Update covariance of new state.

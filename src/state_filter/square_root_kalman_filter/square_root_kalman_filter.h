@@ -123,6 +123,7 @@ private:
 /* Class Square Root Error State Kalman Filter Definition. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 bool SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>::PropagateNominalStateImpl(const TVec<Scalar> &parameters) {
+    // For error state filter, nominal state propagation should not only use F_.
     return true;
 }
 
@@ -142,6 +143,7 @@ bool SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>::PropagateCova
 
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 bool SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAndCovarianceImpl(const TMat<Scalar> &residual) {
+    // Reference: Optimal State Estimation - Kalman, H infinity, and Nonlinear Approaches.
     // Construct matrix M, do QR decompose on it.
     /*  M = [ R.t/2             0    ] = T * [ (H * pre_P * H.t + R).t/2  hat_K.t ]
             [ pre_S.t * H.t  pre_S.t ]       [             0                S.t   ]

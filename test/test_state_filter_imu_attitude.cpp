@@ -200,7 +200,7 @@ int main(int argc, char **argv) {
         imu_file = argv[1];
     }
 
-    ReportInfo(YELLOW ">> Test kalman filter on pure imu attitude estimation." RESET_COLOR);
+    ReportColorInfo(">> Test kalman filter on pure imu attitude estimation.");
     LogFixPercision(5);
 
     std::vector<ImuMeasurement> measurements;

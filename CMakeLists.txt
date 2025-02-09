@@ -9,6 +9,15 @@ set( CMAKE_CXX_STANDARD 20 )
 
 set( SLAM_UTILITY_PATH ${PROJECT_SOURCE_DIR}/../Slam_Utility )
 # Add all relative components of Slam_Utility。
+if ( NOT TARGET lib_slam_utility_basic_type )
+    add_subdirectory( ${SLAM_UTILITY_PATH}/src/basic_type ${PROJECT_SOURCE_DIR}/build/lib_slam_utility_basic_type )
+endif()
+if ( NOT TARGET lib_slam_utility_math )
+    add_subdirectory( ${SLAM_UTILITY_PATH}/src/math ${PROJECT_SOURCE_DIR}/build/lib_slam_utility_math )
+endif()
+if ( NOT TARGET lib_slam_utility_operate )
+    add_subdirectory( ${SLAM_UTILITY_PATH}/src/operate ${PROJECT_SOURCE_DIR}/build/lib_slam_utility_operate )
+endif()
 if ( NOT TARGET lib_slam_utility_log )
     add_subdirectory( ${SLAM_UTILITY_PATH}/src/log ${PROJECT_SOURCE_DIR}/build/lib_slam_utility_log )
 endif()
@@ -49,19 +58,24 @@ if ( NOT TARGET lib_general_graph_optimizor )
     add_subdirectory( ${GENERAL_GRAPH_OPTIMIZOR_PATH} ${PROJECT_SOURCE_DIR}/build/lib_general_graph_optimizor )
 endif()
 # Add kalman filter.
-set( KALMAN_FILTER_PATH ${PROJECT_SOURCE_DIR}/src/kalman_filter/kalman_filter )
+set( KALMAN_FILTER_PATH ${PROJECT_SOURCE_DIR}/src/state_filter/kalman_filter )
 if ( NOT TARGET lib_kalman_filter )
     add_subdirectory( ${KALMAN_FILTER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_kalman_filter )
 endif()
 # Add error kalman filter.
-set( ERROR_KALMAN_FILTER_PATH ${PROJECT_SOURCE_DIR}/src/kalman_filter/error_kalman_filter )
+set( ERROR_KALMAN_FILTER_PATH ${PROJECT_SOURCE_DIR}/src/state_filter/error_kalman_filter )
 if ( NOT TARGET lib_error_kalman_filter )
     add_subdirectory( ${ERROR_KALMAN_FILTER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_error_kalman_filter )
 endif()
 # Add square root kalman filter.
-set( SQUARE_ROOT_KALMAN_FILTER_PATH ${PROJECT_SOURCE_DIR}/src/kalman_filter/square_root_kalman_filter )
+set( SQUARE_ROOT_KALMAN_FILTER_PATH ${PROJECT_SOURCE_DIR}/src/state_filter/square_root_kalman_filter )
 if ( NOT TARGET lib_square_root_kalman_filter )
     add_subdirectory( ${SQUARE_ROOT_KALMAN_FILTER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_square_root_kalman_filter )
+endif()
+# Add information filter.
+set( INFORMAION_FILTER_PATH ${PROJECT_SOURCE_DIR}/src/state_filter/information_filter )
+if ( NOT TARGET lib_information_filter )
+    add_subdirectory( ${INFORMAION_FILTER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_information_filter )
 endif()
 # Add polynomial solver.
 set( POLYNOMIAL_SOLVER_PATH ${PROJECT_SOURCE_DIR}/src/polynomial_solver )
@@ -150,29 +164,41 @@ target_link_libraries( test_prior_operation
     lib_image_painter
 )
 
-# Add test_kalman_filter_constant.
-add_executable( test_kalman_filter_constant
-    test/test_kalman_filter_constant.cpp
+# Add test_state_filter_constant.
+add_executable( test_state_filter_constant
+    test/test_state_filter_constant.cpp
 )
-target_link_libraries( test_kalman_filter_constant
+target_link_libraries( test_state_filter_constant
     lib_kalman_filter
     lib_error_kalman_filter
     lib_square_root_kalman_filter
+    lib_information_filter
+
     lib_stack_backward
+
+    lib_slam_utility_basic_type
+    lib_slam_utility_math
+    lib_slam_utility_operate
     lib_slam_utility_log
 )
 
-# Add test_kalman_filter_imu_attitude.
-add_executable( test_kalman_filter_imu_attitude
-    test/test_kalman_filter_imu_attitude.cpp
+# Add test_state_filter_imu_attitude.
+add_executable( test_state_filter_imu_attitude
+    test/test_state_filter_imu_attitude.cpp
 )
-target_link_libraries( test_kalman_filter_imu_attitude
+target_link_libraries( test_state_filter_imu_attitude
     lib_kalman_filter
     lib_error_kalman_filter
     lib_square_root_kalman_filter
+    lib_information_filter
 
     lib_imu_model
     lib_stack_backward
+
+    lib_slam_utility_basic_type
+    lib_slam_utility_math
+    lib_slam_utility_operate
+    lib_slam_utility_log
 )
 
 # Add test_pose_graph_optimizor.
