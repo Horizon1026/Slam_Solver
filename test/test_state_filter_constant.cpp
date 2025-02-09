@@ -4,6 +4,7 @@
 #include "error_kalman_filter.h"
 #include "square_root_kalman_filter.h"
 #include "information_filter.h"
+#include "error_information_filter.h"
 
 #include <random>
 
@@ -72,6 +73,19 @@ void FilterNoisedDataInNominalState(const std::vector<Scalar> &noised_data,
         filter.PropagateCovariance();
         filter.UpdateStateAndCovariance(TVec1<Scalar>(noised_data[i]));
         filtered_data[i] = filter.x()(0);
+    }
+}
+
+template <typename InverseFilterType>
+void InverseFilterNoisedDataInErrorState(const std::vector<Scalar> &noised_data,
+                                         InverseFilterType &filter,
+                                         std::vector<Scalar> &filtered_data) {
+    filtered_data = noised_data;
+    for (uint32_t i = 1; i < noised_data.size(); ++i) {
+        filter.PropagateNominalState();
+        filter.PropagateInformation();
+        filter.UpdateStateAndInformation(TVec1<Scalar>(noised_data[i] - filtered_data[i - 1]));
+        filtered_data[i] = filter.dx()(0) + filtered_data[i - 1];
     }
 }
 
@@ -151,6 +165,16 @@ void TestSquareRootKalmanFilterStatic(std::vector<Scalar> &truth_data,
     PrintFilterResult(truth_data, noised_data, filtered_data);
 }
 
+void TestErrorInformationFilterStatic(std::vector<Scalar> &truth_data,
+                                      std::vector<Scalar> &noised_data) {
+    ReportInfo(YELLOW ">> Test error information filter (static) in dimension 1." RESET_COLOR);
+    ErrorInformationFilterStatic<Scalar, 1, 1> filter;
+    InitializeInformationFilter(filter);
+    std::vector<Scalar> filtered_data;
+    InverseFilterNoisedDataInErrorState(noised_data, filter, filtered_data);
+    PrintFilterResult(truth_data, noised_data, filtered_data);
+}
+
 void TestInformationFilterStatic(std::vector<Scalar> &truth_data,
                                  std::vector<Scalar> &noised_data) {
     ReportInfo(YELLOW ">> Test information filter (static) in dimension 1." RESET_COLOR);
@@ -201,6 +225,16 @@ void TestInformationFilterDynamic(std::vector<Scalar> &truth_data,
     PrintFilterResult(truth_data, noised_data, filtered_data);
 }
 
+void TestErrorInformationFilterDynamic(std::vector<Scalar> &truth_data,
+                                       std::vector<Scalar> &noised_data) {
+    ReportInfo(YELLOW ">> Test error information filter (dynamic) in dimension 1." RESET_COLOR);
+    ErrorInformationFilterDynamic<Scalar> filter;
+    InitializeInformationFilter(filter);
+    std::vector<Scalar> filtered_data;
+    InverseFilterNoisedDataInErrorState(noised_data, filter, filtered_data);
+    PrintFilterResult(truth_data, noised_data, filtered_data);
+}
+
 int main(int argc, char **argv) {
     ReportInfo(YELLOW ">> Test kalman filter solver." RESET_COLOR);
 
@@ -212,11 +246,13 @@ int main(int argc, char **argv) {
     TestErrorKalmanFilterStatic(truth_data, noised_data);
     TestSquareRootKalmanFilterStatic(truth_data, noised_data);
     TestInformationFilterStatic(truth_data, noised_data);
+    TestErrorInformationFilterStatic(truth_data, noised_data);
 
     TestKalmanFilterDynamic(truth_data, noised_data);
     TestErrorKalmanFilterDynamic(truth_data, noised_data);
     TestSquareRootKalmanFilterDynamic(truth_data, noised_data);
     TestInformationFilterDynamic(truth_data, noised_data);
+    TestErrorInformationFilterDynamic(truth_data, noised_data);
 
     return 0;
 }

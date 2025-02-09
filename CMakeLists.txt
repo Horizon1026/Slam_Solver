@@ -77,6 +77,11 @@ set( INFORMAION_FILTER_PATH ${PROJECT_SOURCE_DIR}/src/state_filter/information_f
 if ( NOT TARGET lib_information_filter )
     add_subdirectory( ${INFORMAION_FILTER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_information_filter )
 endif()
+# Add error information filter.
+set( ERROR_INFORMAION_FILTER_PATH ${PROJECT_SOURCE_DIR}/src/state_filter/error_information_filter )
+if ( NOT TARGET lib_error_information_filter )
+    add_subdirectory( ${ERROR_INFORMAION_FILTER_PATH} ${PROJECT_SOURCE_DIR}/build/lib_error_information_filter )
+endif()
 # Add polynomial solver.
 set( POLYNOMIAL_SOLVER_PATH ${PROJECT_SOURCE_DIR}/src/polynomial_solver )
 if ( NOT TARGET lib_polynomial_solver )
@@ -173,6 +178,7 @@ target_link_libraries( test_state_filter_constant
     lib_error_kalman_filter
     lib_square_root_kalman_filter
     lib_information_filter
+    lib_error_information_filter
 
     lib_stack_backward
 
@@ -191,6 +197,7 @@ target_link_libraries( test_state_filter_imu_attitude
     lib_error_kalman_filter
     lib_square_root_kalman_filter
     lib_information_filter
+    lib_error_information_filter
 
     lib_imu_model
     lib_stack_backward
