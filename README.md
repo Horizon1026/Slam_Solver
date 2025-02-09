@@ -12,11 +12,14 @@ General solver for slam problem, such as graph optimization problem solver.
     - [x] Marginalization.
     - [x] Support tbb parallel.
     - [x] Audo compute jacobians.(Only work on 'double')
-- [x] Kalman filter problem solver.
+- [x] State filter problem solver.
     - [x] Basic kalman filter.
     - [x] Error state kalman filter.
     - [x] Square root error state kalman filter.
     - [ ] Iteration kalman filter.
+    - [x] Basic information/inverse filter.
+    - [x] Error state information/inverse filter.
+    - [ ] Square root error state information/inverse filter.
 - [x] Polynomial solver. (3rd lib)
 - [x] Linear pose graph solver.
 

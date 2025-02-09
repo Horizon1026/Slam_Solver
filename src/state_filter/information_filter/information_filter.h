@@ -59,6 +59,8 @@ private:
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 class InformationFilterStatic : public InverseFilter<Scalar, InformationFilterStatic<Scalar, StateSize, ObserveSize>> {
 
+static_assert(StateSize > 0 && ObserveSize > 0, "Size of state and observe must be larger than 0.");
+
 public:
     InformationFilterStatic() : InverseFilter<Scalar, InformationFilterStatic<Scalar, StateSize, ObserveSize>>() {}
     virtual ~InformationFilterStatic() = default;

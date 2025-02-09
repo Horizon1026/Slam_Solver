@@ -1,9 +1,11 @@
 #include "slam_log_reporter.h"
 #include "slam_basic_math.h"
+
 #include "imu_measurement.h"
 #include "error_kalman_filter.h"
 #include "square_root_kalman_filter.h"
 #include "error_information_filter.h"
+#include "square_root_information_filter.h"
 
 #include <fstream>
 

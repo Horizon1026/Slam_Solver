@@ -5,6 +5,7 @@
 #include "square_root_kalman_filter.h"
 #include "information_filter.h"
 #include "error_information_filter.h"
+#include "square_root_information_filter.h"
 
 #include <random>
 
@@ -236,7 +237,7 @@ void TestErrorInformationFilterDynamic(std::vector<Scalar> &truth_data,
 }
 
 int main(int argc, char **argv) {
-    ReportInfo(YELLOW ">> Test kalman filter solver." RESET_COLOR);
+    ReportInfo(YELLOW ">> Test state filter solver." RESET_COLOR);
 
     std::vector<Scalar> truth_data;
     std::vector<Scalar> noised_data;
