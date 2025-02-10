@@ -129,8 +129,8 @@ void TestSquareRootKalmanFilter(const std::vector<ImuMeasurement> &meas,
     filter.S_t() = Mat6::Identity() * kInitStateCovarianceSigma;
     filter.F().setIdentity();
     filter.H().setZero();
-    filter.square_R_t().setIdentity();
-    filter.square_Q_t().setIdentity();
+    filter.sqrt_R_t().setIdentity();
+    filter.sqrt_Q_t().setIdentity();
 
     for (uint32_t i = 1; i < meas.size(); ++i) {
 		const Vec3 gyro = 0.5f * (meas[i - 1].gyro + meas[i].gyro) - est_bw[i - 1];
@@ -145,8 +145,8 @@ void TestSquareRootKalmanFilter(const std::vector<ImuMeasurement> &meas,
         // Propagate covariance.
         filter.F().block<3, 3>(0, 0) = Mat3::Identity() - Utility::SkewSymmetricMatrix(gyro) * dt;
         filter.F().block<3, 3>(0, 3) = -dt * Mat3::Identity();
-        filter.square_Q_t().block<3, 3>(0, 0) = Mat3::Identity() * kGyroNoiseSigma * dt;
-        filter.square_Q_t().block<3, 3>(3, 3) = Mat3::Identity() * kGyroRandomWalkSigma * dt;
+        filter.sqrt_Q_t().block<3, 3>(0, 0) = Mat3::Identity() * kGyroNoiseSigma * dt;
+        filter.sqrt_Q_t().block<3, 3>(3, 3) = Mat3::Identity() * kGyroRandomWalkSigma * dt;
         filter.PropagateCovariance();
 
         // Update state and covariance with observations.
@@ -155,7 +155,7 @@ void TestSquareRootKalmanFilter(const std::vector<ImuMeasurement> &meas,
         const Vec3 residual = Utility::SkewSymmetricMatrix(pred) * obv;
         filter.H().block<3, 3>(0, 0) = Utility::SkewSymmetricMatrix(obv) * Utility::SkewSymmetricMatrix(pred);
         const float weight = std::fabs(meas[i].accel.norm() - 9.81f);
-        filter.square_R_t() = Mat3::Identity() * std::sqrt(weight + 0.001f);
+        filter.sqrt_R_t() = Mat3::Identity() * std::sqrt(weight + 0.001f);
 		filter.UpdateStateAndCovariance(residual);
 
         est_q[i] = est_q[i] * Utility::DeltaQ(filter.dx().head<3>());

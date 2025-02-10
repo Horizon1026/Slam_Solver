@@ -29,8 +29,8 @@ public:
     TMat<Scalar> &predict_S_t() { return predict_S_t_; }
     TMat<Scalar> &F() { return F_; }
     TMat<Scalar> &H() { return H_; }
-    TMat<Scalar> &square_Q_t() { return square_Q_t_; }
-    TMat<Scalar> &square_R_t() { return square_R_t_; }
+    TMat<Scalar> &sqrt_Q_t() { return sqrt_Q_t_; }
+    TMat<Scalar> &sqrt_R_t() { return sqrt_R_t_; }
 
     // Const reference for member variables.
     const SquareRootKalmanFilterOptions &options() const { return options_; }
@@ -39,8 +39,8 @@ public:
     const TMat<Scalar> &predict_S_t() const { return predict_S_t_; }
     const TMat<Scalar> &F() const { return F_; }
     const TMat<Scalar> &H() const { return H_; }
-    const TMat<Scalar> &square_Q_t() const { return square_Q_t_; }
-    const TMat<Scalar> &square_R_t() const { return square_R_t_; }
+    const TMat<Scalar> &sqrt_Q_t() const { return sqrt_Q_t_; }
+    const TMat<Scalar> &sqrt_R_t() const { return sqrt_R_t_; }
 
 private:
     SquareRootKalmanFilterOptions options_;
@@ -55,8 +55,8 @@ private:
 
     // Process noise Q and measurement noise R.
     // Define Q^(T/2) and R^(T/2) here.
-    TMat<Scalar> square_Q_t_ = TMat<Scalar>::Zero(1, 1);
-    TMat<Scalar> square_R_t_ = TMat<Scalar>::Zero(1, 1);
+    TMat<Scalar> sqrt_Q_t_ = TMat<Scalar>::Zero(1, 1);
+    TMat<Scalar> sqrt_R_t_ = TMat<Scalar>::Zero(1, 1);
 
     TMat<Scalar> extend_predict_S_t_ = TMat<Scalar>::Zero(2, 1);
     TMat<Scalar> predict_S_t_ = TMat<Scalar>::Zero(1, 1);
@@ -85,8 +85,8 @@ public:
     TMat<Scalar, StateSize, StateSize> &predict_S_t() { return predict_S_t_; }
     TMat<Scalar, StateSize, StateSize> &F() { return F_; }
     TMat<Scalar, ObserveSize, StateSize> &H() { return H_; }
-    TMat<Scalar, StateSize, StateSize> &square_Q_t() { return square_Q_t_; }
-    TMat<Scalar, ObserveSize, ObserveSize> &square_R_t() { return square_R_t_; }
+    TMat<Scalar, StateSize, StateSize> &sqrt_Q_t() { return sqrt_Q_t_; }
+    TMat<Scalar, ObserveSize, ObserveSize> &sqrt_R_t() { return sqrt_R_t_; }
 
     // Const reference for member variables.
     const SquareRootKalmanFilterOptions &options() const { return options_; }
@@ -95,8 +95,8 @@ public:
     const TMat<Scalar, StateSize, StateSize> &predict_S_t() const { return predict_S_t_; }
     const TMat<Scalar, StateSize, StateSize> &F() const { return F_; }
     const TMat<Scalar, ObserveSize, StateSize> &H() const { return H_; }
-    const TMat<Scalar, StateSize, StateSize> &square_Q_t() const { return square_Q_t_; }
-    const TMat<Scalar, ObserveSize, ObserveSize> &square_R_t() const { return square_R_t_; }
+    const TMat<Scalar, StateSize, StateSize> &sqrt_Q_t() const { return sqrt_Q_t_; }
+    const TMat<Scalar, ObserveSize, ObserveSize> &sqrt_R_t() const { return sqrt_R_t_; }
 
 private:
     SquareRootKalmanFilterOptions options_;
@@ -111,8 +111,8 @@ private:
 
     // Process noise Q and measurement noise R.
     // Define Q^(T/2) and R^(T/2) here.
-    TMat<Scalar, StateSize, StateSize> square_Q_t_ = TMat<Scalar, StateSize, StateSize>::Zero();
-    TMat<Scalar, ObserveSize, ObserveSize> square_R_t_ = TMat<Scalar, ObserveSize, ObserveSize>::Zero();
+    TMat<Scalar, StateSize, StateSize> sqrt_Q_t_ = TMat<Scalar, StateSize, StateSize>::Zero();
+    TMat<Scalar, ObserveSize, ObserveSize> sqrt_R_t_ = TMat<Scalar, ObserveSize, ObserveSize>::Zero();
 
     TMat<Scalar, StateSize + StateSize, StateSize> extend_predict_S_t_ = TMat<Scalar, StateSize + StateSize, StateSize>::Zero();
     TMat<Scalar, StateSize, StateSize> predict_S_t_ = TMat<Scalar, StateSize, StateSize>::Zero();
@@ -132,7 +132,7 @@ bool SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>::PropagateCova
     /*  extend_predict_S_t_ = [ S.t * F.t ]
                               [   Q.t/2   ] */
     extend_predict_S_t_.template block<StateSize, StateSize>(0, 0) = S_t_ * F_.transpose();
-    extend_predict_S_t_.template block<StateSize, StateSize>(StateSize, 0) = square_Q_t_;
+    extend_predict_S_t_.template block<StateSize, StateSize>(StateSize, 0) = sqrt_Q_t_;
 
     // After QR decomposing of extend_predict_S_t_, the top matrix of the upper triangular matrix becomes predict_S_t_.
     Eigen::HouseholderQR<TMat<Scalar, StateSize + StateSize, StateSize>> qr_solver(extend_predict_S_t_);
@@ -148,7 +148,7 @@ bool SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAn
     /*  M = [ R.t/2             0    ] = T * [ (H * pre_P * H.t + R).t/2  hat_K.t ]
             [ pre_S.t * H.t  pre_S.t ]       [             0                S.t   ]
         T is a exist unit orthogonal matrix. */
-    M_.template block<ObserveSize, ObserveSize>(0, 0) = square_R_t_;
+    M_.template block<ObserveSize, ObserveSize>(0, 0) = sqrt_R_t_;
     M_.template block<ObserveSize, StateSize>(0, ObserveSize).setZero();
     M_.template block<StateSize, ObserveSize>(ObserveSize, 0) = predict_S_t_ * H_.transpose();
     M_.template block<StateSize, StateSize>(ObserveSize, ObserveSize) = predict_S_t_;

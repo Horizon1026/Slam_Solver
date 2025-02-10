@@ -122,8 +122,8 @@ void InitializeSquareRootKalmanFilter(FilterType &filter) {
     filter.S_t() *= kInitStateCovarianceSigma;
     filter.F().setIdentity(1, 1);
     filter.H().setIdentity(1, 1);
-    filter.square_R_t() = TMat1<Scalar>(kMeasureNoiseSigma);
-    filter.square_Q_t() = TMat1<Scalar>(kProcessNoiseSigma);
+    filter.sqrt_R_t() = TMat1<Scalar>(kMeasureNoiseSigma);
+    filter.sqrt_Q_t() = TMat1<Scalar>(kProcessNoiseSigma);
 }
 
 template <typename InverseFilterType>
@@ -134,6 +134,16 @@ void InitializeInformationFilter(InverseFilterType &filter) {
     filter.H().setIdentity(1, 1);
     filter.inverse_R() = TMat1<Scalar>(1.0 / (kMeasureNoiseSigma * kMeasureNoiseSigma));
     filter.inverse_Q() = TMat1<Scalar>(1.0 / (kProcessNoiseSigma * kProcessNoiseSigma));
+}
+
+template <typename FilterType>
+void InitializeSquareRootInformationFilter(FilterType &filter) {
+    filter.kesi_t().setIdentity(1, 1);
+    filter.kesi_t() /= kInitStateCovarianceSigma;
+    filter.F().setIdentity(1, 1);
+    filter.H().setIdentity(1, 1);
+    filter.inv_sqrt_R_t() = TMat1<Scalar>(1.0 / kMeasureNoiseSigma);
+    filter.inv_sqrt_Q_t() = TMat1<Scalar>(1.0 / kProcessNoiseSigma);
 }
 
 void TestKalmanFilterStatic(std::vector<Scalar> &truth_data,
@@ -166,16 +176,6 @@ void TestSquareRootKalmanFilterStatic(std::vector<Scalar> &truth_data,
     PrintFilterResult(truth_data, noised_data, filtered_data);
 }
 
-void TestErrorInformationFilterStatic(std::vector<Scalar> &truth_data,
-                                      std::vector<Scalar> &noised_data) {
-    ReportInfo(YELLOW ">> Test error information filter (static) in dimension 1." RESET_COLOR);
-    ErrorInformationFilterStatic<Scalar, 1, 1> filter;
-    InitializeInformationFilter(filter);
-    std::vector<Scalar> filtered_data;
-    InverseFilterNoisedDataInErrorState(noised_data, filter, filtered_data);
-    PrintFilterResult(truth_data, noised_data, filtered_data);
-}
-
 void TestInformationFilterStatic(std::vector<Scalar> &truth_data,
                                  std::vector<Scalar> &noised_data) {
     ReportInfo(YELLOW ">> Test information filter (static) in dimension 1." RESET_COLOR);
@@ -183,6 +183,16 @@ void TestInformationFilterStatic(std::vector<Scalar> &truth_data,
     InitializeInformationFilter(filter);
     std::vector<Scalar> filtered_data;
     InverseFilterNoisedDataInNominalState(noised_data, filter, filtered_data);
+    PrintFilterResult(truth_data, noised_data, filtered_data);
+}
+
+void TestErrorInformationFilterStatic(std::vector<Scalar> &truth_data,
+                                      std::vector<Scalar> &noised_data) {
+    ReportInfo(YELLOW ">> Test error information filter (static) in dimension 1." RESET_COLOR);
+    ErrorInformationFilterStatic<Scalar, 1, 1> filter;
+    InitializeInformationFilter(filter);
+    std::vector<Scalar> filtered_data;
+    InverseFilterNoisedDataInErrorState(noised_data, filter, filtered_data);
     PrintFilterResult(truth_data, noised_data, filtered_data);
 }
 
@@ -236,6 +246,16 @@ void TestErrorInformationFilterDynamic(std::vector<Scalar> &truth_data,
     PrintFilterResult(truth_data, noised_data, filtered_data);
 }
 
+void TestSquareRootInformationFilterDynamic(std::vector<Scalar> &truth_data,
+                                            std::vector<Scalar> &noised_data) {
+    ReportInfo(YELLOW ">> Test square root information filter (dynamic) in dimension 1." RESET_COLOR);
+    SquareRootInformationFilterDynamic<Scalar> filter;
+    InitializeSquareRootInformationFilter(filter);
+    std::vector<Scalar> filtered_data;
+    InverseFilterNoisedDataInErrorState(noised_data, filter, filtered_data);
+    PrintFilterResult(truth_data, noised_data, filtered_data);
+}
+
 int main(int argc, char **argv) {
     ReportInfo(YELLOW ">> Test state filter solver." RESET_COLOR);
 
@@ -254,6 +274,7 @@ int main(int argc, char **argv) {
     TestSquareRootKalmanFilterDynamic(truth_data, noised_data);
     TestInformationFilterDynamic(truth_data, noised_data);
     TestErrorInformationFilterDynamic(truth_data, noised_data);
+    TestSquareRootInformationFilterDynamic(truth_data, noised_data);
 
     return 0;
 }
