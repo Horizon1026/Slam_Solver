@@ -18,20 +18,19 @@ bool SquareRootInformationFilterDynamic<Scalar>::PropagateInformationImpl() {
     const int32_t state_size = W_.rows();
     const int32_t double_state_size = state_size << 1;
     if (A_.rows() != double_state_size) {
-        A_.setZero(double_state_size, double_state_size);
+        A_.setZero(double_state_size, state_size);
     }
 
-    /* A = [    sqrt(Q).inv          0     ], T * A = [ xxx      xxx    ]
-           [ - W * F.inv * G     W * F.inv ]          [  0   predict_W_ ]*/
+    /* A = [        W_       ], T * A = [ predict_W_ ]
+           [ sqrt(Q).inv * F ]          [     xxx    ]*/
     // G comes from x = Fx + Gu, which is identity here.
-    A_.template block(0, 0, state_size, state_size) = inv_sqrt_Q_t_;
-    A_.template block(state_size, 0, state_size, state_size) = - W_ * F_;
-    A_.template block(state_size, state_size, state_size, state_size) = W_ * F_;
+    A_.template block(0, 0, state_size, state_size) = W_;
+    A_.template block(state_size, 0, state_size, state_size) = inv_sqrt_Q_t_ * F_;
 
     // After QR decomposing of A_, the right bottom block is predict_W_.
     Eigen::HouseholderQR<TMat<Scalar>> qr_solver(A_);
     A_ = qr_solver.matrixQR().template triangularView<Eigen::Upper>();
-    predict_W_ = A_.template block(state_size, state_size, state_size, state_size);
+    predict_W_ = A_.template block(0, 0, state_size, state_size);
 
     return true;
 }
