@@ -19,27 +19,27 @@ public:
     bool UpdateStateAndInformationImpl(const TMat<Scalar> &observation = TMat<Scalar>::Zero(1, 1));
 
     // Reference for member variables.
-    TVec<Scalar> &dx() { return dx_; }
-    TMat<Scalar> &kesi_t() { return kesi_t_; }
-    TMat<Scalar> &F() { return F_; }
-    TMat<Scalar> &H() { return H_; }
-    TMat<Scalar> &inv_sqrt_Q_t() { return inv_sqrt_Q_t_; }
-    TMat<Scalar> &inv_sqrt_R_t() { return inv_sqrt_R_t_; }
-    TMat<Scalar> &predict_kesi_t() { return predict_kesi_t_; }
+    TVec<Scalar>& dx() { return dx_; }
+    TMat<Scalar>& W() { return W_; }
+    TMat<Scalar>& F() { return F_; }
+    TMat<Scalar>& H() { return H_; }
+    TMat<Scalar>& inv_sqrt_Q_t() { return inv_sqrt_Q_t_; }
+    TMat<Scalar>& inv_sqrt_R_t() { return inv_sqrt_R_t_; }
+    TMat<Scalar>& predict_W() { return predict_W_; }
 
     // Const reference for member variables.
-    const TVec<Scalar> &dx() const { return dx_; }
-    const TMat<Scalar> &kesi_t() const { return kesi_t_; }
-    const TMat<Scalar> &F() const { return F_; }
-    const TMat<Scalar> &H() const { return H_; }
-    const TMat<Scalar> &inv_sqrt_Q_t() const { return inv_sqrt_Q_t_; }
-    const TMat<Scalar> &inv_sqrt_R_t() const { return inv_sqrt_R_t_; }
-    const TMat<Scalar> &predict_kesi_t() const { return predict_kesi_t_; }
+    const TVec<Scalar>& dx() const { return dx_; }
+    const TMat<Scalar>& W() const { return W_; }
+    const TMat<Scalar>& F() const { return F_; }
+    const TMat<Scalar>& H() const { return H_; }
+    const TMat<Scalar>& inv_sqrt_Q_t() const { return inv_sqrt_Q_t_; }
+    const TMat<Scalar>& inv_sqrt_R_t() const { return inv_sqrt_R_t_; }
+    const TMat<Scalar>& predict_W() const { return predict_W_; }
 
 private:
     TVec<Scalar> dx_ = TMat<Scalar>::Zero(1, 1);
-    // I is represent as kesi * kesi.t.
-    TMat<Scalar> kesi_t_ = TMat<Scalar>::Zero(1, 1);
+    // I is represent as W * W.t.
+    TMat<Scalar> W_ = TMat<Scalar>::Zero(1, 1);
 
     // Process function F and measurement function H.
     TMat<Scalar> F_ = TMat<Scalar>::Identity(1, 1);
@@ -50,10 +50,9 @@ private:
     TMat<Scalar> inv_sqrt_Q_t_ = TMat<Scalar>::Zero(1, 1);
     TMat<Scalar> inv_sqrt_R_t_ = TMat<Scalar>::Zero(1, 1);
 
-    TMat<Scalar> extend_rho_t_ = TMat<Scalar>::Zero(2, 1);
-    TMat<Scalar> extend_predict_kesi_t_ = TMat<Scalar>::Zero(2, 1);
-    TMat<Scalar> predict_kesi_t_ = TMat<Scalar>::Zero(1, 1);
-    TMat<Scalar> M_ = TMat<Scalar>::Zero(2, 1);
+    TMat<Scalar> A_ = TMat<Scalar>::Zero(1, 1);
+    TMat<Scalar> B_ = TMat<Scalar>::Zero(1, 1);
+    TMat<Scalar> predict_W_ = TMat<Scalar>::Zero(1, 1);
 
 };
 

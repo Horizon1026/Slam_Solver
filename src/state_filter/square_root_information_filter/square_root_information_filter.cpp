@@ -15,58 +15,50 @@ bool SquareRootInformationFilterDynamic<Scalar>::PropagateNominalStateImpl(const
 
 template <typename Scalar>
 bool SquareRootInformationFilterDynamic<Scalar>::PropagateInformationImpl() {
-    // TODO: something wrong here.
-    const int32_t state_size = kesi_t_.rows();
+    const int32_t state_size = W_.rows();
     const int32_t double_state_size = state_size << 1;
-    if (extend_rho_t_.rows() != double_state_size) {
-        extend_rho_t_.setZero(double_state_size, state_size);
+    if (A_.rows() != double_state_size) {
+        A_.setZero(double_state_size, double_state_size);
     }
 
-    const TMat<Scalar> F_inv = F_.inverse();
-    const TMat<Scalar> F_t_inv = F_inv.transpose();
+    /* A = [    sqrt(Q).inv          0     ], T * A = [ xxx      xxx    ]
+           [ - W * F.inv * G     W * F.inv ]          [  0   predict_W_ ]*/
+    // G comes from x = Fx + Gu, which is identity here.
+    A_.template block(0, 0, state_size, state_size) = inv_sqrt_Q_t_;
+    A_.template block(state_size, 0, state_size, state_size) = - W_ * F_;
+    A_.template block(state_size, state_size, state_size, state_size) = W_ * F_;
 
-    /* extend_rho_t_ = [ kesi_t * F.inv ]
-                       [   Q.inv.t/2    ] */
-    extend_rho_t_.template block(0, 0, state_size, state_size) = kesi_t_ * F_inv;
-    extend_rho_t_.template block(state_size, 0, state_size, state_size) = inv_sqrt_Q_t_;
+    // After QR decomposing of A_, the right bottom block is predict_W_.
+    Eigen::HouseholderQR<TMat<Scalar>> qr_solver(A_);
+    A_ = qr_solver.matrixQR().template triangularView<Eigen::Upper>();
+    predict_W_ = A_.template block(state_size, state_size, state_size, state_size);
 
-    // After QR decomposing of extend_rho_t_, the top matrix of the upper triangular matrix becomes rho.
-    Eigen::HouseholderQR<TMat<Scalar>> qr_solver(extend_rho_t_);
-    extend_rho_t_ = qr_solver.matrixQR().template triangularView<Eigen::Upper>();
-    const TMat<Scalar> rho = extend_rho_t_.template block(0, 0, state_size, state_size);
-
-    // Compute predict kesi_t.
-    predict_kesi_t_ = F_t_inv * kesi_t_.transpose() - F_t_inv * kesi_t_.transpose() * kesi_t_ * F_inv * (
-        rho * rho.transpose() + inv_sqrt_Q_t_ * rho.transpose()
-    ).inverse() * F_t_inv * kesi_t_.transpose();
     return true;
 }
 
 template <typename Scalar>
 bool SquareRootInformationFilterDynamic<Scalar>::UpdateStateAndInformationImpl(const TMat<Scalar> &residual) {
-    // TODO: something wrong here.
-    const int32_t state_size = kesi_t_.rows();
-    const int32_t double_state_size = state_size << 1;
-    if (extend_predict_kesi_t_.rows() != double_state_size) {
-        extend_predict_kesi_t_.setZero(double_state_size, state_size);
+    const int32_t state_size = W_.rows();
+    const int32_t measure_size = inv_sqrt_R_t_.rows();
+    if (B_.rows() != state_size + measure_size) {
+        B_.setZero(state_size + measure_size, state_size + 1);
     }
-    const TMat<Scalar> kesi = kesi_t_.transpose();
 
-    /* extend_predict_kesi_t_ = [ predict_kesi_t_ ]
-                                [  R.inv.t/2 * H  ] */
-    extend_predict_kesi_t_.template block(0, 0, state_size, state_size) = predict_kesi_t_;
-    extend_predict_kesi_t_.template block(state_size, 0, state_size, state_size) = inv_sqrt_R_t_ * H_;
+    /* B = [     predict_W               0           ]
+           [ sqrt(R).inv * H  sqrt(R).inv * residual ] */
+    B_.template block(0, 0, state_size, state_size) = predict_W_;
+    B_.template block(state_size, 0, measure_size, state_size) = inv_sqrt_R_t_ * H_;
+    B_.template block(state_size, state_size, measure_size, 1) = inv_sqrt_R_t_ * residual;
 
-    // After QR decomposing of extend_predict_kesi_t_, the top matrix of the upper triangular matrix becomes kesi_t_.
-    Eigen::HouseholderQR<TMat<Scalar>> qr_solver(extend_predict_kesi_t_);
-    extend_predict_kesi_t_ = qr_solver.matrixQR().template triangularView<Eigen::Upper>();
-    kesi_t_ = extend_predict_kesi_t_.template block(0, 0, state_size, state_size);
-
-    // Compute kalman gain.
-    const TMat<Scalar> K_ = (kesi * kesi_t_).inverse() * H_.transpose() * inv_sqrt_R_t_ * inv_sqrt_R_t_;
+    // After QR decomposing of B_, the left top block is new W_.
+    Eigen::HouseholderQR<TMat<Scalar>> qr_solver(B_);
+    B_ = qr_solver.matrixQR().template triangularView<Eigen::Upper>();
+    W_ = B_.template block(0, 0, state_size, state_size);
 
     // Update error state.
-    dx_ = K_ * residual;
+    const TVec<Scalar> error_b = B_.template block(0, state_size, state_size, 1);
+    dx_ = W_.inverse() * error_b;
+
     return true;
 }
 

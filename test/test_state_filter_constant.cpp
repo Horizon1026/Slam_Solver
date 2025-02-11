@@ -138,8 +138,8 @@ void InitializeInformationFilter(InverseFilterType &filter) {
 
 template <typename FilterType>
 void InitializeSquareRootInformationFilter(FilterType &filter) {
-    filter.kesi_t().setIdentity(1, 1);
-    filter.kesi_t() /= kInitStateCovarianceSigma;
+    filter.W().setIdentity(1, 1);
+    filter.W() /= kInitStateCovarianceSigma;
     filter.F().setIdentity(1, 1);
     filter.H().setIdentity(1, 1);
     filter.inv_sqrt_R_t() = TMat1<Scalar>(1.0 / kMeasureNoiseSigma);
