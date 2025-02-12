@@ -216,6 +216,57 @@ void TestErrorInformationFilter(const std::vector<ImuMeasurement> &meas,
 
 }
 
+void TestSquareRootInformationFilter(const std::vector<ImuMeasurement> &meas,
+                                     std::vector<Quat> &est_q,
+                                     std::vector<Vec3> &est_bw) {
+	ReportInfo(YELLOW ">> Test error state square root information filter." RESET_COLOR);
+
+	// Set initial state.
+    est_q.resize(meas.size());
+    est_q.front().setIdentity();
+    est_bw.resize(meas.size());
+    est_bw.front().setZero();
+
+	// Initialize filter.
+    SquareRootInformationFilterStatic<float, 6, 3> filter;
+    filter.W() = Mat6::Identity() / kInitStateCovarianceSigma;
+    filter.F().setIdentity();
+    filter.H().setZero();
+    filter.inv_sqrt_R_t().setIdentity();
+    filter.inv_sqrt_Q_t().setIdentity();
+
+    for (uint32_t i = 1; i < meas.size(); ++i) {
+		const Vec3 gyro = 0.5f * (meas[i - 1].gyro + meas[i].gyro) - est_bw[i - 1];
+        const float dt = meas[i].time_stamp_s - meas[i - 1].time_stamp_s;
+
+        // Propagate nominal state.
+        est_q[i] = est_q[i - 1] * Utility::DeltaQ(gyro * dt);
+        est_q[i].normalize();
+        est_bw[i] = est_bw[i - 1];
+        filter.PropagateNominalState();
+
+        // Propagate covariance.
+        filter.F().block<3, 3>(0, 0) = Mat3::Identity() - Utility::SkewSymmetricMatrix(gyro) * dt;
+        filter.F().block<3, 3>(0, 3) = -dt * Mat3::Identity();
+        filter.inv_sqrt_Q_t().block<3, 3>(0, 0) = Mat3::Identity() / (kGyroNoiseSigma * dt);
+        filter.inv_sqrt_Q_t().block<3, 3>(3, 3) = Mat3::Identity() / (kGyroRandomWalkSigma * dt);
+        filter.PropagateInformation();
+
+        // Update state and covariance with observations.
+        const Vec3 obv = meas[i].accel / meas[i].accel.norm();
+        const Vec3 pred = est_q[i].matrix().transpose().col(2);
+        const Vec3 residual = Utility::SkewSymmetricMatrix(pred) * obv;
+        filter.H().block<3, 3>(0, 0) = Utility::SkewSymmetricMatrix(obv) * Utility::SkewSymmetricMatrix(pred);
+        const float weight = std::fabs(meas[i].accel.norm() - 9.81f);
+        filter.inv_sqrt_R_t() = Mat3::Identity() / std::sqrt(weight + 0.001f);
+		filter.UpdateStateAndInformation(residual);
+
+        est_q[i] = est_q[i] * Utility::DeltaQ(filter.dx().head<3>());
+        est_q[i].normalize();
+        est_bw[i] = est_bw[i] + filter.dx().tail<3>();
+    }
+}
+
 void ComputeEstimationResidual(const std::vector<Quat> &truth,
 							   const std::vector<Quat> &estimate) {
     if (truth.size() != estimate.size()) {
@@ -282,6 +333,11 @@ int main(int argc, char **argv) {
     estimation_q.clear();
 
     TestErrorInformationFilter(measurements, estimation_q, estimation_bw);
+    ComputeEstimationResidual(rotation, estimation_q);
+    estimation_bw.clear();
+    estimation_q.clear();
+
+    TestSquareRootInformationFilter(measurements, estimation_q, estimation_bw);
     ComputeEstimationResidual(rotation, estimation_q);
     estimation_bw.clear();
     estimation_q.clear();

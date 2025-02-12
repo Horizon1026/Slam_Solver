@@ -18,14 +18,13 @@ bool SquareRootInformationFilterDynamic<Scalar>::PropagateInformationImpl() {
     const int32_t state_size = W_.rows();
     const int32_t double_state_size = state_size << 1;
     if (A_.rows() != double_state_size) {
-        A_.setZero(double_state_size, double_state_size);
+        A_.setZero(double_state_size, state_size);
     }
 
-    /* A = [        W_                0      ], T * A = [ predict_W_   xxx ]
-           [ sqrt(Q).inv * F   - sqrt(Q).inv ]          [     0        xxx ]*/
+    /* A = [        W_       ], T * A = [ predict_W_ ]
+           [ sqrt(Q).inv * F ]          [     0      ]*/
     A_.template block(0, 0, state_size, state_size) = W_;
     A_.template block(state_size, 0, state_size, state_size) = inv_sqrt_Q_t_ * F_;
-    A_.template block(state_size, state_size, state_size, state_size) = - inv_sqrt_Q_t_;
 
     // After QR decomposing of A_, the top left block is predict_W_.
     Eigen::HouseholderQR<TMat<Scalar>> qr_solver(A_);
@@ -43,8 +42,8 @@ bool SquareRootInformationFilterDynamic<Scalar>::UpdateStateAndInformationImpl(c
         B_.setZero(state_size + measure_size, state_size + 1);
     }
 
-    /* B = [     predict_W               0           ]
-           [ sqrt(R).inv * H  sqrt(R).inv * residual ] */
+    /* B = [     predict_W           0        ]
+           [ sqrt(R).inv * H  sqrt(R).inv * r ] */
     B_.template block(0, 0, state_size, state_size) = predict_W_;
     B_.template block(state_size, 0, measure_size, state_size) = inv_sqrt_R_t_ * H_;
     B_.template block(state_size, state_size, measure_size, 1) = inv_sqrt_R_t_ * residual;

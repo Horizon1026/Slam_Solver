@@ -37,7 +37,7 @@ public:
     const TMat<Scalar> &inverse_R() const { return inverse_R_; }
 
 private:
-    TVec<Scalar> dx_ = TMat<Scalar>::Zero(1, 1);
+    TVec<Scalar> dx_ = TVec<Scalar>::Zero(1, 1);
     TMat<Scalar> I_ = TMat<Scalar>::Zero(1, 1);
     TMat<Scalar> predict_I_ = TMat<Scalar>::Zero(1, 1);
 
@@ -51,7 +51,7 @@ private:
 
 };
 
-/* Class Basic Information Filer Declaration. */
+/* Class Error Information Filer Declaration. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 class ErrorInformationFilterStatic : public InverseFilter<Scalar, ErrorInformationFilterStatic<Scalar, StateSize, ObserveSize>> {
 

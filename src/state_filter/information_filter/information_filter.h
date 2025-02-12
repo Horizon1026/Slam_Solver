@@ -39,7 +39,7 @@ public:
     const TMat<Scalar> &inverse_R() const { return inverse_R_; }
 
 private:
-    TVec<Scalar> x_ = TMat<Scalar>::Zero(1, 1);
+    TVec<Scalar> x_ = TVec<Scalar>::Zero(1, 1);
     TMat<Scalar> I_ = TMat<Scalar>::Zero(1, 1);
 
     TVec<Scalar> predict_x_ = TMat<Scalar>::Zero(1, 1);

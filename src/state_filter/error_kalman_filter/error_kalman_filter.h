@@ -43,7 +43,7 @@ public:
 private:
     ErrorKalmanFilterOptions options_;
 
-    TVec<Scalar> dx_ = TMat<Scalar>::Zero(1, 1);
+    TVec<Scalar> dx_ = TVec<Scalar>::Zero(1, 1);
     TMat<Scalar> P_ = TMat<Scalar>::Zero(1, 1);
 
     TMat<Scalar> predict_P_ = TMat<Scalar>::Zero(1, 1);

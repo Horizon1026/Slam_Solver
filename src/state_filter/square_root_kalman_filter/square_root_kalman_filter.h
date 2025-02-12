@@ -45,7 +45,7 @@ public:
 private:
     SquareRootKalmanFilterOptions options_;
 
-    TVec<Scalar> dx_ = TMat<Scalar>::Zero(1, 1);
+    TVec<Scalar> dx_ = TVec<Scalar>::Zero(1, 1);
     // P is represent as P = S * S.t.
     TMat<Scalar> S_t_ = TMat<Scalar>::Zero(1, 1);
 

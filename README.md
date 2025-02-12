@@ -19,7 +19,7 @@ General solver for slam problem, such as graph optimization problem solver.
     - [ ] Iteration kalman filter.
     - [x] Basic information/inverse filter.
     - [x] Error state information/inverse filter.
-    - [ ] Square root error state information/inverse filter.
+    - [x] Square root error state information/inverse filter.
 - [x] Polynomial solver. (3rd lib)
 - [x] Linear pose graph solver.
 
@@ -32,3 +32,4 @@ General solver for slam problem, such as graph optimization problem solver.
 # Tips
 - 欢迎一起交流学习，不同意商用；
 - 使用方法参考 ./test/test_xxx.cpp，暂时没时间写详细文档；
+- Square root information filter参考了美团的 SR-ISWF，但从结果上来看似乎并不等价于标准 information filter;
