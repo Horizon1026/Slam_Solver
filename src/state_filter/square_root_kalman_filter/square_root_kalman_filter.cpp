@@ -1,4 +1,5 @@
 #include "square_root_kalman_filter.h"
+#include "iostream"
 
 namespace SLAM_SOLVER {
 
@@ -42,7 +43,7 @@ bool SquareRootKalmanFilterDynamic<Scalar>::UpdateStateAndCovarianceImpl(const T
     }
 
     const int32_t full_size = state_size + obv_size;
-    if (M_.rows() != full_size) {
+    if (M_.rows() != full_size || M_.cols() != full_size) {
         M_.setZero(full_size, full_size);
     }
 
