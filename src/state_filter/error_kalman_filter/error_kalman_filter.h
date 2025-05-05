@@ -26,6 +26,7 @@ public:
     ErrorKalmanFilterOptions &options() { return options_; }
     TVec<Scalar> &dx() { return dx_; }
     TMat<Scalar> &P() { return P_; }
+    TMat<Scalar> &predict_P() { return predict_P_; }
     TMat<Scalar> &F() { return F_; }
     TMat<Scalar> &H() { return H_; }
     TMat<Scalar> &Q() { return Q_; }
@@ -35,6 +36,7 @@ public:
     const ErrorKalmanFilterOptions &options() const { return options_; }
     const TVec<Scalar> &dx() const { return dx_; }
     const TMat<Scalar> &P() const { return P_; }
+    const TMat<Scalar> &predict_P() const { return predict_P_; }
     const TMat<Scalar> &F() const { return F_; }
     const TMat<Scalar> &H() const { return H_; }
     const TMat<Scalar> &Q() const { return Q_; }
@@ -77,6 +79,7 @@ public:
     ErrorKalmanFilterOptions &options() { return options_; }
     TVec<Scalar, StateSize> &dx() { return dx_; }
     TMat<Scalar, StateSize, StateSize> &P() { return P_; }
+    TMat<Scalar, StateSize, StateSize> &predict_P() { return predict_P_; }
     TMat<Scalar, StateSize, StateSize> &F() { return F_; }
     TMat<Scalar, ObserveSize, StateSize> &H() { return H_; }
     TMat<Scalar, StateSize, StateSize> &Q() { return Q_; }
@@ -86,6 +89,7 @@ public:
     const ErrorKalmanFilterOptions &options() const { return options_; }
     const TVec<Scalar, StateSize> &dx() const { return dx_; }
     const TMat<Scalar, StateSize, StateSize> &P() const { return P_; }
+    const TMat<Scalar, StateSize, StateSize> &predict_P() const { return predict_P_; }
     const TMat<Scalar, StateSize, StateSize> &F() const { return F_; }
     const TMat<Scalar, ObserveSize, StateSize> &H() const { return H_; }
     const TMat<Scalar, StateSize, StateSize> &Q() const { return Q_; }
