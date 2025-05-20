@@ -2,7 +2,7 @@ aux_source_directory( . AUX_SRC_SQUARE_ROOT_KALMAN_FILTER )
 
 # Add all relative components of general graph optimizor.
 set( SLAM_UTILITY_PATH ${PROJECT_SOURCE_DIR}/../Slam_Utility )
-if ( NOT TARGET lib_slam_utility_basic_type )
+if( NOT TARGET lib_slam_utility_basic_type )
     add_subdirectory( ${SLAM_UTILITY_PATH}/src/basic_type ${PROJECT_SOURCE_DIR}/build/lib_slam_utility_basic_type )
 endif()
 
