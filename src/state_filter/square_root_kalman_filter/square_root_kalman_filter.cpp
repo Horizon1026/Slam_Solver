@@ -16,16 +16,16 @@ bool SquareRootKalmanFilterDynamic<Scalar>::PropagateNominalStateImpl(const TVec
 
 template <typename Scalar>
 bool SquareRootKalmanFilterDynamic<Scalar>::PropagateCovarianceImpl() {
-    const int32_t state_size = S_t_.rows();
-    const int32_t double_state_size = state_size << 1;
-    if (extend_predict_S_t_.rows() != double_state_size) {
-        extend_predict_S_t_.setZero(double_state_size, state_size);
+    const int32_t state_size = S_t_.cols();
+    const int32_t extend_size = S_t_.rows() + state_size;
+    if (extend_predict_S_t_.rows() != extend_size) {
+        extend_predict_S_t_.setZero(extend_size, state_size);
     }
 
     /*  extend_predict_S_t_ = [ S.t * F.t ]
                               [   Q.t/2   ] */
-    extend_predict_S_t_.template block(0, 0, state_size, state_size) = S_t_ * F_.transpose();
-    extend_predict_S_t_.template block(state_size, 0, state_size, state_size) = sqrt_Q_t_;
+    extend_predict_S_t_.template block(0, 0, S_t_.rows(), state_size) = S_t_ * F_.transpose();
+    extend_predict_S_t_.template block(S_t_.rows(), 0, state_size, state_size) = sqrt_Q_t_;
 
     // After QR decomposing of extend_predict_S_t_, the top matrix of the upper triangular matrix becomes predict_S_t_.
     Eigen::HouseholderQR<TMat<Scalar>> qr_solver(extend_predict_S_t_);
@@ -36,9 +36,9 @@ bool SquareRootKalmanFilterDynamic<Scalar>::PropagateCovarianceImpl() {
 
 template <typename Scalar>
 bool SquareRootKalmanFilterDynamic<Scalar>::UpdateStateAndCovarianceImpl(const TMat<Scalar> &residual) {
-    const int32_t state_size = predict_S_t_.rows();
+    const int32_t state_size = predict_S_t_.cols();
     const int32_t obv_size = H_.rows();
-    if (residual.rows() != obv_size) {
+    if (residual.rows() != obv_size || H_.cols() != state_size) {
         return false;
     }
 

@@ -98,122 +98,59 @@ if( NOT TARGET lib_pose_graph_optimizor )
     add_subdirectory( ${POSE_GRAPH_OPTIMIZOR} ${PROJECT_SOURCE_DIR}/build/lib_pose_graph_optimizor )
 endif()
 
-# Add test_general_graph_optimizor_polynomial_problem.
-add_executable( test_general_graph_optimizor_polynomial_problem
-    test/test_general_graph_optimizor_polynomial_problem.cpp
+# Compile targets based on general graph optimizor.
+set( UNIT_TEST_OF_GENERAL_GRAPH_OPTIMIZOR_LIST
+    test_general_graph_optimizor_polynomial_problem
+    test_general_graph_optimizor_pos_norm_plane_BA
+    test_general_graph_optimizor_invdep_norm_plane_BA
+    test_general_graph_optimizor_pos_unit_sphere_BA
+    test_general_graph_optimizor_invdep_unit_sphere_BA
+    test_general_graph_optimizor_invdep_one_cam_two_frame
+    test_general_graph_optimizor_marginalization
+    test_prior_operation
+    test_general_graph_optimizor_line_BA
 )
-target_link_libraries( test_general_graph_optimizor_polynomial_problem
-    lib_general_graph_optimizor
-    lib_stack_backward
-)
+foreach( unit_test_src ${UNIT_TEST_OF_GENERAL_GRAPH_OPTIMIZOR_LIST} )
+    add_executable( ${unit_test_src}
+        test/${unit_test_src}.cpp
+    )
+    target_link_libraries( ${unit_test_src}
+        lib_general_graph_optimizor
+        lib_stack_backward
+        lib_line_segment
+        lib_plane
+        lib_image_painter
+        lib_2d_visualizor
+        lib_3d_visualizor
+    )
+endforeach()
 
-# Add test_general_graph_optimizor_pos_norm_plane_BA.
-add_executable( test_general_graph_optimizor_pos_norm_plane_BA
-    test/test_general_graph_optimizor_pos_norm_plane_BA.cpp
+# Compile targets based on state filter.
+set( UNIT_TEST_OF_STATE_FILTER_LIST
+    test_state_filter_constant
+    test_state_filter_imu_attitude
 )
-target_link_libraries( test_general_graph_optimizor_pos_norm_plane_BA
-    lib_general_graph_optimizor
-    lib_stack_backward
-)
+foreach( unit_test_src ${UNIT_TEST_OF_STATE_FILTER_LIST} )
+    add_executable( ${unit_test_src}
+        test/${unit_test_src}.cpp
+    )
+    target_link_libraries( ${unit_test_src}
+        lib_kalman_filter
+        lib_error_kalman_filter
+        lib_square_root_kalman_filter
+        lib_information_filter
+        lib_error_information_filter
+        lib_square_root_information_filter
 
-# Add test_general_graph_optimizor_invdep_norm_plane_BA.
-add_executable( test_general_graph_optimizor_invdep_norm_plane_BA
-    test/test_general_graph_optimizor_invdep_norm_plane_BA.cpp
-)
-target_link_libraries( test_general_graph_optimizor_invdep_norm_plane_BA
-    lib_general_graph_optimizor
-    lib_stack_backward
-)
+        lib_imu_model
+        lib_stack_backward
 
-# Add test_general_graph_optimizor_pos_unit_sphere_BA.
-add_executable( test_general_graph_optimizor_pos_unit_sphere_BA
-    test/test_general_graph_optimizor_pos_unit_sphere_BA.cpp
-)
-target_link_libraries( test_general_graph_optimizor_pos_unit_sphere_BA
-    lib_general_graph_optimizor
-    lib_stack_backward
-)
-
-# Add test_general_graph_optimizor_invdep_unit_sphere_BA.
-add_executable( test_general_graph_optimizor_invdep_unit_sphere_BA
-    test/test_general_graph_optimizor_invdep_unit_sphere_BA.cpp
-)
-target_link_libraries( test_general_graph_optimizor_invdep_unit_sphere_BA
-    lib_general_graph_optimizor
-    lib_stack_backward
-)
-
-# Add test_general_graph_optimizor_invdep_one_cam_two_frame.
-add_executable( test_general_graph_optimizor_invdep_one_cam_two_frame
-    test/test_general_graph_optimizor_invdep_one_cam_two_frame.cpp
-)
-target_link_libraries( test_general_graph_optimizor_invdep_one_cam_two_frame
-    lib_general_graph_optimizor
-    lib_stack_backward
-)
-
-# Add test_general_graph_optimizor_marginalization.
-add_executable( test_general_graph_optimizor_marginalization
-    test/test_general_graph_optimizor_marginalization.cpp
-)
-target_link_libraries( test_general_graph_optimizor_marginalization
-    lib_general_graph_optimizor
-    lib_stack_backward
-    lib_2d_visualizor
-    lib_image_painter
-)
-
-# Add test_prior_operation.
-add_executable( test_prior_operation
-    test/test_prior_operation.cpp
-)
-target_link_libraries( test_prior_operation
-    lib_general_graph_optimizor
-    lib_stack_backward
-    lib_2d_visualizor
-    lib_image_painter
-)
-
-# Add test_state_filter_constant.
-add_executable( test_state_filter_constant
-    test/test_state_filter_constant.cpp
-)
-target_link_libraries( test_state_filter_constant
-    lib_kalman_filter
-    lib_error_kalman_filter
-    lib_square_root_kalman_filter
-    lib_information_filter
-    lib_error_information_filter
-    lib_square_root_information_filter
-
-    lib_stack_backward
-
-    lib_slam_utility_basic_type
-    lib_slam_utility_math
-    lib_slam_utility_operate
-    lib_slam_utility_log
-)
-
-# Add test_state_filter_imu_attitude.
-add_executable( test_state_filter_imu_attitude
-    test/test_state_filter_imu_attitude.cpp
-)
-target_link_libraries( test_state_filter_imu_attitude
-    lib_kalman_filter
-    lib_error_kalman_filter
-    lib_square_root_kalman_filter
-    lib_information_filter
-    lib_error_information_filter
-    lib_square_root_information_filter
-
-    lib_imu_model
-    lib_stack_backward
-
-    lib_slam_utility_basic_type
-    lib_slam_utility_math
-    lib_slam_utility_operate
-    lib_slam_utility_log
-)
+        lib_slam_utility_basic_type
+        lib_slam_utility_math
+        lib_slam_utility_operate
+        lib_slam_utility_log
+    )
+endforeach()
 
 # Add test_pose_graph_optimizor.
 add_executable( test_pose_graph_optimizor
@@ -224,17 +161,4 @@ target_link_libraries( test_pose_graph_optimizor
     lib_pose_graph_optimizor
     lib_3d_visualizor
     lib_stack_backward
-)
-
-# Add test_general_graph_optimizor_line_BA.
-add_executable( test_general_graph_optimizor_line_BA
-    test/test_general_graph_optimizor_line_BA.cpp
-)
-target_link_libraries( test_general_graph_optimizor_line_BA
-    lib_general_graph_optimizor
-    lib_stack_backward
-    lib_line_segment
-    lib_plane
-    lib_2d_visualizor
-    lib_3d_visualizor
 )
