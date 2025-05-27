@@ -18,7 +18,6 @@ public:
     ErrorKalmanFilterDynamic() : Filter<Scalar, ErrorKalmanFilterDynamic<Scalar>>() {}
     virtual ~ErrorKalmanFilterDynamic() = default;
 
-    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TMat<Scalar>::Zero(1, 1));
     bool PropagateCovarianceImpl();
     bool UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation = TMat<Scalar>::Zero(1, 1));
 
@@ -71,7 +70,6 @@ public:
     ErrorKalmanFilterStatic() : Filter<Scalar, ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>>() {}
     virtual ~ErrorKalmanFilterStatic() = default;
 
-    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TMat<Scalar>::Zero(1, 1));
     bool PropagateCovarianceImpl();
     bool UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation = TMat<Scalar>::Zero(1, 1));
 
@@ -115,12 +113,6 @@ private:
 };
 
 /* Class Error State Kalman Filter Definition. */
-template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-bool ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>::PropagateNominalStateImpl(const TVec<Scalar> &parameters) {
-    // For error state filter, nominal state propagation should not only use F_.
-    return true;
-}
-
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 bool ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>::PropagateCovarianceImpl() {
     predict_P_ = F_ * P_ * F_.transpose() + Q_;

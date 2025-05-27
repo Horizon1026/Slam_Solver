@@ -8,12 +8,6 @@ template class KalmanFilterDynamic<double>;
 
 /* Class Basic Kalman Filter Definition. */
 template <typename Scalar>
-bool KalmanFilterDynamic<Scalar>::PropagateNominalStateImpl(const TVec<Scalar> &parameters) {
-    predict_x_ = F_ * x_;
-    return true;
-}
-
-template <typename Scalar>
 bool KalmanFilterDynamic<Scalar>::PropagateCovarianceImpl() {
     predict_P_ = F_ * P_ * F_.transpose() + Q_;
     return true;

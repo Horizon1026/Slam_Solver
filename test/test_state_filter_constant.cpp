@@ -56,7 +56,6 @@ void FilterNoisedDataInErrorState(const std::vector<Scalar> &noised_data,
                                   std::vector<Scalar> &filtered_data) {
     filtered_data = noised_data;
     for (uint32_t i = 1; i < noised_data.size(); ++i) {
-        filter.PropagateNominalState();
         filter.PropagateCovariance();
         filter.UpdateStateAndCovariance(TVec1<Scalar>(noised_data[i] - filtered_data[i - 1]));
         filtered_data[i] = filter.dx()(0) + filtered_data[i - 1];
@@ -70,7 +69,7 @@ void FilterNoisedDataInNominalState(const std::vector<Scalar> &noised_data,
     filtered_data = noised_data;
     filter.x() = TVec1<Scalar>(noised_data.front());
     for (uint32_t i = 1; i < noised_data.size(); ++i) {
-        filter.PropagateNominalState();
+        filter.predict_x() = Vec1(filtered_data[i - 1]);
         filter.PropagateCovariance();
         filter.UpdateStateAndCovariance(TVec1<Scalar>(noised_data[i]));
         filtered_data[i] = filter.x()(0);
@@ -83,7 +82,6 @@ void InverseFilterNoisedDataInErrorState(const std::vector<Scalar> &noised_data,
                                          std::vector<Scalar> &filtered_data) {
     filtered_data = noised_data;
     for (uint32_t i = 1; i < noised_data.size(); ++i) {
-        filter.PropagateNominalState();
         filter.PropagateInformation();
         filter.UpdateStateAndInformation(TVec1<Scalar>(noised_data[i] - filtered_data[i - 1]));
         filtered_data[i] = filter.dx()(0) + filtered_data[i - 1];
@@ -97,7 +95,7 @@ void InverseFilterNoisedDataInNominalState(const std::vector<Scalar> &noised_dat
     filtered_data = noised_data;
     filter.x() = TVec1<Scalar>(noised_data.front());
     for (uint32_t i = 1; i < noised_data.size(); ++i) {
-        filter.PropagateNominalState();
+        filter.predict_x() = Vec1(filtered_data[i - 1]);
         filter.PropagateInformation();
         filter.UpdateStateAndInformation(TVec1<Scalar>(noised_data[i]));
         filtered_data[i] = filter.x()(0);

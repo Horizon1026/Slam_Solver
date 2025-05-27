@@ -14,7 +14,6 @@ public:
     SquareRootInformationFilterDynamic() : InverseFilter<Scalar, SquareRootInformationFilterDynamic<Scalar>>() {}
     virtual ~SquareRootInformationFilterDynamic() = default;
 
-    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TMat<Scalar>::Zero(1, 1));
     bool PropagateInformationImpl();
     bool UpdateStateAndInformationImpl(const TMat<Scalar> &observation = TMat<Scalar>::Zero(1, 1));
 
@@ -66,7 +65,6 @@ public:
     SquareRootInformationFilterStatic() : InverseFilter<Scalar, SquareRootInformationFilterStatic<Scalar, StateSize, ObserveSize>>() {}
     virtual ~SquareRootInformationFilterStatic() = default;
 
-    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TMat<Scalar>::Zero(StateSize, 1));
     bool PropagateInformationImpl();
     bool UpdateStateAndInformationImpl(const TMat<Scalar> &observation = TMat<Scalar>::Zero(ObserveSize, 1));
 
@@ -109,12 +107,6 @@ private:
 };
 
 /* Class Square Root Error State Information Filter Definition. */
-template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-bool SquareRootInformationFilterStatic<Scalar, StateSize, ObserveSize>::PropagateNominalStateImpl(const TVec<Scalar> &parameters) {
-    // For error state filter, nominal state propagation should not only use F_.
-    return true;
-}
-
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 bool SquareRootInformationFilterStatic<Scalar, StateSize, ObserveSize>::PropagateInformationImpl() {
     const int32_t state_size = W_.rows();

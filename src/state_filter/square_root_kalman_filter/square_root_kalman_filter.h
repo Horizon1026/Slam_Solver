@@ -18,7 +18,6 @@ public:
     SquareRootKalmanFilterDynamic() : Filter<Scalar, SquareRootKalmanFilterDynamic<Scalar>>() {}
     virtual ~SquareRootKalmanFilterDynamic() = default;
 
-    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TMat<Scalar>::Zero(1, 1));
     bool PropagateCovarianceImpl();
     bool UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation = TMat<Scalar>::Zero(1, 1));
 
@@ -74,7 +73,6 @@ public:
     SquareRootKalmanFilterStatic() : Filter<Scalar, SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>>() {}
     virtual ~SquareRootKalmanFilterStatic() = default;
 
-    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TMat<Scalar>::Zero(1, 1));
     bool PropagateCovarianceImpl();
     bool UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation = TMat<Scalar>::Zero(1, 1));
 
@@ -121,12 +119,6 @@ private:
 };
 
 /* Class Square Root Error State Kalman Filter Definition. */
-template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-bool SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>::PropagateNominalStateImpl(const TVec<Scalar> &parameters) {
-    // For error state filter, nominal state propagation should not only use F_.
-    return true;
-}
-
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 bool SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>::PropagateCovarianceImpl() {
     /*  extend_predict_S_t_ = [ S.t * F.t ]

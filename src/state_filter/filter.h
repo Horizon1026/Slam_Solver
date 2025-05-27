@@ -20,10 +20,6 @@ public:
     virtual ~Filter() = default;
     Filter(const Filter &filter) = delete;
 
-    bool PropagateNominalState(const TVec<Scalar> &value = TMat<Scalar>::Zero(1, 1)) {
-        return reinterpret_cast<FilterType *>(this)->PropagateNominalStateImpl(value);
-    }
-
     bool PropagateCovariance() {
         return reinterpret_cast<FilterType *>(this)->PropagateCovarianceImpl();
     }

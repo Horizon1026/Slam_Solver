@@ -18,7 +18,6 @@ public:
     KalmanFilterDynamic() : Filter<Scalar, KalmanFilterDynamic<Scalar>>() {}
     virtual ~KalmanFilterDynamic() = default;
 
-    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TMat<Scalar>::Zero(1, 1));
     bool PropagateCovarianceImpl();
     bool UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation = TMat<Scalar>::Zero(1, 1));
 
@@ -26,6 +25,8 @@ public:
     KalmanFilterOptions &options() { return options_; }
     TVec<Scalar> &x() { return x_; }
     TMat<Scalar> &P() { return P_; }
+    TVec<Scalar> &predict_x() { return predict_x_; }
+    TMat<Scalar> &predict_P() { return predict_P_; }
     TMat<Scalar> &F() { return F_; }
     TMat<Scalar> &H() { return H_; }
     TMat<Scalar> &Q() { return Q_; }
@@ -35,6 +36,8 @@ public:
     const KalmanFilterOptions &options() const { return options_; }
     const TVec<Scalar> &x() const { return x_; }
     const TMat<Scalar> &P() const { return P_; }
+    const TVec<Scalar> &predict_x() const { return predict_x_; }
+    const TMat<Scalar> &predict_P() const { return predict_P_; }
     const TMat<Scalar> &F() const { return F_; }
     const TMat<Scalar> &H() const { return H_; }
     const TMat<Scalar> &Q() const { return Q_; }
@@ -70,7 +73,6 @@ public:
     KalmanFilterStatic() : Filter<Scalar, KalmanFilterStatic<Scalar, StateSize, ObserveSize>>() {}
     virtual ~KalmanFilterStatic() = default;
 
-    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TMat<Scalar>::Zero(1, 1));
     bool PropagateCovarianceImpl();
     bool UpdateStateAndCovarianceImpl(const TMat<Scalar> &observation = TMat<Scalar>::Zero(1, 1));
 
@@ -78,6 +80,8 @@ public:
     KalmanFilterOptions &options() { return options_; }
     TVec<Scalar, StateSize> &x() { return x_; }
     TMat<Scalar, StateSize, StateSize> &P() { return P_; }
+    TVec<Scalar, StateSize> &predict_x() { return predict_x_; }
+    TMat<Scalar, StateSize, StateSize> &predict_P() { return predict_P_; }
     TMat<Scalar, StateSize, StateSize> &F() { return F_; }
     TMat<Scalar, ObserveSize, StateSize> &H() { return H_; }
     TMat<Scalar, StateSize, StateSize> &Q() { return Q_; }
@@ -87,6 +91,8 @@ public:
     const KalmanFilterOptions &options() const { return options_; }
     const TVec<Scalar, StateSize> &x() const { return x_; }
     const TMat<Scalar, StateSize, StateSize> &P() const { return P_; }
+    const TVec<Scalar, StateSize> &predict_x() const { return predict_x_; }
+    const TMat<Scalar, StateSize, StateSize> &predict_P() const { return predict_P_; }
     const TMat<Scalar, StateSize, StateSize> &F() const { return F_; }
     const TMat<Scalar, ObserveSize, StateSize> &H() const { return H_; }
     const TMat<Scalar, StateSize, StateSize> &Q() const { return Q_; }
@@ -113,12 +119,6 @@ private:
 };
 
 /* Class Basic Kalman Filter Definition. */
-template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-bool KalmanFilterStatic<Scalar, StateSize, ObserveSize>::PropagateNominalStateImpl(const TVec<Scalar> &parameters) {
-    predict_x_ = F_ * x_;
-    return true;
-}
-
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 bool KalmanFilterStatic<Scalar, StateSize, ObserveSize>::PropagateCovarianceImpl() {
     predict_P_ = F_ * P_ * F_.transpose() + Q_;

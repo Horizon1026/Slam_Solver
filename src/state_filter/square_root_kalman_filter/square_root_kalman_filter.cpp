@@ -9,12 +9,6 @@ template class SquareRootKalmanFilterDynamic<double>;
 
 /* Class Square Root Error State Kalman Filter Definition. */
 template <typename Scalar>
-bool SquareRootKalmanFilterDynamic<Scalar>::PropagateNominalStateImpl(const TVec<Scalar> &parameters) {
-    // For error state filter, nominal state propagation should not only use F_.
-    return true;
-}
-
-template <typename Scalar>
 bool SquareRootKalmanFilterDynamic<Scalar>::PropagateCovarianceImpl() {
     const int32_t state_size = S_t_.cols();
     const int32_t extend_size = S_t_.rows() + state_size;

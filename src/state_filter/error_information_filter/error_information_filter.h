@@ -14,7 +14,6 @@ public:
     ErrorInformationFilterDynamic() : InverseFilter<Scalar, ErrorInformationFilterDynamic<Scalar>>() {}
     virtual ~ErrorInformationFilterDynamic() = default;
 
-    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TMat<Scalar>::Zero(1, 1));
     bool PropagateInformationImpl();
     bool UpdateStateAndInformationImpl(const TMat<Scalar> &residual = TMat<Scalar>::Zero(1, 1));
 
@@ -61,7 +60,6 @@ public:
     ErrorInformationFilterStatic() : InverseFilter<Scalar, ErrorInformationFilterStatic<Scalar, StateSize, ObserveSize>>() {}
     virtual ~ErrorInformationFilterStatic() = default;
 
-    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TMat<Scalar>::Zero(1, 1));
     bool PropagateInformationImpl();
     bool UpdateStateAndInformationImpl(const TMat<Scalar> &observation = TMat<Scalar>::Zero(1, 1));
 
@@ -98,12 +96,6 @@ private:
 };
 
 /* Class Basic Information Filter Definition. */
-template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-bool ErrorInformationFilterStatic<Scalar, StateSize, ObserveSize>::PropagateNominalStateImpl(const TVec<Scalar> &parameters) {
-    // For error state filter, nominal state propagation should not only use F_.
-    return true;
-}
-
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 bool ErrorInformationFilterStatic<Scalar, StateSize, ObserveSize>::PropagateInformationImpl() {
     const TMat<Scalar, StateSize, StateSize> F_t = F_.transpose();

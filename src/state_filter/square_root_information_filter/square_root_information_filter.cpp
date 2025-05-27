@@ -8,12 +8,6 @@ template class SquareRootInformationFilterDynamic<double>;
 
 /* Class Square Root Error State Informaion Filter Definition. */
 template <typename Scalar>
-bool SquareRootInformationFilterDynamic<Scalar>::PropagateNominalStateImpl(const TVec<Scalar> &parameters) {
-    // For error state filter, nominal state propagation should not only use F_.
-    return true;
-}
-
-template <typename Scalar>
 bool SquareRootInformationFilterDynamic<Scalar>::PropagateInformationImpl() {
     const int32_t state_size = W_.rows();
     const int32_t double_state_size = state_size << 1;

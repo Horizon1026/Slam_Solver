@@ -8,12 +8,6 @@ template class ErrorKalmanFilterDynamic<double>;
 
 /* Class Basic Kalman Filter Definition. */
 template <typename Scalar>
-bool ErrorKalmanFilterDynamic<Scalar>::PropagateNominalStateImpl(const TVec<Scalar> &parameters) {
-    // For error state filter, nominal state propagation should not only use F_.
-    return true;
-}
-
-template <typename Scalar>
 bool ErrorKalmanFilterDynamic<Scalar>::PropagateCovarianceImpl() {
     predict_P_ = F_ * P_ * F_.transpose() + Q_;
     return true;

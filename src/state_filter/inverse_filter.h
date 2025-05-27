@@ -15,10 +15,6 @@ public:
     virtual ~InverseFilter() = default;
     InverseFilter(const InverseFilter &filter) = delete;
 
-    bool PropagateNominalState(const TVec<Scalar> &value = TMat<Scalar>::Zero(1, 1)) {
-        return reinterpret_cast<InverseFilterType *>(this)->PropagateNominalStateImpl(value);
-    }
-
     bool PropagateInformation() {
         return reinterpret_cast<InverseFilterType *>(this)->PropagateInformationImpl();
     }

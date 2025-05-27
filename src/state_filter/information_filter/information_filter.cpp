@@ -8,12 +8,6 @@ template class InformationFilterDynamic<double>;
 
 /* Class Informaion Filer Definition. */
 template <typename Scalar>
-bool InformationFilterDynamic<Scalar>::PropagateNominalStateImpl(const TVec<Scalar> &parameters) {
-    predict_x_ = F_ * x_;
-    return true;
-}
-
-template <typename Scalar>
 bool InformationFilterDynamic<Scalar>::PropagateInformationImpl() {
     const TMat<Scalar> F_t = F_.transpose();
     predict_I_ = inverse_Q_ - inverse_Q_ * F_ * (I_ + F_t * inverse_Q_ * F_).inverse() * F_t * inverse_Q_;

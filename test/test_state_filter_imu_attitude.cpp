@@ -88,7 +88,6 @@ void TestErrorKalmanFilter(const std::vector<ImuMeasurement> &meas,
         est_q[i] = est_q[i - 1] * Utility::DeltaQ(gyro * dt);
         est_q[i].normalize();
         est_bw[i] = est_bw[i - 1];
-        filter.PropagateNominalState();
 
         // Propagate covariance.
         filter.F().block<3, 3>(0, 0) = Mat3::Identity() - Utility::SkewSymmetricMatrix(gyro) * dt;
@@ -140,7 +139,6 @@ void TestSquareRootKalmanFilter(const std::vector<ImuMeasurement> &meas,
         est_q[i] = est_q[i - 1] * Utility::DeltaQ(gyro * dt);
         est_q[i].normalize();
         est_bw[i] = est_bw[i - 1];
-        filter.PropagateNominalState();
 
         // Propagate covariance.
         filter.F().block<3, 3>(0, 0) = Mat3::Identity() - Utility::SkewSymmetricMatrix(gyro) * dt;
@@ -191,7 +189,6 @@ void TestErrorInformationFilter(const std::vector<ImuMeasurement> &meas,
         est_q[i] = est_q[i - 1] * Utility::DeltaQ(gyro * dt);
         est_q[i].normalize();
         est_bw[i] = est_bw[i - 1];
-        filter.PropagateNominalState();
 
         // Propagate information.
         filter.F().block<3, 3>(0, 0) = Mat3::Identity() - Utility::SkewSymmetricMatrix(gyro) * dt;
@@ -243,7 +240,6 @@ void TestSquareRootInformationFilter(const std::vector<ImuMeasurement> &meas,
         est_q[i] = est_q[i - 1] * Utility::DeltaQ(gyro * dt);
         est_q[i].normalize();
         est_bw[i] = est_bw[i - 1];
-        filter.PropagateNominalState();
 
         // Propagate covariance.
         filter.F().block<3, 3>(0, 0) = Mat3::Identity() - Utility::SkewSymmetricMatrix(gyro) * dt;

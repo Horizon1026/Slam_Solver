@@ -14,7 +14,6 @@ public:
     InformationFilterDynamic() : InverseFilter<Scalar, InformationFilterDynamic<Scalar>>() {}
     virtual ~InformationFilterDynamic() = default;
 
-    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TMat<Scalar>::Zero(1, 1));
     bool PropagateInformationImpl();
     bool UpdateStateAndInformationImpl(const TMat<Scalar> &observation = TMat<Scalar>::Zero(1, 1));
 
@@ -65,7 +64,6 @@ public:
     InformationFilterStatic() : InverseFilter<Scalar, InformationFilterStatic<Scalar, StateSize, ObserveSize>>() {}
     virtual ~InformationFilterStatic() = default;
 
-    bool PropagateNominalStateImpl(const TVec<Scalar> &parameters = TMat<Scalar>::Zero(1, 1));
     bool PropagateInformationImpl();
     bool UpdateStateAndInformationImpl(const TMat<Scalar> &observation = TMat<Scalar>::Zero(1, 1));
 
@@ -106,12 +104,6 @@ private:
 };
 
 /* Class Basic Information Filter Definition. */
-template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-bool InformationFilterStatic<Scalar, StateSize, ObserveSize>::PropagateNominalStateImpl(const TVec<Scalar> &parameters) {
-    predict_x_ = F_ * x_;
-    return true;
-}
-
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 bool InformationFilterStatic<Scalar, StateSize, ObserveSize>::PropagateInformationImpl() {
     const TMat<Scalar, StateSize, StateSize> F_t = F_.transpose();
