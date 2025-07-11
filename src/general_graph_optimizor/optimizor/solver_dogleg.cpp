@@ -55,7 +55,7 @@ void SolverDogleg<Scalar>::SolveIncrementalFunction() {
 
         // Secondly solve sparse parameters.
         marg_bias_ = bias.tail(marg) - hessian.block(reverse, 0, marg, reverse) * reverse_dx_;
-        for (const auto &vertex : this->problem()->sparse_vertices()) {
+        for (const auto &vertex: this->problem()->sparse_vertices()) {
             const int32_t index = vertex->ColIndex();
             const int32_t dim = vertex->GetIncrementDimension();
             this->SolveLinearlizedFunction(hessian.block(index, index, dim, dim),

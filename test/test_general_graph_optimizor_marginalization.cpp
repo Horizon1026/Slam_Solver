@@ -149,10 +149,10 @@ int main(int argc, char **argv) {
 
     // Construct graph problem and marginalizor.
     Graph<Scalar> problem;
-    for (auto &vertex : all_camera_pos) { problem.AddVertex(vertex.get()); }
-    for (auto &vertex : all_camera_rot) { problem.AddVertex(vertex.get()); }
-    for (auto &vertex : all_points) { problem.AddVertex(vertex.get(), false); }
-    for (auto &edge : reprojection_edges) { problem.AddEdge(edge.get()); }
+    for (auto &vertex: all_camera_pos) { problem.AddVertex(vertex.get()); }
+    for (auto &vertex: all_camera_rot) { problem.AddVertex(vertex.get()); }
+    for (auto &vertex: all_points) { problem.AddVertex(vertex.get(), false); }
+    for (auto &edge: reprojection_edges) { problem.AddEdge(edge.get()); }
 
     // Set vertices to be marged.
     std::vector<Vertex<Scalar> *> vertices_to_be_marged = {

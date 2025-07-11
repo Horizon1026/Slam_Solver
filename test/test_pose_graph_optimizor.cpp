@@ -267,7 +267,7 @@ void DoPgoByPoseGraphOptimizor(const std::vector<Pose<Scalar>> &poses,
 
     PoseGraphOptimizor<Scalar> solver;
     solver.Reset();
-    for (const auto &pose : poses) {
+    for (const auto &pose: poses) {
         solver.all_p_wb().emplace_back(pose.p_wb);
         solver.all_q_wb().emplace_back(pose.q_wb);
         solver.all_cov_p().emplace_back(pose.cov_p);

@@ -26,7 +26,7 @@ bool Marginalizor<Scalar>::Marginalize(std::vector<Vertex<Scalar> *> &vertices,
     // Move the matrix block which needs to be marginalized to the bound of hessian.
     // Statis full size of vertices need to be marged.
     size_of_vertices_need_marge_ = 0;
-    for (const auto &vertex : vertices) {
+    for (const auto &vertex: vertices) {
         RETURN_FALSE_IF(!MoveMatrixBlocksNeedMarginalization(reverse_hessian_, reverse_bias_, vertex->ColIndex(), vertex->GetIncrementDimension()));
         size_of_vertices_need_marge_ += vertex->GetIncrementDimension();
     }

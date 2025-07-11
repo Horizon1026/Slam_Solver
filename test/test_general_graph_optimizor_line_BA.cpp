@@ -261,9 +261,9 @@ int main(int argc, char **argv) {
         problem.AddVertex(all_camera_pos[i].get());
         problem.AddVertex(all_camera_rot[i].get());
     }
-    for (auto &vertex : all_lines) { problem.AddVertex(vertex.get(), false); }
-    for (auto &edge : reprojection_edges) { problem.AddEdge(edge.get()); }
-    for (auto &edge : prior_edges) { problem.AddEdge(edge.get()); }
+    for (auto &vertex: all_lines) { problem.AddVertex(vertex.get(), false); }
+    for (auto &edge: reprojection_edges) { problem.AddEdge(edge.get()); }
+    for (auto &edge: prior_edges) { problem.AddEdge(edge.get()); }
     problem.EdgesInformation();
 
     // Construct solver to solve problem.
@@ -289,14 +289,14 @@ int main(int argc, char **argv) {
         }
     }
     // Draw ground truth of camera pose and line in world frame.
-    for (const auto &camera_pose : cameras_pose) {
+    for (const auto &camera_pose: cameras_pose) {
         Visualizor3D::poses().emplace_back(PoseType{
             .p_wb = camera_pose.p_wc,
             .q_wb = camera_pose.q_wc,
             .scale = 0.5f,
         });
     }
-    for (const auto &line_segment_3d : line_segments_3d) {
+    for (const auto &line_segment_3d: line_segments_3d) {
         Visualizor3D::lines().emplace_back(LineType{
             .p_w_i = line_segment_3d.start_point(),
             .p_w_j = line_segment_3d.end_point(),

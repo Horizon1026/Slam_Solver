@@ -41,7 +41,7 @@ void Graph<Scalar>::Clear() {
 template <typename Scalar>
 void Graph<Scalar>::VerticesInformation(bool show_sparse_vertices_info) {
     ReportInfo("[Graph] All vertices in this graph:");
-    for (const auto &vertex : dense_vertices_) {
+    for (const auto &vertex: dense_vertices_) {
         const std::string fix_status = vertex->IsFixed() ? "fixed" : "unfixed";
         ReportInfo(" - [dense] [name] " << vertex->name() <<
             ",\t[col id] " << vertex->ColIndex() << ", " << fix_status <<
@@ -49,7 +49,7 @@ void Graph<Scalar>::VerticesInformation(bool show_sparse_vertices_info) {
     }
 
     if (show_sparse_vertices_info) {
-        for (const auto &vertex : sparse_vertices_) {
+        for (const auto &vertex: sparse_vertices_) {
             const std::string fix_status = vertex->IsFixed() ? "fixed" : "unfixed";
             ReportInfo(" - [sparse] [name] " << vertex->name() <<
                 ",\t[col id] " << vertex->ColIndex() << ", " << fix_status <<
@@ -62,9 +62,9 @@ void Graph<Scalar>::VerticesInformation(bool show_sparse_vertices_info) {
 template <typename Scalar>
 void Graph<Scalar>::EdgesInformation() {
     ReportInfo("[Graph] All vertices in this graph:");
-    for (const auto &edge : edges_) {
+    for (const auto &edge: edges_) {
         ReportInfo(" - [name] " << edge->name() << ", [id] " << edge->GetId() << ", relative vertices:");
-        for (const auto &vertex : edge->GetVertices()) {
+        for (const auto &vertex: edge->GetVertices()) {
             const std::string fix_status = vertex->IsFixed() ? "fixed" : "unfixed";
             ReportInfo(" - [name] " << vertex->name() <<
                 ",\t[col id] " << vertex->ColIndex() << ", " << fix_status <<
@@ -110,13 +110,13 @@ bool Graph<Scalar>::AddEdgeWithCheck(Edge<Scalar> *edge) {
 template <typename Scalar>
 void Graph<Scalar>::SortVertices(bool statis_size_of_residual) {
     full_size_of_dense_vertices_ = 0;
-    for (auto &item : dense_vertices_) {
+    for (auto &item: dense_vertices_) {
         item->ColIndex() = full_size_of_dense_vertices_;
         full_size_of_dense_vertices_ += item->GetIncrementDimension();
     }
 
     full_size_of_sparse_vertices_ = 0;
-    for (auto &item : sparse_vertices_) {
+    for (auto &item: sparse_vertices_) {
         item->ColIndex() = full_size_of_sparse_vertices_ + full_size_of_dense_vertices_;
         full_size_of_sparse_vertices_ += item->GetIncrementDimension();
     }
@@ -124,7 +124,7 @@ void Graph<Scalar>::SortVertices(bool statis_size_of_residual) {
     // Size of residual is only used for Jacobian. If only use hessian and bias, it is not necessay.
     if (statis_size_of_residual) {
         full_size_of_residuals_ = 0;
-        for (auto &item : edges_) {
+        for (auto &item: edges_) {
             full_size_of_residuals_ += item->residual().size();
         }
     }
@@ -162,7 +162,7 @@ void Graph<Scalar>::UpdateAllVertices(const TVec<Scalar> &delta_x) {
         }
     );
 #else // ENABLE_TBB_PARALLEL
-    for (auto &vertex : dense_vertices_) {
+    for (auto &vertex: dense_vertices_) {
         CONTINUE_IF(vertex->IsFixed());
 
         vertex->BackupParam();
@@ -171,7 +171,7 @@ void Graph<Scalar>::UpdateAllVertices(const TVec<Scalar> &delta_x) {
         vertex->UpdateParam(delta_x.segment(index, dim));
     }
 
-    for (auto &vertex : sparse_vertices_) {
+    for (auto &vertex: sparse_vertices_) {
         CONTINUE_IF(vertex->IsFixed());
 
         vertex->BackupParam();
@@ -207,12 +207,12 @@ void Graph<Scalar>::RollBackAllVertices() {
         }
     );
 #else // ENABLE_TBB_PARALLEL
-    for (auto &vertex : dense_vertices_) {
+    for (auto &vertex: dense_vertices_) {
         CONTINUE_IF(vertex->IsFixed());
         vertex->RollbackParam();
     }
 
-    for (auto &vertex : sparse_vertices_) {
+    for (auto &vertex: sparse_vertices_) {
         CONTINUE_IF(vertex->IsFixed());
         vertex->RollbackParam();
     }
@@ -238,7 +238,7 @@ Scalar Graph<Scalar>::ComputeResidualForAllEdges(bool use_prior) {
     );
 #else // ENABLE_TBB_PARALLEL
     Scalar sum_cost = 0;
-    for (auto &edge : edges_) {
+    for (auto &edge: edges_) {
         edge->ComputeResidual();
         const Scalar x = edge->CalculateSquaredResidual();
         edge->kernel()->Compute(x);
@@ -266,7 +266,7 @@ void Graph<Scalar>::ComputeJacobiansForAllEdges() {
         }
     );
 #else // ENABLE_TBB_PARALLEL
-    for (auto &edge : edges_) {
+    for (auto &edge: edges_) {
         edge->ComputeJacobians();
     }
 #endif // end of ENABLE_TBB_PARALLEL
@@ -290,10 +290,10 @@ void Graph<Scalar>::ConstructFullSizeHessianAndBias(bool use_prior) {
     using HessianLockerType = std::unordered_map<uint32_t, std::unique_ptr<MutexType>>;
     HessianLockerType lockers_for_hessian;
 
-    for (const auto &item : dense_vertices_) {
+    for (const auto &item: dense_vertices_) {
         lockers_for_hessian.insert(std::make_pair(item->ColIndex(), std::make_unique<MutexType>()));
     }
-    for (const auto &item : sparse_vertices_) {
+    for (const auto &item: sparse_vertices_) {
         lockers_for_hessian.insert(std::make_pair(item->ColIndex(), std::make_unique<MutexType>()));
     }
 
@@ -372,7 +372,7 @@ void Graph<Scalar>::ConstructFullSizeHessianAndBias(bool use_prior) {
     TMat<Scalar> sub_hessian;
 
     // Traverse all edges, use residual and jacobians to construct full size hessian and bias.
-    for (const auto &edge : edges_) {
+    for (const auto &edge: edges_) {
         const uint32_t vertex_num = edge->GetVertexNum();
         const auto &vertices_in_edge = edge->GetVertices();
         const auto &jacobians_in_edge = edge->GetJacobians();
@@ -412,7 +412,7 @@ void Graph<Scalar>::ConstructFullSizeHessianAndBias(bool use_prior) {
         TMat<Scalar> tmp_prior_hessian = prior_hessian_;
         TVec<Scalar> tmp_prior_bias = prior_bias_;
         // Adjust prior information.
-        for (const auto &vertex : dense_vertices_) {
+        for (const auto &vertex: dense_vertices_) {
             if (vertex->IsFixed()) {
                 const int32_t index = vertex->ColIndex();
                 const int32_t dim = vertex->GetIncrementDimension();
@@ -459,7 +459,7 @@ void Graph<Scalar>::MarginalizeSparseVerticesInHessianAndBias(TMat<Scalar> &hess
         }
     );
 #else // ENABLE_TBB_PARALLEL
-    for (const auto &vertex : sparse_vertices_) {
+    for (const auto &vertex: sparse_vertices_) {
         const int32_t index = vertex->ColIndex();
         const int32_t dim = vertex->GetIncrementDimension();
 

@@ -40,7 +40,7 @@ bool Edge<Scalar>::SetVertices(const std::vector<Vertex<Scalar> *> &vertices) {
         return false;
     }
 
-    for (const auto &vertex : vertices) {
+    for (const auto &vertex: vertices) {
         if (vertex == nullptr) {
             return false;
         }
@@ -103,13 +103,13 @@ bool Edge<Scalar>::SelfCheckJacobians() {
 
     // Compute residual at disturbance based on linearized point.
     std::vector<TVec<Scalar>> linearized_residuals;
-    for (const auto &jacobian : jacobians_) {
+    for (const auto &jacobian: jacobians_) {
         linearized_residuals.emplace_back(residual + jacobian * TVec<Scalar>::Ones(jacobian.cols()) * disturb_step);
     }
 
     // Compute residual at new linearized point.
     std::vector<TVec<Scalar>> directly_residuals;
-    for (auto &vertex : vertices_) {
+    for (auto &vertex: vertices_) {
         const TVec<Scalar> delta_param = TVec<Scalar>::Ones(vertex->GetIncrementDimension()) * disturb_step;
         vertex->BackupParam();
         vertex->UpdateParam(delta_param);

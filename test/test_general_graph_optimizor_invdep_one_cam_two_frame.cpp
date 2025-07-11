@@ -251,9 +251,9 @@ int main(int argc, char **argv) {
         problem.AddVertex(all_camera_pos[i].get());
         problem.AddVertex(all_camera_rot[i].get());
     }
-    for (auto &vertex : all_points) { problem.AddVertex(vertex.get(), false); }
-    for (auto &edge : reprojection_edges) { problem.AddEdge(edge.get()); }
-    for (auto &edge : prior_edges) { problem.AddEdge(edge.get()); }
+    for (auto &vertex: all_points) { problem.AddVertex(vertex.get(), false); }
+    for (auto &edge: reprojection_edges) { problem.AddEdge(edge.get()); }
+    for (auto &edge: prior_edges) { problem.AddEdge(edge.get()); }
 
     SolverLm<Scalar> solver;
     solver.problem() = &problem;

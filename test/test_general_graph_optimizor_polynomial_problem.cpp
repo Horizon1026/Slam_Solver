@@ -82,8 +82,8 @@ int main(int argc, char **argv) {
     }
 
     Graph<Scalar> problem;
-    for (auto &vertex : vertices) { problem.AddVertex(vertex.get()); }
-    for (auto &edge : edges) { problem.AddEdge(edge.get()); }
+    for (auto &vertex: vertices) { problem.AddVertex(vertex.get()); }
+    for (auto &edge: edges) { problem.AddEdge(edge.get()); }
     SolverLm<Scalar> solver;
     solver.problem() = &problem;
     solver.Solve(true);
