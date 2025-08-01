@@ -204,8 +204,8 @@ void Marginalizor<Scalar>::DecomposeHessianAndBias(TMat<Scalar> &hessian,
                                                    TMat<Scalar> &jacobian_t_inv) {
     // Decompose prior hessian matrix.
     Eigen::SelfAdjointEigenSolver<TMat<Scalar>> saes(hessian);
-    const TVec<Scalar> S = TVec<Scalar>((saes.eigenvalues().array() > kZerofloat).select(saes.eigenvalues().array(), 0));
-    const TVec<Scalar> S_inv = TVec<Scalar>((saes.eigenvalues().array() > kZerofloat).select(saes.eigenvalues().array().inverse(), 0));
+    const TVec<Scalar> S = TVec<Scalar>((saes.eigenvalues().array() > kZeroFloat).select(saes.eigenvalues().array(), 0));
+    const TVec<Scalar> S_inv = TVec<Scalar>((saes.eigenvalues().array() > kZeroFloat).select(saes.eigenvalues().array().inverse(), 0));
     const TVec<Scalar> S_sqrt = S.cwiseSqrt();
     const TVec<Scalar> S_inv_sqrt = S_inv.cwiseSqrt();
 
@@ -215,7 +215,7 @@ void Marginalizor<Scalar>::DecomposeHessianAndBias(TMat<Scalar> &hessian,
     residual = - jacobian_t_inv * bias;
     jacobian = S_sqrt.asDiagonal() * eigen_vectors;
     hessian = jacobian.transpose() * jacobian;
-    const TMat<Scalar> tmp_h = TMat<Scalar>((hessian.array().abs() > kZerofloat).select(hessian.array(), 0));
+    const TMat<Scalar> tmp_h = TMat<Scalar>((hessian.array().abs() > kZeroFloat).select(hessian.array(), 0));
     hessian = tmp_h;
 }
 

@@ -52,7 +52,7 @@ public:
         p_c_ = q_ic_.inverse() * (p_i_ - p_ic_);
         inv_depth_ = static_cast<Scalar>(1) / p_c_.z();
 
-        if (std::isinf(inv_depth_) || std::isnan(inv_depth_) || inv_depth_ < kZerofloat) {
+        if (std::isinf(inv_depth_) || std::isnan(inv_depth_) || inv_depth_ < kZeroFloat) {
             this->residual().setZero(2);
         } else {
             this->residual() = (p_c_.template head<2>() * inv_depth_) - norm_xy_;
@@ -61,7 +61,7 @@ public:
 
     virtual void ComputeJacobians() override {
         TMat2x3<Scalar> jacobian_2d_3d = TMat2x3<Scalar>::Zero();
-        if (!std::isinf(inv_depth_) && !std::isnan(inv_depth_) && inv_depth_ > kZerofloat) {
+        if (!std::isinf(inv_depth_) && !std::isnan(inv_depth_) && inv_depth_ > kZeroFloat) {
             const Scalar inv_depth_2 = inv_depth_* inv_depth_;
             jacobian_2d_3d << inv_depth_, 0, - p_c_(0) * inv_depth_2,
                               0, inv_depth_, - p_c_(1) * inv_depth_2;
