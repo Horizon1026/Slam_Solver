@@ -12,11 +12,10 @@ struct SquareRootKalmanFilterOptions {
 
 /* Class Square Root Error State Kalman Filter Declaration. */
 template <typename Scalar>
-class SquareRootKalmanFilterDynamic : public Filter<Scalar, SquareRootKalmanFilterDynamic<Scalar>> {
+class SquareRootKalmanFilterDynamic: public Filter<Scalar, SquareRootKalmanFilterDynamic<Scalar>> {
 
 public:
-    SquareRootKalmanFilterDynamic()
-        : Filter<Scalar, SquareRootKalmanFilterDynamic<Scalar>>() {}
+    SquareRootKalmanFilterDynamic(): Filter<Scalar, SquareRootKalmanFilterDynamic<Scalar>>() {}
     virtual ~SquareRootKalmanFilterDynamic() = default;
 
     bool PropagateCovarianceImpl();
@@ -65,13 +64,12 @@ private:
 
 /* Class Square Root Error State Kalman Filter Declaration. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-class SquareRootKalmanFilterStatic : public Filter<Scalar, SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>> {
+class SquareRootKalmanFilterStatic: public Filter<Scalar, SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>> {
 
     static_assert(StateSize > 0 && ObserveSize > 0, "Size of state and observe must be larger than 0.");
 
 public:
-    SquareRootKalmanFilterStatic()
-        : Filter<Scalar, SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>>() {}
+    SquareRootKalmanFilterStatic(): Filter<Scalar, SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>>() {}
     virtual ~SquareRootKalmanFilterStatic() = default;
 
     bool PropagateCovarianceImpl();

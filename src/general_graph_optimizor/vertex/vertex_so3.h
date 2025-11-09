@@ -9,11 +9,10 @@ namespace slam_solver {
 
 /* Class Vertex SO3 declaration. */
 template <typename Scalar>
-class VertexSO3 : public Vertex<Scalar> {
+class VertexSO3: public Vertex<Scalar> {
 
 public:
-    VertexSO3()
-        : Vertex<Scalar>(4, 3) {}
+    VertexSO3(): Vertex<Scalar>(4, 3) {}
     virtual ~VertexSO3() = default;
 
     // Update param with delta_param solved by solver.

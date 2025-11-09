@@ -7,22 +7,20 @@ using Scalar = double;
 using namespace slam_solver;
 
 /* Class Vertex param a, b, c */
-class VertexParam : public Vertex<Scalar> {
+class VertexParam: public Vertex<Scalar> {
 
 public:
     VertexParam() = delete;
-    VertexParam(int32_t param_dim, int32_t delta_dim)
-        : Vertex<Scalar>(param_dim, delta_dim) {}
+    VertexParam(int32_t param_dim, int32_t delta_dim): Vertex<Scalar>(param_dim, delta_dim) {}
     virtual ~VertexParam() = default;
 };
 
 /* Class Edge r = y - (a * x^3 + b * x^2 + c * x) */
-class EdgePolynomial : public Edge<Scalar> {
+class EdgePolynomial: public Edge<Scalar> {
 
 public:
     EdgePolynomial() = delete;
-    EdgePolynomial(int32_t residual_dim, int32_t vertex_num)
-        : Edge<Scalar>(residual_dim, vertex_num) {}
+    EdgePolynomial(int32_t residual_dim, int32_t vertex_num): Edge<Scalar>(residual_dim, vertex_num) {}
     virtual ~EdgePolynomial() = default;
 
     virtual void ComputeResidual() override {

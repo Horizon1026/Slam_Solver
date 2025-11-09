@@ -29,11 +29,10 @@ struct Pose {
 
 /* Class Vertex LinePlucker declaration. */
 template <typename Scalar>
-class VertexLine : public Vertex<Scalar> {
+class VertexLine: public Vertex<Scalar> {
 
 public:
-    VertexLine()
-        : Vertex<Scalar>(6, 4) {}
+    VertexLine(): Vertex<Scalar>(6, 4) {}
     virtual ~VertexLine() = default;
 
     // Update param with delta_param solved by solver.
@@ -46,14 +45,13 @@ public:
 
 /* Class Edge reprojection. Project orthonormal line (4-dof) on visual norm plane. */
 template <typename Scalar>
-class EdgeOrthonormalLineToNormPlane : public Edge<Scalar> {
+class EdgeOrthonormalLineToNormPlane: public Edge<Scalar> {
     // Vertices are [line, plucker]
     //              [camera, p_wc]
     //              [camera, q_wc]
 
 public:
-    EdgeOrthonormalLineToNormPlane()
-        : Edge<Scalar>(2, 3) {}
+    EdgeOrthonormalLineToNormPlane(): Edge<Scalar>(2, 3) {}
     virtual ~EdgeOrthonormalLineToNormPlane() = default;
 
     // Compute residual and jacobians for each vertex. These operations should be defined by subclass.
@@ -130,12 +128,11 @@ private:
 
 /* Class Edge position prior. This can be used to fix a position parameter with specified weight. */
 template <typename Scalar>
-class EdgePriorPosition : public Edge<Scalar> {
+class EdgePriorPosition: public Edge<Scalar> {
     // Vertices are [position, p_wc]
 
 public:
-    EdgePriorPosition()
-        : Edge<Scalar>(3, 1) {}
+    EdgePriorPosition(): Edge<Scalar>(3, 1) {}
     virtual ~EdgePriorPosition() = default;
 
     // Compute residual and jacobians for each vertex. These operations should be defined by subclass.

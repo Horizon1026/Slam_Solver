@@ -290,16 +290,9 @@ void Graph<Scalar>::ConstructFullSizeHessianAndBias(bool use_prior) {
         HessianLockerType *lockers;
 
         /* Struct Methods. */
-        Reductor(std::vector<Edge<Scalar> *> *set_edges, TMat<Scalar> &set_hessian, TVec<Scalar> &set_bias, HessianLockerType *set_lockers)
-            : edges(set_edges)
-            , hessian(set_hessian)
-            , bias(set_bias)
-            , lockers(set_lockers) {}
-        Reductor(Reductor &r, tbb::split)
-            : edges(r.edges)
-            , hessian(r.hessian)
-            , bias(r.bias)
-            , lockers(r.lockers) {}
+        Reductor(std::vector<Edge<Scalar> *> *set_edges, TMat<Scalar> &set_hessian, TVec<Scalar> &set_bias, HessianLockerType *set_lockers):
+            edges(set_edges), hessian(set_hessian), bias(set_bias), lockers(set_lockers) {}
+        Reductor(Reductor &r, tbb::split): edges(r.edges), hessian(r.hessian), bias(r.bias), lockers(r.lockers) {}
         inline void join(const Reductor &r) {}
         // Define operation for this reduce task.
         void operator()(const tbb::blocked_range<uint32_t> &range) {

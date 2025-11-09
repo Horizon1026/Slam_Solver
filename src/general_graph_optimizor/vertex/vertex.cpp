@@ -8,9 +8,7 @@ template class Vertex<double>;
 
 // Construnct function.
 template <typename Scalar>
-Vertex<Scalar>::Vertex(int32_t param_dim, int32_t delta_dim)
-    : param_dim_(param_dim)
-    , delta_dim_(delta_dim) {
+Vertex<Scalar>::Vertex(int32_t param_dim, int32_t delta_dim): param_dim_(param_dim), delta_dim_(delta_dim) {
     // Resize stored param.
     if (param_.rows() != param_dim_) {
         param_.resize(param_dim_);

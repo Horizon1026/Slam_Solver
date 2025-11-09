@@ -13,12 +13,11 @@ using namespace slam_solver;
 
 /* Class Edge reprojection. */
 template <typename Scalar>
-class EdgeReproject : public Edge<Scalar> {
+class EdgeReproject: public Edge<Scalar> {
     // vertex is [feature, invdep] [first camera, p_wci] [first camera, q_wci] [camera, p_wc] [camera, q_wc].
 
 public:
-    EdgeReproject()
-        : Edge<Scalar>(2, 5) {}
+    EdgeReproject(): Edge<Scalar>(2, 5) {}
     virtual ~EdgeReproject() = default;
 
     // Compute residual and jacobians for each vertex. These operations should be defined by subclass.

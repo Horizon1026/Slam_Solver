@@ -15,11 +15,10 @@ struct SolverDoglegOptions {
 
 /* Class Dogleg Solver Declaration. */
 template <typename Scalar>
-class SolverDogleg : public Solver<Scalar> {
+class SolverDogleg: public Solver<Scalar> {
 
 public:
-    SolverDogleg()
-        : Solver<Scalar>() {}
+    SolverDogleg(): Solver<Scalar>() {}
     virtual ~SolverDogleg() = default;
 
     // Initialize solver init value with first incremental function and so on.

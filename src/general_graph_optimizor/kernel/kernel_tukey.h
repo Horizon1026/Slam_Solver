@@ -7,13 +7,11 @@ namespace slam_solver {
 
 /* Class Kernel Cauchy Declaration. */
 template <typename Scalar>
-class KernelTukey : public Kernel<Scalar> {
+class KernelTukey: public Kernel<Scalar> {
 
 public:
     KernelTukey() = default;
-    explicit KernelTukey(Scalar delta)
-        : delta_(delta)
-        , dsqr_(delta * delta) {}
+    explicit KernelTukey(Scalar delta): delta_(delta), dsqr_(delta * delta) {}
     virtual ~KernelTukey() = default;
 
     virtual void Compute(const Scalar x) override {

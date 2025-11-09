@@ -8,11 +8,10 @@ namespace slam_solver {
 
 /* Class Error Information Filter Declaration. */
 template <typename Scalar>
-class ErrorInformationFilterDynamic : public InverseFilter<Scalar, ErrorInformationFilterDynamic<Scalar>> {
+class ErrorInformationFilterDynamic: public InverseFilter<Scalar, ErrorInformationFilterDynamic<Scalar>> {
 
 public:
-    ErrorInformationFilterDynamic()
-        : InverseFilter<Scalar, ErrorInformationFilterDynamic<Scalar>>() {}
+    ErrorInformationFilterDynamic(): InverseFilter<Scalar, ErrorInformationFilterDynamic<Scalar>>() {}
     virtual ~ErrorInformationFilterDynamic() = default;
 
     bool PropagateInformationImpl();
@@ -52,13 +51,12 @@ private:
 
 /* Class Error Information Filer Declaration. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-class ErrorInformationFilterStatic : public InverseFilter<Scalar, ErrorInformationFilterStatic<Scalar, StateSize, ObserveSize>> {
+class ErrorInformationFilterStatic: public InverseFilter<Scalar, ErrorInformationFilterStatic<Scalar, StateSize, ObserveSize>> {
 
     static_assert(StateSize > 0 && ObserveSize > 0, "Size of state and observe must be larger than 0.");
 
 public:
-    ErrorInformationFilterStatic()
-        : InverseFilter<Scalar, ErrorInformationFilterStatic<Scalar, StateSize, ObserveSize>>() {}
+    ErrorInformationFilterStatic(): InverseFilter<Scalar, ErrorInformationFilterStatic<Scalar, StateSize, ObserveSize>>() {}
     virtual ~ErrorInformationFilterStatic() = default;
 
     bool PropagateInformationImpl();

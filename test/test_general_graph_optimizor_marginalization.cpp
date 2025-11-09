@@ -17,12 +17,11 @@ constexpr int32_t kPointsNumber = 100;
 
 /* Class Edge reprojection. */
 template <typename Scalar>
-class EdgeReproject : public Edge<Scalar> {
+class EdgeReproject: public Edge<Scalar> {
     // vertex is [feature, p_w] [camera, p_wc] [camera, q_wc].
 
 public:
-    EdgeReproject()
-        : Edge<Scalar>(2, 3) {}
+    EdgeReproject(): Edge<Scalar>(2, 3) {}
     virtual ~EdgeReproject() = default;
 
     // Compute residual and jacobians for each vertex. These operations should be defined by subclass.

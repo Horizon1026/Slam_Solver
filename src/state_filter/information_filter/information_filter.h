@@ -8,11 +8,10 @@ namespace slam_solver {
 
 /* Class Basic Information Filter Declaration. */
 template <typename Scalar>
-class InformationFilterDynamic : public InverseFilter<Scalar, InformationFilterDynamic<Scalar>> {
+class InformationFilterDynamic: public InverseFilter<Scalar, InformationFilterDynamic<Scalar>> {
 
 public:
-    InformationFilterDynamic()
-        : InverseFilter<Scalar, InformationFilterDynamic<Scalar>>() {}
+    InformationFilterDynamic(): InverseFilter<Scalar, InformationFilterDynamic<Scalar>>() {}
     virtual ~InformationFilterDynamic() = default;
 
     bool PropagateInformationImpl();
@@ -56,13 +55,12 @@ private:
 
 /* Class Basic Information Filer Declaration. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-class InformationFilterStatic : public InverseFilter<Scalar, InformationFilterStatic<Scalar, StateSize, ObserveSize>> {
+class InformationFilterStatic: public InverseFilter<Scalar, InformationFilterStatic<Scalar, StateSize, ObserveSize>> {
 
     static_assert(StateSize > 0 && ObserveSize > 0, "Size of state and observe must be larger than 0.");
 
 public:
-    InformationFilterStatic()
-        : InverseFilter<Scalar, InformationFilterStatic<Scalar, StateSize, ObserveSize>>() {}
+    InformationFilterStatic(): InverseFilter<Scalar, InformationFilterStatic<Scalar, StateSize, ObserveSize>>() {}
     virtual ~InformationFilterStatic() = default;
 
     bool PropagateInformationImpl();

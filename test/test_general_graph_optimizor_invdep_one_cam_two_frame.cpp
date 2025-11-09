@@ -13,7 +13,7 @@ using namespace slam_solver;
 
 /* Class Edge reprojection. Project feature 1-dof invdep on visual norm plane via imu pose. */
 template <typename Scalar>
-class EdgeFeatureInvdepToNormPlaneViaImuWithinTwoFramesOneCamera : public Edge<Scalar> {
+class EdgeFeatureInvdepToNormPlaneViaImuWithinTwoFramesOneCamera: public Edge<Scalar> {
     // Vertices are [feature, invdep]
     //              [first imu pose, p_wi0]
     //              [first imu pose, q_wi0]
@@ -23,8 +23,7 @@ class EdgeFeatureInvdepToNormPlaneViaImuWithinTwoFramesOneCamera : public Edge<S
     //              [extrinsic, q_ic]
 
 public:
-    EdgeFeatureInvdepToNormPlaneViaImuWithinTwoFramesOneCamera()
-        : Edge<Scalar>(2, 7) {}
+    EdgeFeatureInvdepToNormPlaneViaImuWithinTwoFramesOneCamera(): Edge<Scalar>(2, 7) {}
     virtual ~EdgeFeatureInvdepToNormPlaneViaImuWithinTwoFramesOneCamera() = default;
 
     // Compute residual and jacobians for each vertex. These operations should be defined by subclass.
@@ -127,13 +126,12 @@ private:
 
 /* Class Edge pose prior. This can be used to fix a pose with specified weight. */
 template <typename Scalar>
-class EdgePriorPose : public Edge<Scalar> {
+class EdgePriorPose: public Edge<Scalar> {
     // Vertices are [position, p_wc]
     //              [rotation, q_wc]
 
 public:
-    EdgePriorPose()
-        : Edge<Scalar>(6, 2) {}
+    EdgePriorPose(): Edge<Scalar>(6, 2) {}
     virtual ~EdgePriorPose() = default;
 
     // Compute residual and jacobians for each vertex. These operations should be defined by subclass.

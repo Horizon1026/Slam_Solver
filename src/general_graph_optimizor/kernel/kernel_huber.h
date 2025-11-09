@@ -7,13 +7,11 @@ namespace slam_solver {
 
 /* Class Kernel Huber Declaration. */
 template <typename Scalar>
-class KernelHuber : public Kernel<Scalar> {
+class KernelHuber: public Kernel<Scalar> {
 
 public:
     KernelHuber() = default;
-    explicit KernelHuber(Scalar delta)
-        : delta_(delta)
-        , dsqr_(delta * delta) {}
+    explicit KernelHuber(Scalar delta): delta_(delta), dsqr_(delta * delta) {}
     virtual ~KernelHuber() = default;
 
     virtual void Compute(const Scalar x) override {

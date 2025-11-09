@@ -12,11 +12,10 @@ struct ErrorKalmanFilterOptions {
 
 /* Class Error State Kalman Filter Declaration. */
 template <typename Scalar>
-class ErrorKalmanFilterDynamic : public Filter<Scalar, ErrorKalmanFilterDynamic<Scalar>> {
+class ErrorKalmanFilterDynamic: public Filter<Scalar, ErrorKalmanFilterDynamic<Scalar>> {
 
 public:
-    ErrorKalmanFilterDynamic()
-        : Filter<Scalar, ErrorKalmanFilterDynamic<Scalar>>() {}
+    ErrorKalmanFilterDynamic(): Filter<Scalar, ErrorKalmanFilterDynamic<Scalar>>() {}
     virtual ~ErrorKalmanFilterDynamic() = default;
 
     bool PropagateCovarianceImpl();
@@ -62,13 +61,12 @@ private:
 
 /* Class Error State Kalman Filter Declaration. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-class ErrorKalmanFilterStatic : public Filter<Scalar, ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>> {
+class ErrorKalmanFilterStatic: public Filter<Scalar, ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>> {
 
     static_assert(StateSize > 0 && ObserveSize > 0, "Size of state and observe must be larger than 0.");
 
 public:
-    ErrorKalmanFilterStatic()
-        : Filter<Scalar, ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>>() {}
+    ErrorKalmanFilterStatic(): Filter<Scalar, ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>>() {}
     virtual ~ErrorKalmanFilterStatic() = default;
 
     bool PropagateCovarianceImpl();

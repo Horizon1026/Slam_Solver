@@ -12,11 +12,10 @@ struct KalmanFilterOptions {
 
 /* Class Basic Kalman Filter Declaration. */
 template <typename Scalar>
-class KalmanFilterDynamic : public Filter<Scalar, KalmanFilterDynamic<Scalar>> {
+class KalmanFilterDynamic: public Filter<Scalar, KalmanFilterDynamic<Scalar>> {
 
 public:
-    KalmanFilterDynamic()
-        : Filter<Scalar, KalmanFilterDynamic<Scalar>>() {}
+    KalmanFilterDynamic(): Filter<Scalar, KalmanFilterDynamic<Scalar>>() {}
     virtual ~KalmanFilterDynamic() = default;
 
     bool PropagateCovarianceImpl();
@@ -65,13 +64,12 @@ private:
 
 /* Class Basic Kalman Filter Declaration. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-class KalmanFilterStatic : public Filter<Scalar, KalmanFilterStatic<Scalar, StateSize, ObserveSize>> {
+class KalmanFilterStatic: public Filter<Scalar, KalmanFilterStatic<Scalar, StateSize, ObserveSize>> {
 
     static_assert(StateSize > 0 && ObserveSize > 0, "Size of state and observe must be larger than 0.");
 
 public:
-    KalmanFilterStatic()
-        : Filter<Scalar, KalmanFilterStatic<Scalar, StateSize, ObserveSize>>() {}
+    KalmanFilterStatic(): Filter<Scalar, KalmanFilterStatic<Scalar, StateSize, ObserveSize>>() {}
     virtual ~KalmanFilterStatic() = default;
 
     bool PropagateCovarianceImpl();

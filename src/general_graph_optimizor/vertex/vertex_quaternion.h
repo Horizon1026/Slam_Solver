@@ -8,11 +8,10 @@ namespace slam_solver {
 
 /* Class Vertex Quaternion declaration. */
 template <typename Scalar>
-class VertexQuat : public Vertex<Scalar> {
+class VertexQuat: public Vertex<Scalar> {
 
 public:
-    VertexQuat()
-        : Vertex<Scalar>(4, 3) {}
+    VertexQuat(): Vertex<Scalar>(4, 3) {}
     virtual ~VertexQuat() = default;
 
     // Update param with delta_param solved by solver.

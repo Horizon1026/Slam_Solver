@@ -15,11 +15,10 @@ struct SolverLmOptions {
 
 /* Class LM Solver Declaration. */
 template <typename Scalar>
-class SolverLm : public Solver<Scalar> {
+class SolverLm: public Solver<Scalar> {
 
 public:
-    SolverLm()
-        : Solver<Scalar>() {}
+    SolverLm(): Solver<Scalar>() {}
     virtual ~SolverLm() = default;
 
     // Initialize solver init value with first incremental function and so on.

@@ -8,11 +8,10 @@ namespace slam_solver {
 
 /* Class Square Root Error State Information Filter Declaration. */
 template <typename Scalar>
-class SquareRootInformationFilterDynamic : public InverseFilter<Scalar, SquareRootInformationFilterDynamic<Scalar>> {
+class SquareRootInformationFilterDynamic: public InverseFilter<Scalar, SquareRootInformationFilterDynamic<Scalar>> {
 
 public:
-    SquareRootInformationFilterDynamic()
-        : InverseFilter<Scalar, SquareRootInformationFilterDynamic<Scalar>>() {}
+    SquareRootInformationFilterDynamic(): InverseFilter<Scalar, SquareRootInformationFilterDynamic<Scalar>>() {}
     virtual ~SquareRootInformationFilterDynamic() = default;
 
     bool PropagateInformationImpl();
@@ -57,13 +56,12 @@ private:
 
 /* Class Square Root Error State Information Filter Declaration. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
-class SquareRootInformationFilterStatic : public InverseFilter<Scalar, SquareRootInformationFilterStatic<Scalar, StateSize, ObserveSize>> {
+class SquareRootInformationFilterStatic: public InverseFilter<Scalar, SquareRootInformationFilterStatic<Scalar, StateSize, ObserveSize>> {
 
     static_assert(StateSize > 0 && ObserveSize > 0, "Size of state and observe must be larger than 0.");
 
 public:
-    SquareRootInformationFilterStatic()
-        : InverseFilter<Scalar, SquareRootInformationFilterStatic<Scalar, StateSize, ObserveSize>>() {}
+    SquareRootInformationFilterStatic(): InverseFilter<Scalar, SquareRootInformationFilterStatic<Scalar, StateSize, ObserveSize>>() {}
     virtual ~SquareRootInformationFilterStatic() = default;
 
     bool PropagateInformationImpl();
