@@ -4,7 +4,7 @@
 #include "basic_type.h"
 #include "vector"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Class Pose Graph Solver Declaration. */
 template <typename Scalar>
@@ -66,6 +66,6 @@ private:
     std::vector<TQuat<Scalar>> all_q_U_;
 };
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver
 
 #endif  // end of _GENERAL_POSE_GRAPH_OPTIMIZOR_H_

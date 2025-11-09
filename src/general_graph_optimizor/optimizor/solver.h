@@ -4,7 +4,7 @@
 #include "basic_type.h"
 #include "graph.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 enum class LinearFunctionSolverType {
     kCholeskySolver = 0,
@@ -102,6 +102,6 @@ private:
     TVec<Scalar> prior_residual_backup_ = TVec3<Scalar>::Zero();
 };
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver
 
 #endif  // end of _GENERAL_GRAPH_OPTIMIZOR_SOLVER_H_

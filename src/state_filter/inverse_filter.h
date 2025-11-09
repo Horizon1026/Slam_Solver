@@ -4,7 +4,7 @@
 #include "basic_type.h"
 #include "memory"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Template Class InverseFilter Declaration. */
 template <typename Scalar, typename InverseFilterType>
@@ -22,6 +22,6 @@ public:
     }
 };
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver
 
 #endif  // end of _SLAM_INVERSE_FILTER_H_

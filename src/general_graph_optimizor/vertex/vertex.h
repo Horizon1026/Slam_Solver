@@ -3,7 +3,7 @@
 
 #include "basic_type.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Class Vertex declaration. */
 template <typename Scalar>
@@ -65,6 +65,6 @@ private:
 template <typename Scalar>
 uint32_t Vertex<Scalar>::global_id_ = 0;
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver
 
 #endif  // end of _GENERAL_GRAPH_OPTIMIZOR_VERTEX_H_

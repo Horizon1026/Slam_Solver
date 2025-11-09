@@ -1,6 +1,6 @@
 #include "vertex.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Specialized Template Class Declaration. */
 template class Vertex<float>;
@@ -22,4 +22,4 @@ Vertex<Scalar>::Vertex(int32_t param_dim, int32_t delta_dim)
     id_ = Vertex<Scalar>::global_id_;
 }
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver

@@ -1,7 +1,7 @@
 #include "solver_dogleg.h"
 #include "slam_log_reporter.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Specialized Template Class Declaration. */
 template class SolverDogleg<float>;
@@ -115,4 +115,4 @@ bool SolverDogleg<Scalar>::IsUpdateValid(Scalar min_allowed_gain_rate) {
     }
 }
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver

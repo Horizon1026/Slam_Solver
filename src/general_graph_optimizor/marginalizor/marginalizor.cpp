@@ -2,7 +2,7 @@
 #include "slam_log_reporter.h"
 #include "slam_operations.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Specialized Template Class Declaration. */
 template class Marginalizor<float>;
@@ -172,7 +172,7 @@ void Marginalizor<Scalar>::ComputePriorBySchurComplement(const TMat<Scalar> &Hrr
 template <typename Scalar>
 void Marginalizor<Scalar>::SchurComplement(const TMat<Scalar> &Hrr, const TMat<Scalar> &Hrm, const TMat<Scalar> &Hmr, const TMat<Scalar> &Hmm,
                                            const TVec<Scalar> &br, const TVec<Scalar> &bm, TMat<Scalar> &hessian, TVec<Scalar> &bias) const {
-    TMat<Scalar> Hmm_inv = SLAM_UTILITY::Utility::Inverse(Hmm);
+    TMat<Scalar> Hmm_inv = slam_utility::Utility::Inverse(Hmm);
     TMat<Scalar> Hrm_Hmm_inv = Hrm * Hmm_inv;
     hessian = Hrr - Hrm_Hmm_inv * Hmr;
     bias = br - Hrm_Hmm_inv * bm;
@@ -287,4 +287,4 @@ bool Marginalizor<Scalar>::MoveMatrixBlocksNeedMarginalization(TMat<Scalar> &hes
     return true;
 }
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver

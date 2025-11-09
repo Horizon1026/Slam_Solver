@@ -7,7 +7,7 @@
 #include "general_graph_optimizor.h"
 
 using Scalar = float;
-using namespace SLAM_SOLVER;
+using namespace slam_solver;
 
 #include "embeded_generate_sim_data.h"
 
@@ -51,7 +51,7 @@ public:
 
         this->GetJacobian(0) = jacobian_2d_3d * (q_wc.inverse().matrix());
         this->GetJacobian(1) = -this->GetJacobian(0);
-        this->GetJacobian(2) = jacobian_2d_3d * SLAM_UTILITY::Utility::SkewSymmetricMatrix(p_c);
+        this->GetJacobian(2) = jacobian_2d_3d * slam_utility::Utility::SkewSymmetricMatrix(p_c);
     }
 
     // Set tangent base.

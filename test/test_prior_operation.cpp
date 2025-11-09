@@ -5,9 +5,9 @@
 #include "marginalizor.h"
 
 using Scalar = float;
-using namespace SLAM_UTILITY;
-using namespace SLAM_SOLVER;
-using namespace SLAM_VISUALIZOR;
+using namespace slam_utility;
+using namespace slam_solver;
+using namespace slam_visualizor;
 
 void TestDiscardPriorInformation() {
     ReportInfo(YELLOW ">> Test discard prior information." RESET_COLOR);

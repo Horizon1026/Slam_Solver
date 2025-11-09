@@ -14,10 +14,10 @@
 #include "plane.h"
 
 using Scalar = double;
-using namespace SLAM_UTILITY;
-using namespace SLAM_SOLVER;
-using namespace SLAM_VISUALIZOR;
-using namespace IMAGE_PAINTER;
+using namespace slam_utility;
+using namespace slam_solver;
+using namespace slam_visualizor;
+using namespace image_painter;
 
 constexpr int32_t kNumberOfCameras = 8;
 constexpr int32_t kNumberOfLines = 12;

@@ -9,7 +9,7 @@
 #pragma message("tbb/tbb.h is not included.")
 #endif  // end of ENABLE_TBB_PARALLEL
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Specialized Template Class Declaration. */
 template class Graph<float>;
@@ -469,4 +469,4 @@ void Graph<Scalar>::MarginalizeSparseVerticesInHessianAndBias(TMat<Scalar> &hess
 template <typename Scalar>
 void Graph<Scalar>::MarginalizeSparseVerticesInJacobianAndResidual(TMat<Scalar> &jacobian, TVec<Scalar> &residual) {}
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver

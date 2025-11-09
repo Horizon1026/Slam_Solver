@@ -1,6 +1,6 @@
 #include "kalman_filter.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Specialized Template Class Declaration. */
 template class KalmanFilterDynamic<float>;
@@ -41,4 +41,4 @@ bool KalmanFilterDynamic<Scalar>::UpdateStateAndCovarianceImpl(const TMat<Scalar
     return true;
 }
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver

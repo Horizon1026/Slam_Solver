@@ -5,7 +5,7 @@
 #include "slam_basic_math.h"
 #include "vertex.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Class Vertex SO3 declaration. */
 template <typename Scalar>
@@ -27,6 +27,6 @@ public:
     }
 };
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver
 
 #endif  // end of _GENERAL_GRAPH_OPTIMIZOR_VERTEX_SO3_H_

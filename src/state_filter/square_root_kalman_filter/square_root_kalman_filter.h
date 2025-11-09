@@ -4,7 +4,7 @@
 #include "basic_type.h"
 #include "filter.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 struct SquareRootKalmanFilterOptions {
     StateCovUpdateMethod kMethod = StateCovUpdateMethod::kSimple;
@@ -167,6 +167,6 @@ bool SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAn
     return true;
 }
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver
 
 #endif  // end of _SQUARE_ROOT_KALMAN_FILTER_SOLVER_H_

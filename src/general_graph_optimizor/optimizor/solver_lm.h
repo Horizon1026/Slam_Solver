@@ -4,7 +4,7 @@
 #include "basic_type.h"
 #include "solver.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 template <typename Scalar>
 struct SolverLmOptions {
@@ -54,6 +54,6 @@ private:
     TVec<Scalar> marg_dx_;
 };
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver
 
 #endif  // end of _GENERAL_GRAPH_OPTIMIZOR_SOLVER_LM_H_

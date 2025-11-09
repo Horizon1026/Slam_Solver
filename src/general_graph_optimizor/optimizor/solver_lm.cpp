@@ -1,7 +1,7 @@
 #include "solver_lm.h"
 #include "slam_log_reporter.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Specialized Template Class Declaration. */
 template class SolverLm<float>;
@@ -96,4 +96,4 @@ bool SolverLm<Scalar>::IsUpdateValid(Scalar min_allowed_gain_rate) {
     return result;
 }
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver

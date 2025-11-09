@@ -4,7 +4,7 @@
 #include "basic_type.h"
 #include "memory"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 enum StateCovUpdateMethod : uint8_t {
     kSimple = 0,
@@ -27,6 +27,6 @@ public:
     }
 };
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver
 
 #endif  // end of _SLAM_FILTER_H_

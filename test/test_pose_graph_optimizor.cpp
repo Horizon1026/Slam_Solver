@@ -8,8 +8,8 @@
 #include "pose_graph_optimizor.h"
 
 using Scalar = float;
-using namespace SLAM_SOLVER;
-using namespace SLAM_VISUALIZOR;
+using namespace slam_solver;
+using namespace slam_visualizor;
 
 /* Simulation Data. */
 template <typename Scalar>

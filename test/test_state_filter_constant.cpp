@@ -10,7 +10,7 @@
 #include <random>
 
 using Scalar = float;
-using namespace SLAM_SOLVER;
+using namespace slam_solver;
 
 constexpr Scalar kMeasureNoiseSigma = 1.0;
 constexpr Scalar kProcessNoiseSigma = 0.1;

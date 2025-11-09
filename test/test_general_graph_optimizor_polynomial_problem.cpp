@@ -4,7 +4,7 @@
 #include "general_graph_optimizor.h"
 
 using Scalar = double;
-using namespace SLAM_SOLVER;
+using namespace slam_solver;
 
 /* Class Vertex param a, b, c */
 class VertexParam : public Vertex<Scalar> {

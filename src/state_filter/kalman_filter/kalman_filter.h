@@ -4,7 +4,7 @@
 #include "basic_type.h"
 #include "filter.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 struct KalmanFilterOptions {
     StateCovUpdateMethod kMethod = StateCovUpdateMethod::kSimple;
@@ -153,6 +153,6 @@ bool KalmanFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAndCovarianc
     return true;
 }
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver
 
 #endif  // end of _KALMAN_FILTER_SOLVER_H_

@@ -4,7 +4,7 @@
 #include "basic_type.h"
 #include "inverse_filter.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Class Square Root Error State Information Filter Declaration. */
 template <typename Scalar>
@@ -147,6 +147,6 @@ bool SquareRootInformationFilterStatic<Scalar, StateSize, ObserveSize>::UpdateSt
     return true;
 }
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver
 
 #endif  // end of _SQUARE_ROOT_INFORMATION_FILTER_SOLVER_H_

@@ -1,6 +1,6 @@
 #include "error_information_filter.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Specialized Template Class Declaration. */
 template class ErrorInformationFilterDynamic<float>;
@@ -29,4 +29,4 @@ bool ErrorInformationFilterDynamic<Scalar>::UpdateStateAndInformationImpl(const 
     return true;
 }
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver

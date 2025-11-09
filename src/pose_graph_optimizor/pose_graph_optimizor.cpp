@@ -3,7 +3,7 @@
 #include "slam_log_reporter.h"
 #include "slam_operations.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Specialized Template Class Declaration. */
 template class PoseGraphOptimizor<float>;
@@ -192,4 +192,4 @@ void PoseGraphOptimizor<Scalar>::CorrectAllPoses() {
     }
 }
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver

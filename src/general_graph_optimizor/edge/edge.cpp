@@ -1,6 +1,6 @@
 #include "edge.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Specialized Template Class Declaration. */
 template class Edge<float>;
@@ -157,4 +157,4 @@ void Edge<Scalar>::ComputeNumbericalJacobians() {
     }
 }
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver

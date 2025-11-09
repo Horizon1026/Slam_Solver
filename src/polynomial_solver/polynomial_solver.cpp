@@ -31,7 +31,7 @@
 
 #include "polynomial_solver.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 namespace {
 
     // Remove leading zero coefficients.
@@ -278,4 +278,4 @@ Eigen::VectorXd GetRealRoots(const Eigen::VectorXd &real, const Eigen::VectorXd 
     return roots;
 }
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver

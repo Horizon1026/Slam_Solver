@@ -1,6 +1,6 @@
 #include "information_filter.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Specialized Template Class Declaration. */
 template class InformationFilterDynamic<float>;
@@ -30,4 +30,4 @@ bool InformationFilterDynamic<Scalar>::UpdateStateAndInformationImpl(const TMat<
     return true;
 }
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver

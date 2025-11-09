@@ -4,7 +4,7 @@
 #include "basic_type.h"
 #include "inverse_filter.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Class Basic Information Filter Declaration. */
 template <typename Scalar>
@@ -128,6 +128,6 @@ bool InformationFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAndInfo
     return true;
 }
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver
 
 #endif  // end of _INFORMATION_FILTER_SOLVER_H_

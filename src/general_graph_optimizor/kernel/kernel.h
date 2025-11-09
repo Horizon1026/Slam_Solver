@@ -3,7 +3,7 @@
 
 #include "basic_type.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Class Kernel Declaration. */
 template <typename Scalar>
@@ -33,6 +33,6 @@ private:
     std::array<Scalar, 3> y_ = {};
 };
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver
 
 #endif  // end of _GENERAL_GRAPH_OPTIMIZOR_KERNEL_H_

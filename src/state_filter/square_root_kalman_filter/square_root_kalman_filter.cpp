@@ -1,7 +1,7 @@
 #include "square_root_kalman_filter.h"
 #include "iostream"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Specialized Template Class Declaration. */
 template class SquareRootKalmanFilterDynamic<float>;
@@ -71,4 +71,4 @@ bool SquareRootKalmanFilterDynamic<Scalar>::UpdateStateAndCovarianceImpl(const T
     return true;
 }
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver

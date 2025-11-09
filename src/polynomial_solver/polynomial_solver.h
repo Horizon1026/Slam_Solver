@@ -34,7 +34,7 @@
 
 #include "basic_type.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 // All polynomials are assumed to be the form:
 //
@@ -91,6 +91,6 @@ T EvaluatePolynomial(const Eigen::VectorXd &coeffs, const T &x) {
 
 Eigen::VectorXd GetRealRoots(const Eigen::VectorXd &real, const Eigen::VectorXd &imag);
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver
 
 #endif  // _SLAM_SOLVER_POLYNOMIAL_SOLVER_H_

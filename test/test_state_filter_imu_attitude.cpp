@@ -9,9 +9,9 @@
 
 #include <fstream>
 
-using namespace SLAM_UTILITY;
-using namespace SENSOR_MODEL;
-using namespace SLAM_SOLVER;
+using namespace slam_utility;
+using namespace sensor_model;
+using namespace slam_solver;
 
 namespace {
 constexpr float kGyroNoiseSigma = 0.01f;

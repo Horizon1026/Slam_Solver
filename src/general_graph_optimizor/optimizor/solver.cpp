@@ -3,7 +3,7 @@
 #include "slam_log_reporter.h"
 #include "tick_tock.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Specialized Template Class Declaration. */
 template class Solver<float>;
@@ -16,7 +16,7 @@ bool Solver<Scalar>::Solve(bool use_prior) {
         return false;
     }
     float time_cost = 0.0f;
-    SLAM_UTILITY::TickTock timer;
+    slam_utility::TickTock timer;
     timer.TockTickInSecond();
 
     // Sort all vertices, determine their location in incremental function.
@@ -213,4 +213,4 @@ void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A, const TVec<
     x = matrix_f_inv * matrix_u_inv.transpose() * x;
 }
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver

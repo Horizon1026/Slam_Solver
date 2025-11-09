@@ -4,7 +4,7 @@
 #include "basic_type.h"
 #include "inverse_filter.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Class Error Information Filter Declaration. */
 template <typename Scalar>
@@ -119,6 +119,6 @@ bool ErrorInformationFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAn
     return true;
 }
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver
 
 #endif  // end of _ERROR_INFORMATION_FILTER_SOLVER_H_

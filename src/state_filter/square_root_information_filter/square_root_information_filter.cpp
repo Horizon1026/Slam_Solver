@@ -1,6 +1,6 @@
 #include "square_root_information_filter.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Specialized Template Class Declaration. */
 template class SquareRootInformationFilterDynamic<float>;
@@ -54,4 +54,4 @@ bool SquareRootInformationFilterDynamic<Scalar>::UpdateStateAndInformationImpl(c
     return true;
 }
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver

@@ -10,7 +10,7 @@
 
 #include "vector"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 enum SortMargedVerticesDirection : uint8_t {
     kSortAtFront = 0,
@@ -95,6 +95,6 @@ private:
     TVec<Scalar> reverse_bias_;
 };
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver
 
 #endif  // end of _GENERAL_GRAPH_OPTIMIZOR_MARGINALIZOR_H_

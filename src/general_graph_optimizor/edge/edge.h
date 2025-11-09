@@ -9,7 +9,7 @@
 #include "memory"
 #include "vector"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Class Edge Declaration. */
 template <typename Scalar>
@@ -90,6 +90,6 @@ private:
 template <typename Scalar>
 uint32_t Edge<Scalar>::global_id_ = 0;
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver
 
 #endif  // end of _GENERAL_GRAPH_OPTIMIZOR_EDGE_H_

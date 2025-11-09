@@ -8,7 +8,7 @@
 #include "memory"
 #include "vector"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Class Graph Declaration. */
 template <typename Scalar>
@@ -113,6 +113,6 @@ private:
     TVec<Scalar> backup_prior_residual_;
 };
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver
 
 #endif

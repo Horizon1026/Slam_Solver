@@ -7,7 +7,7 @@
 #include "general_graph_optimizor.h"
 
 using Scalar = float;
-using namespace SLAM_SOLVER;
+using namespace slam_solver;
 
 #include "embeded_generate_sim_data.h"
 

@@ -3,7 +3,7 @@
 
 #include "kernel.h"
 
-namespace SLAM_SOLVER {
+namespace slam_solver {
 
 /* Class Kernel Cauchy Declaration. */
 template <typename Scalar>
@@ -30,6 +30,6 @@ private:
     Scalar inv_dsqr_ = static_cast<Scalar>(1);
 };
 
-}  // namespace SLAM_SOLVER
+}  // namespace slam_solver
 
 #endif  // end of _GENERAL_GRAPH_OPTIMIZOR_KERNEL_CAUCHY_H_
