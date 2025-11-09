@@ -1,11 +1,11 @@
+#include "error_information_filter.h"
+#include "error_kalman_filter.h"
+#include "information_filter.h"
+#include "kalman_filter.h"
 #include "slam_log_reporter.h"
 #include "slam_operations.h"
-#include "kalman_filter.h"
-#include "error_kalman_filter.h"
-#include "square_root_kalman_filter.h"
-#include "information_filter.h"
-#include "error_information_filter.h"
 #include "square_root_information_filter.h"
+#include "square_root_kalman_filter.h"
 
 #include <random>
 
@@ -17,8 +17,7 @@ constexpr Scalar kProcessNoiseSigma = 0.1;
 constexpr Scalar kInitStateCovarianceSigma = 1e3f;
 constexpr int32_t kNumberOfData = 1000;
 
-void GenerateData(std::vector<Scalar> &truth_data,
-                  std::vector<Scalar> &noised_data) {
+void GenerateData(std::vector<Scalar> &truth_data, std::vector<Scalar> &noised_data) {
     // Generate truth data.
     truth_data.resize(kNumberOfData);
     for (uint32_t i = 0; i < kNumberOfData; ++i) {
@@ -34,9 +33,7 @@ void GenerateData(std::vector<Scalar> &truth_data,
     }
 }
 
-void PrintFilterResult(std::vector<Scalar> &truth_data,
-                       std::vector<Scalar> &noised_data,
-                       std::vector<Scalar> &filtered_data) {
+void PrintFilterResult(std::vector<Scalar> &truth_data, std::vector<Scalar> &noised_data, std::vector<Scalar> &filtered_data) {
     RETURN_IF(truth_data.size() != noised_data.size() || truth_data.size() != filtered_data.size());
 
     Scalar raw_noise = 0.0f;
@@ -51,9 +48,7 @@ void PrintFilterResult(std::vector<Scalar> &truth_data,
 }
 
 template <typename FilterType>
-void FilterNoisedDataInErrorState(const std::vector<Scalar> &noised_data,
-                                  FilterType &filter,
-                                  std::vector<Scalar> &filtered_data) {
+void FilterNoisedDataInErrorState(const std::vector<Scalar> &noised_data, FilterType &filter, std::vector<Scalar> &filtered_data) {
     filtered_data = noised_data;
     for (uint32_t i = 1; i < noised_data.size(); ++i) {
         filter.PropagateCovariance();
@@ -63,9 +58,7 @@ void FilterNoisedDataInErrorState(const std::vector<Scalar> &noised_data,
 }
 
 template <typename FilterType>
-void FilterNoisedDataInNominalState(const std::vector<Scalar> &noised_data,
-                                    FilterType &filter,
-                                    std::vector<Scalar> &filtered_data) {
+void FilterNoisedDataInNominalState(const std::vector<Scalar> &noised_data, FilterType &filter, std::vector<Scalar> &filtered_data) {
     filtered_data = noised_data;
     filter.x() = TVec1<Scalar>(noised_data.front());
     for (uint32_t i = 1; i < noised_data.size(); ++i) {
@@ -77,9 +70,7 @@ void FilterNoisedDataInNominalState(const std::vector<Scalar> &noised_data,
 }
 
 template <typename InverseFilterType>
-void InverseFilterNoisedDataInErrorState(const std::vector<Scalar> &noised_data,
-                                         InverseFilterType &filter,
-                                         std::vector<Scalar> &filtered_data) {
+void InverseFilterNoisedDataInErrorState(const std::vector<Scalar> &noised_data, InverseFilterType &filter, std::vector<Scalar> &filtered_data) {
     filtered_data = noised_data;
     for (uint32_t i = 1; i < noised_data.size(); ++i) {
         filter.PropagateInformation();
@@ -89,9 +80,7 @@ void InverseFilterNoisedDataInErrorState(const std::vector<Scalar> &noised_data,
 }
 
 template <typename InverseFilterType>
-void InverseFilterNoisedDataInNominalState(const std::vector<Scalar> &noised_data,
-                                           InverseFilterType &filter,
-                                           std::vector<Scalar> &filtered_data) {
+void InverseFilterNoisedDataInNominalState(const std::vector<Scalar> &noised_data, InverseFilterType &filter, std::vector<Scalar> &filtered_data) {
     filtered_data = noised_data;
     filter.x() = TVec1<Scalar>(noised_data.front());
     for (uint32_t i = 1; i < noised_data.size(); ++i) {
@@ -144,8 +133,7 @@ void InitializeSquareRootInformationFilter(FilterType &filter) {
     filter.inv_sqrt_Q_t() = TMat1<Scalar>(1.0 / kProcessNoiseSigma);
 }
 
-void TestKalmanFilterStatic(std::vector<Scalar> &truth_data,
-                            std::vector<Scalar> &noised_data) {
+void TestKalmanFilterStatic(std::vector<Scalar> &truth_data, std::vector<Scalar> &noised_data) {
     ReportInfo(YELLOW ">> Test kalman filter (static) in dimension 1." RESET_COLOR);
     KalmanFilterStatic<Scalar, 1, 1> filter;
     InitializeKalmanFilter(filter);
@@ -154,8 +142,7 @@ void TestKalmanFilterStatic(std::vector<Scalar> &truth_data,
     PrintFilterResult(truth_data, noised_data, filtered_data);
 }
 
-void TestErrorKalmanFilterStatic(std::vector<Scalar> &truth_data,
-                                 std::vector<Scalar> &noised_data) {
+void TestErrorKalmanFilterStatic(std::vector<Scalar> &truth_data, std::vector<Scalar> &noised_data) {
     ReportInfo(YELLOW ">> Test error kalman filter (static) in dimension 1." RESET_COLOR);
     ErrorKalmanFilterStatic<Scalar, 1, 1> filter;
     InitializeKalmanFilter(filter);
@@ -164,8 +151,7 @@ void TestErrorKalmanFilterStatic(std::vector<Scalar> &truth_data,
     PrintFilterResult(truth_data, noised_data, filtered_data);
 }
 
-void TestSquareRootKalmanFilterStatic(std::vector<Scalar> &truth_data,
-                                      std::vector<Scalar> &noised_data) {
+void TestSquareRootKalmanFilterStatic(std::vector<Scalar> &truth_data, std::vector<Scalar> &noised_data) {
     ReportInfo(YELLOW ">> Test square root kalman filter (static) in dimension 1." RESET_COLOR);
     SquareRootKalmanFilterStatic<Scalar, 1, 1> filter;
     InitializeSquareRootKalmanFilter(filter);
@@ -174,8 +160,7 @@ void TestSquareRootKalmanFilterStatic(std::vector<Scalar> &truth_data,
     PrintFilterResult(truth_data, noised_data, filtered_data);
 }
 
-void TestInformationFilterStatic(std::vector<Scalar> &truth_data,
-                                 std::vector<Scalar> &noised_data) {
+void TestInformationFilterStatic(std::vector<Scalar> &truth_data, std::vector<Scalar> &noised_data) {
     ReportInfo(YELLOW ">> Test information filter (static) in dimension 1." RESET_COLOR);
     InformationFilterStatic<Scalar, 1, 1> filter;
     InitializeInformationFilter(filter);
@@ -184,8 +169,7 @@ void TestInformationFilterStatic(std::vector<Scalar> &truth_data,
     PrintFilterResult(truth_data, noised_data, filtered_data);
 }
 
-void TestErrorInformationFilterStatic(std::vector<Scalar> &truth_data,
-                                      std::vector<Scalar> &noised_data) {
+void TestErrorInformationFilterStatic(std::vector<Scalar> &truth_data, std::vector<Scalar> &noised_data) {
     ReportInfo(YELLOW ">> Test error information filter (static) in dimension 1." RESET_COLOR);
     ErrorInformationFilterStatic<Scalar, 1, 1> filter;
     InitializeInformationFilter(filter);
@@ -194,8 +178,7 @@ void TestErrorInformationFilterStatic(std::vector<Scalar> &truth_data,
     PrintFilterResult(truth_data, noised_data, filtered_data);
 }
 
-void TestSquareRootInformationFilterStatic(std::vector<Scalar> &truth_data,
-                                           std::vector<Scalar> &noised_data) {
+void TestSquareRootInformationFilterStatic(std::vector<Scalar> &truth_data, std::vector<Scalar> &noised_data) {
     ReportInfo(YELLOW ">> Test square root information filter (static) in dimension 1." RESET_COLOR);
     SquareRootInformationFilterStatic<Scalar, 1, 1> filter;
     InitializeSquareRootInformationFilter(filter);
@@ -204,8 +187,7 @@ void TestSquareRootInformationFilterStatic(std::vector<Scalar> &truth_data,
     PrintFilterResult(truth_data, noised_data, filtered_data);
 }
 
-void TestKalmanFilterDynamic(std::vector<Scalar> &truth_data,
-                             std::vector<Scalar> &noised_data) {
+void TestKalmanFilterDynamic(std::vector<Scalar> &truth_data, std::vector<Scalar> &noised_data) {
     ReportInfo(YELLOW ">> Test kalman filter (dynamic) in dimension 1." RESET_COLOR);
     KalmanFilterDynamic<Scalar> filter;
     InitializeKalmanFilter(filter);
@@ -214,8 +196,7 @@ void TestKalmanFilterDynamic(std::vector<Scalar> &truth_data,
     PrintFilterResult(truth_data, noised_data, filtered_data);
 }
 
-void TestErrorKalmanFilterDynamic(std::vector<Scalar> &truth_data,
-                                  std::vector<Scalar> &noised_data) {
+void TestErrorKalmanFilterDynamic(std::vector<Scalar> &truth_data, std::vector<Scalar> &noised_data) {
     ReportInfo(YELLOW ">> Test error kalman filter (dynamic) in dimension 1." RESET_COLOR);
     ErrorKalmanFilterDynamic<Scalar> filter;
     InitializeKalmanFilter(filter);
@@ -224,8 +205,7 @@ void TestErrorKalmanFilterDynamic(std::vector<Scalar> &truth_data,
     PrintFilterResult(truth_data, noised_data, filtered_data);
 }
 
-void TestSquareRootKalmanFilterDynamic(std::vector<Scalar> &truth_data,
-                                       std::vector<Scalar> &noised_data) {
+void TestSquareRootKalmanFilterDynamic(std::vector<Scalar> &truth_data, std::vector<Scalar> &noised_data) {
     ReportInfo(YELLOW ">> Test square root kalman filter (dynamic) in dimension 1." RESET_COLOR);
     SquareRootKalmanFilterDynamic<Scalar> filter;
     InitializeSquareRootKalmanFilter(filter);
@@ -234,8 +214,7 @@ void TestSquareRootKalmanFilterDynamic(std::vector<Scalar> &truth_data,
     PrintFilterResult(truth_data, noised_data, filtered_data);
 }
 
-void TestInformationFilterDynamic(std::vector<Scalar> &truth_data,
-                                  std::vector<Scalar> &noised_data) {
+void TestInformationFilterDynamic(std::vector<Scalar> &truth_data, std::vector<Scalar> &noised_data) {
     ReportInfo(YELLOW ">> Test information filter (dynamic) in dimension 1." RESET_COLOR);
     InformationFilterDynamic<Scalar> filter;
     InitializeInformationFilter(filter);
@@ -244,8 +223,7 @@ void TestInformationFilterDynamic(std::vector<Scalar> &truth_data,
     PrintFilterResult(truth_data, noised_data, filtered_data);
 }
 
-void TestErrorInformationFilterDynamic(std::vector<Scalar> &truth_data,
-                                       std::vector<Scalar> &noised_data) {
+void TestErrorInformationFilterDynamic(std::vector<Scalar> &truth_data, std::vector<Scalar> &noised_data) {
     ReportInfo(YELLOW ">> Test error information filter (dynamic) in dimension 1." RESET_COLOR);
     ErrorInformationFilterDynamic<Scalar> filter;
     InitializeInformationFilter(filter);
@@ -254,8 +232,7 @@ void TestErrorInformationFilterDynamic(std::vector<Scalar> &truth_data,
     PrintFilterResult(truth_data, noised_data, filtered_data);
 }
 
-void TestSquareRootInformationFilterDynamic(std::vector<Scalar> &truth_data,
-                                            std::vector<Scalar> &noised_data) {
+void TestSquareRootInformationFilterDynamic(std::vector<Scalar> &truth_data, std::vector<Scalar> &noised_data) {
     ReportInfo(YELLOW ">> Test square root information filter (dynamic) in dimension 1." RESET_COLOR);
     SquareRootInformationFilterDynamic<Scalar> filter;
     InitializeSquareRootInformationFilter(filter);

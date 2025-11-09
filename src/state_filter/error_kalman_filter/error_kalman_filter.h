@@ -15,7 +15,8 @@ template <typename Scalar>
 class ErrorKalmanFilterDynamic : public Filter<Scalar, ErrorKalmanFilterDynamic<Scalar>> {
 
 public:
-    ErrorKalmanFilterDynamic() : Filter<Scalar, ErrorKalmanFilterDynamic<Scalar>>() {}
+    ErrorKalmanFilterDynamic()
+        : Filter<Scalar, ErrorKalmanFilterDynamic<Scalar>>() {}
     virtual ~ErrorKalmanFilterDynamic() = default;
 
     bool PropagateCovarianceImpl();
@@ -57,17 +58,17 @@ private:
     // Process noise Q and measurement noise R.
     TMat<Scalar> Q_ = TMat<Scalar>::Zero(1, 1);
     TMat<Scalar> R_ = TMat<Scalar>::Zero(1, 1);
-
 };
 
 /* Class Error State Kalman Filter Declaration. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 class ErrorKalmanFilterStatic : public Filter<Scalar, ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>> {
 
-static_assert(StateSize > 0 && ObserveSize > 0, "Size of state and observe must be larger than 0.");
+    static_assert(StateSize > 0 && ObserveSize > 0, "Size of state and observe must be larger than 0.");
 
 public:
-    ErrorKalmanFilterStatic() : Filter<Scalar, ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>>() {}
+    ErrorKalmanFilterStatic()
+        : Filter<Scalar, ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>>() {}
     virtual ~ErrorKalmanFilterStatic() = default;
 
     bool PropagateCovarianceImpl();
@@ -109,7 +110,6 @@ private:
     // Process noise Q and measurement noise R.
     TMat<Scalar, StateSize, StateSize> Q_ = TMat<Scalar, StateSize, StateSize>::Zero();
     TMat<Scalar, ObserveSize, ObserveSize> R_ = TMat<Scalar, ObserveSize, ObserveSize>::Zero();
-
 };
 
 /* Class Error State Kalman Filter Definition. */
@@ -145,6 +145,6 @@ bool ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAndCova
     return true;
 }
 
-}
+}  // namespace SLAM_SOLVER
 
-#endif // end of _ERROR_KALMAN_FILTER_SOLVER_H_
+#endif  // end of _ERROR_KALMAN_FILTER_SOLVER_H_

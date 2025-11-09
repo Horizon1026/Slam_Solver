@@ -2,12 +2,12 @@
 #define _GENERAL_GRAPH_OPTIMIZOR_EDGE_H_
 
 #include "basic_type.h"
+#include "kernel.h"
 #include "slam_log_reporter.h"
 #include "vertex.h"
-#include "kernel.h"
 
-#include "vector"
 #include "memory"
+#include "vector"
 
 namespace SLAM_SOLVER {
 
@@ -25,7 +25,7 @@ public:
     const uint32_t GetId() const { return id_; }
 
     // Set and get vertex of this edge.
-    bool SetVertex(Vertex<Scalar> * vertex, uint32_t index);
+    bool SetVertex(Vertex<Scalar> *vertex, uint32_t index);
     bool SetVertices(const std::vector<Vertex<Scalar> *> &vertices);
     Vertex<Scalar> *GetVertex(uint32_t index) { return vertices_[index]; }
     const std::vector<Vertex<Scalar> *> &GetVertices() const { return vertices_; }
@@ -58,9 +58,7 @@ public:
 
     // Compute residual and jacobians for each vertex. These operations should be defined by subclass.
     virtual void ComputeResidual() { residual_.setZero(); }
-    virtual void ComputeJacobians() {
-        ComputeNumbericalJacobians();
-    }
+    virtual void ComputeJacobians() { ComputeNumbericalJacobians(); }
     void ComputeNumbericalJacobians();
 
 private:
@@ -92,6 +90,6 @@ private:
 template <typename Scalar>
 uint32_t Edge<Scalar>::global_id_ = 0;
 
-}
+}  // namespace SLAM_SOLVER
 
-#endif // end of _GENERAL_GRAPH_OPTIMIZOR_EDGE_H_
+#endif  // end of _GENERAL_GRAPH_OPTIMIZOR_EDGE_H_

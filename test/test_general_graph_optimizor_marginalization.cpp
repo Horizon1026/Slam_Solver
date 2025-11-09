@@ -1,7 +1,7 @@
 #include "basic_type.h"
+#include "image_painter.h"
 #include "slam_log_reporter.h"
 #include "visualizor_2d.h"
-#include "image_painter.h"
 
 #include "general_graph_optimizor.h"
 
@@ -10,18 +10,19 @@ using namespace SLAM_SOLVER;
 using namespace SLAM_VISUALIZOR;
 using namespace IMAGE_PAINTER;
 namespace {
-    constexpr int32_t kVisualizeMatrixScale = 3;
-    constexpr int32_t kCameraFrameNumber = 10;
-    constexpr int32_t kPointsNumber = 100;
-}
+constexpr int32_t kVisualizeMatrixScale = 3;
+constexpr int32_t kCameraFrameNumber = 10;
+constexpr int32_t kPointsNumber = 100;
+}  // namespace
 
 /* Class Edge reprojection. */
 template <typename Scalar>
 class EdgeReproject : public Edge<Scalar> {
-// vertex is [feature, p_w] [camera, p_wc] [camera, q_wc].
+    // vertex is [feature, p_w] [camera, p_wc] [camera, q_wc].
 
 public:
-    EdgeReproject() : Edge<Scalar>(2, 3) {}
+    EdgeReproject()
+        : Edge<Scalar>(2, 3) {}
     virtual ~EdgeReproject() = default;
 
     // Compute residual and jacobians for each vertex. These operations should be defined by subclass.
@@ -47,12 +48,11 @@ public:
         TMat2x3<Scalar> jacobian_2d_3d = TMat2x3<Scalar>::Zero();
         if (!std::isinf(inv_depth) && !std::isnan(inv_depth)) {
             const Scalar inv_depth_2 = inv_depth * inv_depth;
-            jacobian_2d_3d << inv_depth, 0, - p_c(0) * inv_depth_2,
-                              0, inv_depth, - p_c(1) * inv_depth_2;
+            jacobian_2d_3d << inv_depth, 0, -p_c(0) * inv_depth_2, 0, inv_depth, -p_c(1) * inv_depth_2;
         }
 
         this->GetJacobian(0) = jacobian_2d_3d * (q_wc.inverse().matrix());
-        this->GetJacobian(1) = - this->GetJacobian(0);
+        this->GetJacobian(1) = -this->GetJacobian(0);
         this->GetJacobian(2) = jacobian_2d_3d * SLAM_UTILITY::Utility::SkewSymmetricMatrix(p_c);
     }
 
@@ -73,8 +73,7 @@ struct Pose {
     TVec3<Scalar> p_wc = TVec3<Scalar>::Zero();
 };
 
-void GenerateSimulationData(std::vector<Pose<Scalar>> &cameras,
-                            std::vector<TVec3<Scalar>> &points) {
+void GenerateSimulationData(std::vector<Pose<Scalar>> &cameras, std::vector<TVec3<Scalar>> &points) {
     cameras.clear();
     points.clear();
 
@@ -149,22 +148,29 @@ int main(int argc, char **argv) {
 
     // Construct graph problem and marginalizor.
     Graph<Scalar> problem;
-    for (auto &vertex: all_camera_pos) { problem.AddVertex(vertex.get()); }
-    for (auto &vertex: all_camera_rot) { problem.AddVertex(vertex.get()); }
-    for (auto &vertex: all_points) { problem.AddVertex(vertex.get(), false); }
-    for (auto &edge: reprojection_edges) { problem.AddEdge(edge.get()); }
+    for (auto &vertex: all_camera_pos) {
+        problem.AddVertex(vertex.get());
+    }
+    for (auto &vertex: all_camera_rot) {
+        problem.AddVertex(vertex.get());
+    }
+    for (auto &vertex: all_points) {
+        problem.AddVertex(vertex.get(), false);
+    }
+    for (auto &edge: reprojection_edges) {
+        problem.AddEdge(edge.get());
+    }
 
     // Set vertices to be marged.
-    std::vector<Vertex<Scalar> *> vertices_to_be_marged = {
-        all_camera_pos[0].get(), all_camera_rot[0].get()
-    };
+    std::vector<Vertex<Scalar> *> vertices_to_be_marged = {all_camera_pos[0].get(), all_camera_rot[0].get()};
     Marginalizor<Scalar> marger;
     marger.problem() = &problem;
     marger.options().kSortDirection = SortMargedVerticesDirection::kSortAtBack;
     marger.Marginalize(vertices_to_be_marged, false);
 
     // Show result.
-    ReportInfo("Marginalize residual squared norm is " << marger.problem()->prior_residual().squaredNorm() << ", cost of problem is " << marger.cost_of_problem());
+    ReportInfo("Marginalize residual squared norm is " << marger.problem()->prior_residual().squaredNorm() << ", cost of problem is "
+                                                       << marger.cost_of_problem());
     ShowMatrixImage("hessian", marger.problem()->hessian());
     ShowMatrixImage("reverse hessian", marger.reverse_hessian());
     ShowMatrixImage("prior hessian", marger.problem()->prior_hessian());

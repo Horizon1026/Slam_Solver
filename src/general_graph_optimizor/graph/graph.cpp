@@ -5,9 +5,9 @@
 #ifdef ENABLE_TBB_PARALLEL
 #pragma message("tbb/tbb.h is included.")
 #include "tbb/tbb.h"
-#else // ENABLE_TBB_PARALLEL
+#else  // ENABLE_TBB_PARALLEL
 #pragma message("tbb/tbb.h is not included.")
-#endif // end of ENABLE_TBB_PARALLEL
+#endif  // end of ENABLE_TBB_PARALLEL
 
 namespace SLAM_SOLVER {
 
@@ -43,17 +43,15 @@ void Graph<Scalar>::VerticesInformation(bool show_sparse_vertices_info) {
     ReportInfo("[Graph] All vertices in this graph:");
     for (const auto &vertex: dense_vertices_) {
         const std::string fix_status = vertex->IsFixed() ? "fixed" : "unfixed";
-        ReportInfo(" - [dense] [name] " << vertex->name() <<
-            ",\t[col id] " << vertex->ColIndex() << ", " << fix_status <<
-            ",\t[param] " << vertex->param().transpose());
+        ReportInfo(" - [dense] [name] " << vertex->name() << ",\t[col id] " << vertex->ColIndex() << ", " << fix_status << ",\t[param] "
+                                        << vertex->param().transpose());
     }
 
     if (show_sparse_vertices_info) {
         for (const auto &vertex: sparse_vertices_) {
             const std::string fix_status = vertex->IsFixed() ? "fixed" : "unfixed";
-            ReportInfo(" - [sparse] [name] " << vertex->name() <<
-                ",\t[col id] " << vertex->ColIndex() << ", " << fix_status <<
-                ",\t[param] " << vertex->param().transpose());
+            ReportInfo(" - [sparse] [name] " << vertex->name() << ",\t[col id] " << vertex->ColIndex() << ", " << fix_status << ",\t[param] "
+                                             << vertex->param().transpose());
         }
     }
 }
@@ -66,9 +64,8 @@ void Graph<Scalar>::EdgesInformation() {
         ReportInfo(" - [name] " << edge->name() << ", [id] " << edge->GetId() << ", relative vertices:");
         for (const auto &vertex: edge->GetVertices()) {
             const std::string fix_status = vertex->IsFixed() ? "fixed" : "unfixed";
-            ReportInfo(" - [name] " << vertex->name() <<
-                ",\t[col id] " << vertex->ColIndex() << ", " << fix_status <<
-                ",\t[param] " << vertex->param().transpose());
+            ReportInfo(" - [name] " << vertex->name() << ",\t[col id] " << vertex->ColIndex() << ", " << fix_status << ",\t[param] "
+                                    << vertex->param().transpose());
         }
     }
 }
@@ -134,34 +131,30 @@ void Graph<Scalar>::SortVertices(bool statis_size_of_residual) {
 template <typename Scalar>
 void Graph<Scalar>::UpdateAllVertices(const TVec<Scalar> &delta_x) {
 #ifdef ENABLE_TBB_PARALLEL
-    tbb::parallel_for(tbb::blocked_range<uint32_t>(0, dense_vertices_.size()),
-        [&] (tbb::blocked_range<uint32_t> range) {
-            for (uint32_t i = range.begin(); i < range.end(); ++i) {
-                auto &vertex = dense_vertices_[i];
-                CONTINUE_IF(vertex->IsFixed());
+    tbb::parallel_for(tbb::blocked_range<uint32_t>(0, dense_vertices_.size()), [&](tbb::blocked_range<uint32_t> range) {
+        for (uint32_t i = range.begin(); i < range.end(); ++i) {
+            auto &vertex = dense_vertices_[i];
+            CONTINUE_IF(vertex->IsFixed());
 
-                vertex->BackupParam();
-                const int32_t index = vertex->ColIndex();
-                const int32_t dim = vertex->GetIncrementDimension();
-                vertex->UpdateParam(delta_x.segment(index, dim));
-            }
+            vertex->BackupParam();
+            const int32_t index = vertex->ColIndex();
+            const int32_t dim = vertex->GetIncrementDimension();
+            vertex->UpdateParam(delta_x.segment(index, dim));
         }
-    );
+    });
 
-    tbb::parallel_for(tbb::blocked_range<uint32_t>(0, sparse_vertices_.size()),
-        [&] (tbb::blocked_range<uint32_t> range) {
-            for (uint32_t i = range.begin(); i < range.end(); ++i) {
-                auto &vertex = sparse_vertices_[i];
-                CONTINUE_IF(vertex->IsFixed());
+    tbb::parallel_for(tbb::blocked_range<uint32_t>(0, sparse_vertices_.size()), [&](tbb::blocked_range<uint32_t> range) {
+        for (uint32_t i = range.begin(); i < range.end(); ++i) {
+            auto &vertex = sparse_vertices_[i];
+            CONTINUE_IF(vertex->IsFixed());
 
-                vertex->BackupParam();
-                const int32_t index = vertex->ColIndex();
-                const int32_t dim = vertex->GetIncrementDimension();
-                vertex->UpdateParam(delta_x.segment(index, dim));
-            }
+            vertex->BackupParam();
+            const int32_t index = vertex->ColIndex();
+            const int32_t dim = vertex->GetIncrementDimension();
+            vertex->UpdateParam(delta_x.segment(index, dim));
         }
-    );
-#else // ENABLE_TBB_PARALLEL
+    });
+#else   // ENABLE_TBB_PARALLEL
     for (auto &vertex: dense_vertices_) {
         CONTINUE_IF(vertex->IsFixed());
 
@@ -179,34 +172,29 @@ void Graph<Scalar>::UpdateAllVertices(const TVec<Scalar> &delta_x) {
         const int32_t dim = vertex->GetIncrementDimension();
         vertex->UpdateParam(delta_x.segment(index, dim));
     }
-#endif // end of ENABLE_TBB_PARALLEL
-
+#endif  // end of ENABLE_TBB_PARALLEL
 }
 
 // Roll back all vertices.
 template <typename Scalar>
 void Graph<Scalar>::RollBackAllVertices() {
 #ifdef ENABLE_TBB_PARALLEL
-    tbb::parallel_for(tbb::blocked_range<uint32_t>(0, dense_vertices_.size()),
-        [&] (tbb::blocked_range<uint32_t> range) {
-            for (uint32_t i = range.begin(); i < range.end(); ++i) {
-                auto &vertex = dense_vertices_[i];
-                CONTINUE_IF(vertex->IsFixed());
-                vertex->RollbackParam();
-            }
+    tbb::parallel_for(tbb::blocked_range<uint32_t>(0, dense_vertices_.size()), [&](tbb::blocked_range<uint32_t> range) {
+        for (uint32_t i = range.begin(); i < range.end(); ++i) {
+            auto &vertex = dense_vertices_[i];
+            CONTINUE_IF(vertex->IsFixed());
+            vertex->RollbackParam();
         }
-    );
+    });
 
-    tbb::parallel_for(tbb::blocked_range<uint32_t>(0, sparse_vertices_.size()),
-        [&] (tbb::blocked_range<uint32_t> range) {
-            for (uint32_t i = range.begin(); i < range.end(); ++i) {
-                auto &vertex = sparse_vertices_[i];
-                CONTINUE_IF(vertex->IsFixed());
-                vertex->RollbackParam();
-            }
+    tbb::parallel_for(tbb::blocked_range<uint32_t>(0, sparse_vertices_.size()), [&](tbb::blocked_range<uint32_t> range) {
+        for (uint32_t i = range.begin(); i < range.end(); ++i) {
+            auto &vertex = sparse_vertices_[i];
+            CONTINUE_IF(vertex->IsFixed());
+            vertex->RollbackParam();
         }
-    );
-#else // ENABLE_TBB_PARALLEL
+    });
+#else   // ENABLE_TBB_PARALLEL
     for (auto &vertex: dense_vertices_) {
         CONTINUE_IF(vertex->IsFixed());
         vertex->RollbackParam();
@@ -216,16 +204,16 @@ void Graph<Scalar>::RollBackAllVertices() {
         CONTINUE_IF(vertex->IsFixed());
         vertex->RollbackParam();
     }
-#endif // end of ENABLE_TBB_PARALLEL
-
+#endif  // end of ENABLE_TBB_PARALLEL
 }
 
 // Compute residual for all edges.
 template <typename Scalar>
 Scalar Graph<Scalar>::ComputeResidualForAllEdges(bool use_prior) {
 #ifdef ENABLE_TBB_PARALLEL
-    Scalar sum_cost = tbb::parallel_reduce(tbb::blocked_range<uint32_t>(0, edges_.size()), Scalar(0),
-        [&] (tbb::blocked_range<uint32_t> range, Scalar sub_sum_cost) {
+    Scalar sum_cost = tbb::parallel_reduce(
+        tbb::blocked_range<uint32_t>(0, edges_.size()), Scalar(0),
+        [&](tbb::blocked_range<uint32_t> range, Scalar sub_sum_cost) {
             for (uint32_t i = range.begin(); i < range.end(); ++i) {
                 auto &edge = edges_[i];
                 edge->ComputeResidual();
@@ -234,9 +222,9 @@ Scalar Graph<Scalar>::ComputeResidualForAllEdges(bool use_prior) {
                 sub_sum_cost += edge->kernel()->y(0);
             }
             return sub_sum_cost;
-        }, std::plus<Scalar>()
-    );
-#else // ENABLE_TBB_PARALLEL
+        },
+        std::plus<Scalar>());
+#else   // ENABLE_TBB_PARALLEL
     Scalar sum_cost = 0;
     for (auto &edge: edges_) {
         edge->ComputeResidual();
@@ -244,7 +232,7 @@ Scalar Graph<Scalar>::ComputeResidualForAllEdges(bool use_prior) {
         edge->kernel()->Compute(x);
         sum_cost += edge->kernel()->y(0);
     }
-#endif // end of ENABLE_TBB_PARALLEL
+#endif  // end of ENABLE_TBB_PARALLEL
 
     // Prior information is decomposed as sqrt(S) * r, so squredNorm means r.t * S * r.
     if (use_prior && prior_residual_.rows() > 0) {
@@ -258,25 +246,21 @@ Scalar Graph<Scalar>::ComputeResidualForAllEdges(bool use_prior) {
 template <typename Scalar>
 void Graph<Scalar>::ComputeJacobiansForAllEdges() {
 #ifdef ENABLE_TBB_PARALLEL
-    tbb::parallel_for(tbb::blocked_range<uint32_t>(0, edges_.size()),
-        [&] (tbb::blocked_range<uint32_t> range) {
-            for (uint32_t i = range.begin(); i < range.end(); ++i) {
-                edges_[i]->ComputeJacobians();
-            }
+    tbb::parallel_for(tbb::blocked_range<uint32_t>(0, edges_.size()), [&](tbb::blocked_range<uint32_t> range) {
+        for (uint32_t i = range.begin(); i < range.end(); ++i) {
+            edges_[i]->ComputeJacobians();
         }
-    );
-#else // ENABLE_TBB_PARALLEL
+    });
+#else   // ENABLE_TBB_PARALLEL
     for (auto &edge: edges_) {
         edge->ComputeJacobians();
     }
-#endif // end of ENABLE_TBB_PARALLEL
+#endif  // end of ENABLE_TBB_PARALLEL
 }
 
 // Construct incremental function with full size.
 template <typename Scalar>
-void Graph<Scalar>::ConstructFullSizeJacobianAndResidual(bool use_prior) {
-
-}
+void Graph<Scalar>::ConstructFullSizeJacobianAndResidual(bool use_prior) {}
 
 // Construct incremental function with full size.
 template <typename Scalar>
@@ -306,12 +290,16 @@ void Graph<Scalar>::ConstructFullSizeHessianAndBias(bool use_prior) {
         HessianLockerType *lockers;
 
         /* Struct Methods. */
-        Reductor(std::vector<Edge<Scalar> *> *set_edges,
-                 TMat<Scalar> &set_hessian,
-                 TVec<Scalar> &set_bias,
-                 HessianLockerType *set_lockers) :
-            edges(set_edges), hessian(set_hessian), bias(set_bias), lockers(set_lockers) {}
-        Reductor(Reductor &r, tbb::split) : edges(r.edges), hessian(r.hessian), bias(r.bias), lockers(r.lockers) {}
+        Reductor(std::vector<Edge<Scalar> *> *set_edges, TMat<Scalar> &set_hessian, TVec<Scalar> &set_bias, HessianLockerType *set_lockers)
+            : edges(set_edges)
+            , hessian(set_hessian)
+            , bias(set_bias)
+            , lockers(set_lockers) {}
+        Reductor(Reductor &r, tbb::split)
+            : edges(r.edges)
+            , hessian(r.hessian)
+            , bias(r.bias)
+            , lockers(r.lockers) {}
         inline void join(const Reductor &r) {}
         // Define operation for this reduce task.
         void operator()(const tbb::blocked_range<uint32_t> &range) {
@@ -365,7 +353,7 @@ void Graph<Scalar>::ConstructFullSizeHessianAndBias(bool use_prior) {
     // Parallel do construction.
     Reductor r(&edges_, hessian_, bias_, &lockers_for_hessian);
     tbb::parallel_reduce(tbb::blocked_range<uint32_t>(0, edges_.size()), r);
-#else // ENABLE_TBB_PARALLEL
+#else   // ENABLE_TBB_PARALLEL
 
     // Preallocate memory for temp variables.
     TMat<Scalar> Jt_S_w;
@@ -405,7 +393,7 @@ void Graph<Scalar>::ConstructFullSizeHessianAndBias(bool use_prior) {
             }
         }
     }
-#endif // end of ENABLE_TBB_PARALLEL
+#endif  // end of ENABLE_TBB_PARALLEL
 
     // Add prior information on incremental function, if configed to use prior.
     if (use_prior && prior_hessian_.rows() > 0) {
@@ -441,24 +429,22 @@ void Graph<Scalar>::MarginalizeSparseVerticesInHessianAndBias(TMat<Scalar> &hess
     // Calculate inverse of Hmm to get Hrm * Hmm_inv.
     TMat<Scalar> Hrm_Hmm_inv = TMat<Scalar>::Zero(reverse, marg);
 #ifdef ENABLE_TBB_PARALLEL
-    tbb::parallel_for(tbb::blocked_range<uint32_t>(0, sparse_vertices_.size()),
-        [&] (tbb::blocked_range<uint32_t> range) {
-            for (uint32_t i = range.begin(); i < range.end(); ++i) {
-                auto &vertex = sparse_vertices_[i];
-                const int32_t index = vertex->ColIndex();
-                const int32_t dim = vertex->GetIncrementDimension();
+    tbb::parallel_for(tbb::blocked_range<uint32_t>(0, sparse_vertices_.size()), [&](tbb::blocked_range<uint32_t> range) {
+        for (uint32_t i = range.begin(); i < range.end(); ++i) {
+            auto &vertex = sparse_vertices_[i];
+            const int32_t index = vertex->ColIndex();
+            const int32_t dim = vertex->GetIncrementDimension();
 
-                const TMat<Scalar> &&sub_hessian = hessian_.block(index, index, dim, dim);
-                const TMat<Scalar> sub_hessian_inverse = sub_hessian.inverse();
-                if (std::fabs((sub_hessian * sub_hessian_inverse)(0, 0) - 1.0) < 0.1) {
-                    Hrm_Hmm_inv.block(0, index - reverse, reverse, dim) = hessian_.block(0, index, reverse, dim) * sub_hessian_inverse;
-                } else {
-                    Hrm_Hmm_inv.block(0, index - reverse, reverse, dim).setZero();
-                }
+            const TMat<Scalar> &&sub_hessian = hessian_.block(index, index, dim, dim);
+            const TMat<Scalar> sub_hessian_inverse = sub_hessian.inverse();
+            if (std::fabs((sub_hessian * sub_hessian_inverse)(0, 0) - 1.0) < 0.1) {
+                Hrm_Hmm_inv.block(0, index - reverse, reverse, dim) = hessian_.block(0, index, reverse, dim) * sub_hessian_inverse;
+            } else {
+                Hrm_Hmm_inv.block(0, index - reverse, reverse, dim).setZero();
             }
         }
-    );
-#else // ENABLE_TBB_PARALLEL
+    });
+#else   // ENABLE_TBB_PARALLEL
     for (const auto &vertex: sparse_vertices_) {
         const int32_t index = vertex->ColIndex();
         const int32_t dim = vertex->GetIncrementDimension();
@@ -471,7 +457,7 @@ void Graph<Scalar>::MarginalizeSparseVerticesInHessianAndBias(TMat<Scalar> &hess
             Hrm_Hmm_inv.block(0, index - reverse, reverse, dim).setZero();
         }
     }
-#endif // end of ENABLE_TBB_PARALLEL
+#endif  // end of ENABLE_TBB_PARALLEL
 
     // Calculate schur complement.
     // subH = Hrr - Hrm_Hmm_inv * Hmr.
@@ -481,8 +467,6 @@ void Graph<Scalar>::MarginalizeSparseVerticesInHessianAndBias(TMat<Scalar> &hess
 }
 
 template <typename Scalar>
-void Graph<Scalar>::MarginalizeSparseVerticesInJacobianAndResidual(TMat<Scalar> &jacobian, TVec<Scalar> &residual) {
+void Graph<Scalar>::MarginalizeSparseVerticesInJacobianAndResidual(TMat<Scalar> &jacobian, TVec<Scalar> &residual) {}
 
-}
-
-}
+}  // namespace SLAM_SOLVER

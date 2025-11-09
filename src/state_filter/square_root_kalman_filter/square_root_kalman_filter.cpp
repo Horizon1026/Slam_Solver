@@ -54,9 +54,7 @@ bool SquareRootKalmanFilterDynamic<Scalar>::UpdateStateAndCovarianceImpl(const T
 
     // Commpute Kalman gain.
     // hat_K = (H * pre_P * H.t + R).t/2 * K.
-    const TMat<Scalar> K_
-        = M_.template block(0, obv_size, obv_size, state_size).transpose()
-        * M_.template block(0, 0, obv_size, obv_size).inverse();
+    const TMat<Scalar> K_ = M_.template block(0, obv_size, obv_size, state_size).transpose() * M_.template block(0, 0, obv_size, obv_size).inverse();
 
     // Update error state.
     dx_ = K_ * residual;
@@ -73,4 +71,4 @@ bool SquareRootKalmanFilterDynamic<Scalar>::UpdateStateAndCovarianceImpl(const T
     return true;
 }
 
-}
+}  // namespace SLAM_SOLVER

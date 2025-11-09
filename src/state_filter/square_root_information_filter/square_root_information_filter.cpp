@@ -54,4 +54,4 @@ bool SquareRootInformationFilterDynamic<Scalar>::UpdateStateAndInformationImpl(c
     return true;
 }
 
-}
+}  // namespace SLAM_SOLVER

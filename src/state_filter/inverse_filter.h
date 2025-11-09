@@ -15,16 +15,13 @@ public:
     virtual ~InverseFilter() = default;
     InverseFilter(const InverseFilter &filter) = delete;
 
-    bool PropagateInformation() {
-        return reinterpret_cast<InverseFilterType *>(this)->PropagateInformationImpl();
-    }
+    bool PropagateInformation() { return reinterpret_cast<InverseFilterType *>(this)->PropagateInformationImpl(); }
 
     bool UpdateStateAndInformation(const TMat<Scalar> &value = TMat<Scalar>::Zero(1, 1)) {
         return reinterpret_cast<InverseFilterType *>(this)->UpdateStateAndInformationImpl(value);
     }
-
 };
 
-}
+}  // namespace SLAM_SOLVER
 
-#endif // end of _SLAM_INVERSE_FILTER_H_
+#endif  // end of _SLAM_INVERSE_FILTER_H_

@@ -18,7 +18,8 @@ template <typename Scalar>
 class SolverDogleg : public Solver<Scalar> {
 
 public:
-    SolverDogleg() : Solver<Scalar>() {}
+    SolverDogleg()
+        : Solver<Scalar>() {}
     virtual ~SolverDogleg() = default;
 
     // Initialize solver init value with first incremental function and so on.
@@ -53,9 +54,8 @@ private:
     TVec<Scalar> reverse_dx_;
     TVec<Scalar> marg_bias_;
     TVec<Scalar> marg_dx_;
-
 };
 
-}
+}  // namespace SLAM_SOLVER
 
-#endif // end of _GENERAL_GRAPH_OPTIMIZOR_SOLVER_DOGLEG_H_
+#endif  // end of _GENERAL_GRAPH_OPTIMIZOR_SOLVER_DOGLEG_H_

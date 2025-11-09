@@ -39,4 +39,4 @@ bool ErrorKalmanFilterDynamic<Scalar>::UpdateStateAndCovarianceImpl(const TMat<S
     return true;
 }
 
-}
+}  // namespace SLAM_SOLVER

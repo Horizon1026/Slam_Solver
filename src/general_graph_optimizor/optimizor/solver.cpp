@@ -1,7 +1,7 @@
 #include "solver.h"
-#include "tick_tock.h"
-#include "slam_log_reporter.h"
 #include "slam_basic_math.h"
+#include "slam_log_reporter.h"
+#include "tick_tock.h"
 
 namespace SLAM_SOLVER {
 
@@ -56,7 +56,6 @@ bool Solver<Scalar>::Solve(bool use_prior) {
         if (time_cost + time_cost_this_step > options_.kMaxCostTimeInSecond) {
             break;
         }
-
     }
 
     return true;
@@ -79,7 +78,7 @@ void Solver<Scalar>::UpdateParameters(bool use_prior) {
         prior_bias_backup_ = problem_->prior_bias();
         prior_residual_backup_ = problem_->prior_residual();
         problem_->prior_bias() -= problem_->prior_hessian() * dx_.head(problem_->prior_hessian().cols());
-        problem_->prior_residual() = - problem_->prior_jacobian_t_inv() * problem_->prior_bias();
+        problem_->prior_residual() = -problem_->prior_jacobian_t_inv() * problem_->prior_bias();
     }
 }
 
@@ -112,9 +111,7 @@ bool Solver<Scalar>::IsConvergedAfterUpdate(int32_t iter) {
 
 // Default Use PCG solver to solve linearlized function. Other solvers can also be added here.
 template <typename Scalar>
-void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A,
-                                              const TVec<Scalar> &b,
-                                              TVec<Scalar> &x) {
+void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A, const TVec<Scalar> &b, TVec<Scalar> &x) {
     switch (options_.kLinearFunctionSolverType) {
         case LinearFunctionSolverType::kPcgSolver: {
             const int32_t size = b.rows();
@@ -135,7 +132,7 @@ void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A,
                     M_inv_diag(i) = 0;
                 }
             }
-            TVec<Scalar> z0 = M_inv_diag.array() * r0.array();    // solve M * z0 = r0
+            TVec<Scalar> z0 = M_inv_diag.array() * r0.array();  // solve M * z0 = r0
 
             // Get first basis vector, compute weight alpha, update x.
             TVec<Scalar> p(z0);
@@ -203,7 +200,7 @@ void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A,
     }
     // Eigen vectors are sorted by eigen values as columns.
     const TMat<Scalar> &eigen_vectors = solver.eigenvectors().real();
-    const TMat<Scalar> &matrix_f_inv = eigen_vectors;   // For eigen vectors matrix, transpose is equal to inverse.
+    const TMat<Scalar> &matrix_f_inv = eigen_vectors;  // For eigen vectors matrix, transpose is equal to inverse.
     // Matrix f and matrix u are both rows of eigen vectors. So the inverse of them are cols of eigen vectors.
     // Select the directions of full-conditioned subspace.
     TMat<Scalar> matrix_u_inv = eigen_vectors;
@@ -214,7 +211,6 @@ void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A,
     }
     // Compute the result projected into full-conditioned subspace.
     x = matrix_f_inv * matrix_u_inv.transpose() * x;
-
 }
 
-}
+}  // namespace SLAM_SOLVER

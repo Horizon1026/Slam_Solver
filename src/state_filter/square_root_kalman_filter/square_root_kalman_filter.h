@@ -15,7 +15,8 @@ template <typename Scalar>
 class SquareRootKalmanFilterDynamic : public Filter<Scalar, SquareRootKalmanFilterDynamic<Scalar>> {
 
 public:
-    SquareRootKalmanFilterDynamic() : Filter<Scalar, SquareRootKalmanFilterDynamic<Scalar>>() {}
+    SquareRootKalmanFilterDynamic()
+        : Filter<Scalar, SquareRootKalmanFilterDynamic<Scalar>>() {}
     virtual ~SquareRootKalmanFilterDynamic() = default;
 
     bool PropagateCovarianceImpl();
@@ -60,17 +61,17 @@ private:
     TMat<Scalar> extend_predict_S_t_ = TMat<Scalar>::Zero(2, 1);
     TMat<Scalar> predict_S_t_ = TMat<Scalar>::Zero(1, 1);
     TMat<Scalar> M_ = TMat<Scalar>::Zero(2, 2);
-
 };
 
 /* Class Square Root Error State Kalman Filter Declaration. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 class SquareRootKalmanFilterStatic : public Filter<Scalar, SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>> {
 
-static_assert(StateSize > 0 && ObserveSize > 0, "Size of state and observe must be larger than 0.");
+    static_assert(StateSize > 0 && ObserveSize > 0, "Size of state and observe must be larger than 0.");
 
 public:
-    SquareRootKalmanFilterStatic() : Filter<Scalar, SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>>() {}
+    SquareRootKalmanFilterStatic()
+        : Filter<Scalar, SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>>() {}
     virtual ~SquareRootKalmanFilterStatic() = default;
 
     bool PropagateCovarianceImpl();
@@ -115,7 +116,6 @@ private:
     TMat<Scalar, StateSize + StateSize, StateSize> extend_predict_S_t_ = TMat<Scalar, StateSize + StateSize, StateSize>::Zero();
     TMat<Scalar, StateSize, StateSize> predict_S_t_ = TMat<Scalar, StateSize, StateSize>::Zero();
     TMat<Scalar, StateSize + ObserveSize, StateSize + ObserveSize> M_ = TMat<Scalar, StateSize + ObserveSize, StateSize + ObserveSize>::Zero();
-
 };
 
 /* Class Square Root Error State Kalman Filter Definition. */
@@ -149,9 +149,8 @@ bool SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAn
 
     // Commpute Kalman gain.
     // hat_K = (H * pre_P * H.t + R).t/2 * K.
-    const TMat<Scalar, StateSize, ObserveSize> K_
-        = M_.template block<ObserveSize, StateSize>(0, ObserveSize).transpose()
-        * M_.template block<ObserveSize, ObserveSize>(0, 0).inverse();
+    const TMat<Scalar, StateSize, ObserveSize> K_ =
+        M_.template block<ObserveSize, StateSize>(0, ObserveSize).transpose() * M_.template block<ObserveSize, ObserveSize>(0, 0).inverse();
 
     // Update error state.
     dx_ = K_ * residual;
@@ -168,6 +167,6 @@ bool SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAn
     return true;
 }
 
-}
+}  // namespace SLAM_SOLVER
 
-#endif // end of _SQUARE_ROOT_KALMAN_FILTER_SOLVER_H_
+#endif  // end of _SQUARE_ROOT_KALMAN_FILTER_SOLVER_H_

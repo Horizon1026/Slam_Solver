@@ -11,29 +11,30 @@ template <typename Scalar>
 class SquareRootInformationFilterDynamic : public InverseFilter<Scalar, SquareRootInformationFilterDynamic<Scalar>> {
 
 public:
-    SquareRootInformationFilterDynamic() : InverseFilter<Scalar, SquareRootInformationFilterDynamic<Scalar>>() {}
+    SquareRootInformationFilterDynamic()
+        : InverseFilter<Scalar, SquareRootInformationFilterDynamic<Scalar>>() {}
     virtual ~SquareRootInformationFilterDynamic() = default;
 
     bool PropagateInformationImpl();
     bool UpdateStateAndInformationImpl(const TMat<Scalar> &observation = TMat<Scalar>::Zero(1, 1));
 
     // Reference for member variables.
-    TVec<Scalar>& dx() { return dx_; }
-    TMat<Scalar>& W() { return W_; }
-    TMat<Scalar>& F() { return F_; }
-    TMat<Scalar>& H() { return H_; }
-    TMat<Scalar>& inv_sqrt_Q_t() { return inv_sqrt_Q_t_; }
-    TMat<Scalar>& inv_sqrt_R_t() { return inv_sqrt_R_t_; }
-    TMat<Scalar>& predict_W() { return predict_W_; }
+    TVec<Scalar> &dx() { return dx_; }
+    TMat<Scalar> &W() { return W_; }
+    TMat<Scalar> &F() { return F_; }
+    TMat<Scalar> &H() { return H_; }
+    TMat<Scalar> &inv_sqrt_Q_t() { return inv_sqrt_Q_t_; }
+    TMat<Scalar> &inv_sqrt_R_t() { return inv_sqrt_R_t_; }
+    TMat<Scalar> &predict_W() { return predict_W_; }
 
     // Const reference for member variables.
-    const TVec<Scalar>& dx() const { return dx_; }
-    const TMat<Scalar>& W() const { return W_; }
-    const TMat<Scalar>& F() const { return F_; }
-    const TMat<Scalar>& H() const { return H_; }
-    const TMat<Scalar>& inv_sqrt_Q_t() const { return inv_sqrt_Q_t_; }
-    const TMat<Scalar>& inv_sqrt_R_t() const { return inv_sqrt_R_t_; }
-    const TMat<Scalar>& predict_W() const { return predict_W_; }
+    const TVec<Scalar> &dx() const { return dx_; }
+    const TMat<Scalar> &W() const { return W_; }
+    const TMat<Scalar> &F() const { return F_; }
+    const TMat<Scalar> &H() const { return H_; }
+    const TMat<Scalar> &inv_sqrt_Q_t() const { return inv_sqrt_Q_t_; }
+    const TMat<Scalar> &inv_sqrt_R_t() const { return inv_sqrt_R_t_; }
+    const TMat<Scalar> &predict_W() const { return predict_W_; }
 
 private:
     TVec<Scalar> dx_ = TVec<Scalar>::Zero(1, 1);
@@ -52,17 +53,17 @@ private:
     TMat<Scalar> A_ = TMat<Scalar>::Zero(1, 1);
     TMat<Scalar> B_ = TMat<Scalar>::Zero(1, 1);
     TMat<Scalar> predict_W_ = TMat<Scalar>::Zero(1, 1);
-
 };
 
 /* Class Square Root Error State Information Filter Declaration. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 class SquareRootInformationFilterStatic : public InverseFilter<Scalar, SquareRootInformationFilterStatic<Scalar, StateSize, ObserveSize>> {
 
-static_assert(StateSize > 0 && ObserveSize > 0, "Size of state and observe must be larger than 0.");
+    static_assert(StateSize > 0 && ObserveSize > 0, "Size of state and observe must be larger than 0.");
 
 public:
-    SquareRootInformationFilterStatic() : InverseFilter<Scalar, SquareRootInformationFilterStatic<Scalar, StateSize, ObserveSize>>() {}
+    SquareRootInformationFilterStatic()
+        : InverseFilter<Scalar, SquareRootInformationFilterStatic<Scalar, StateSize, ObserveSize>>() {}
     virtual ~SquareRootInformationFilterStatic() = default;
 
     bool PropagateInformationImpl();
@@ -103,7 +104,6 @@ private:
     TMat<Scalar, StateSize + StateSize, StateSize> A_ = TMat<Scalar, StateSize + StateSize, StateSize>::Zero();
     TMat<Scalar, StateSize + ObserveSize, StateSize + 1> B_ = TMat<Scalar, StateSize + ObserveSize, StateSize + 1>::Zero();
     TMat<Scalar, StateSize, StateSize> predict_W_ = TMat<Scalar, StateSize, StateSize>::Zero();
-
 };
 
 /* Class Square Root Error State Information Filter Definition. */
@@ -147,6 +147,6 @@ bool SquareRootInformationFilterStatic<Scalar, StateSize, ObserveSize>::UpdateSt
     return true;
 }
 
-}
+}  // namespace SLAM_SOLVER
 
-#endif // end of _SQUARE_ROOT_INFORMATION_FILTER_SOLVER_H_
+#endif  // end of _SQUARE_ROOT_INFORMATION_FILTER_SOLVER_H_

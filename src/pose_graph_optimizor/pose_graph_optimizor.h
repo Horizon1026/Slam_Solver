@@ -34,15 +34,9 @@ public:
     const TQuat<Scalar> &desired_q_wb() const { return desired_q_wb_; }
 
 private:
-    void LogMap(const TVec3<Scalar> &p_in,
-                const TQuat<Scalar> &q_in,
-                TVec6<Scalar> &v_out);
-    void ExpMap(const TVec6<Scalar> &v_in,
-                TVec3<Scalar> &p_out,
-                TQuat<Scalar> &q_out);
-    void FunctionJ(const Scalar s,
-                   TVec3<Scalar> &p_out,
-                   TQuat<Scalar> &q_out);
+    void LogMap(const TVec3<Scalar> &p_in, const TQuat<Scalar> &q_in, TVec6<Scalar> &v_out);
+    void ExpMap(const TVec6<Scalar> &v_in, TVec3<Scalar> &p_out, TQuat<Scalar> &q_out);
+    void FunctionJ(const Scalar s, TVec3<Scalar> &p_out, TQuat<Scalar> &q_out);
 
     void ComputeAlphaAndWeights();
     void ComputeRelativePoses();
@@ -70,9 +64,8 @@ private:
     std::vector<TQuat<Scalar>> all_q_M_;
     std::vector<TVec3<Scalar>> all_p_U_;
     std::vector<TQuat<Scalar>> all_q_U_;
-
 };
 
-}
+}  // namespace SLAM_SOLVER
 
-#endif // end of _GENERAL_POSE_GRAPH_OPTIMIZOR_H_
+#endif  // end of _GENERAL_POSE_GRAPH_OPTIMIZOR_H_

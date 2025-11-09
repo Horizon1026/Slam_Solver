@@ -31,9 +31,8 @@ public:
 private:
     Scalar x_ = 0;
     std::array<Scalar, 3> y_ = {};
-
 };
 
-}
+}  // namespace SLAM_SOLVER
 
-#endif // end of _GENERAL_GRAPH_OPTIMIZOR_KERNEL_H_
+#endif  // end of _GENERAL_GRAPH_OPTIMIZOR_KERNEL_H_

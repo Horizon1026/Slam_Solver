@@ -29,4 +29,4 @@ bool ErrorInformationFilterDynamic<Scalar>::UpdateStateAndInformationImpl(const 
     return true;
 }
 
-}
+}  // namespace SLAM_SOLVER

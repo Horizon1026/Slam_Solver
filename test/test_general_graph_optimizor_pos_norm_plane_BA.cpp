@@ -1,10 +1,10 @@
 #include "basic_type.h"
+#include "slam_basic_math.h"
 #include "slam_log_reporter.h"
 #include "tick_tock.h"
-#include "slam_basic_math.h"
 
-#include "general_graph_optimizor.h"
 #include "enable_stack_backward.h"
+#include "general_graph_optimizor.h"
 
 using Scalar = float;
 using namespace SLAM_SOLVER;
@@ -14,10 +14,11 @@ using namespace SLAM_SOLVER;
 /* Class Edge reprojection. */
 template <typename Scalar>
 class EdgeReproject : public Edge<Scalar> {
-// vertex is [feature, p_w] [camera, p_wc] [camera, q_wc].
+    // vertex is [feature, p_w] [camera, p_wc] [camera, q_wc].
 
 public:
-    EdgeReproject() : Edge<Scalar>(2, 3) {}
+    EdgeReproject()
+        : Edge<Scalar>(2, 3) {}
     virtual ~EdgeReproject() = default;
 
     // Compute residual and jacobians for each vertex. These operations should be defined by subclass.
@@ -43,12 +44,11 @@ public:
         TMat2x3<Scalar> jacobian_2d_3d = TMat2x3<Scalar>::Zero();
         if (!std::isinf(inv_depth) && !std::isnan(inv_depth)) {
             const Scalar inv_depth_2 = inv_depth * inv_depth;
-            jacobian_2d_3d << inv_depth, 0, - p_c(0) * inv_depth_2,
-                              0, inv_depth, - p_c(1) * inv_depth_2;
+            jacobian_2d_3d << inv_depth, 0, -p_c(0) * inv_depth_2, 0, inv_depth, -p_c(1) * inv_depth_2;
         }
 
         this->GetJacobian(0) = jacobian_2d_3d * (q_wc.inverse().matrix());
-        this->GetJacobian(1) = - this->GetJacobian(0);
+        this->GetJacobian(1) = -this->GetJacobian(0);
         this->GetJacobian(2) = jacobian_2d_3d * SLAM_UTILITY::Utility::SkewSymmetricMatrix(p_c);
     }
 
@@ -71,8 +71,8 @@ int main(int argc, char **argv) {
     std::vector<TVec3<Scalar>> points;
     GenerateSimulationData(cameras, points);
 
-    // Use include here is interesting.
-    #include "embeded_add_pos_vertices_of_BA.h"
+// Use include here is interesting.
+#include "embeded_add_pos_vertices_of_BA.h"
 
     // Generate edges between cameras and points.
     std::array<std::unique_ptr<EdgeReproject<Scalar>>, kCameraFrameNumber * kPointsNumber> reprojection_edges = {};
@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
             TVec3<Scalar> p_c = cameras[j].q_wc.inverse() * (points[i] - cameras[j].p_wc);
             TVec2<Scalar> obv = p_c.head<2>() / p_c.z();
             reprojection_edges[idx]->observation() = obv;
-            #include "embeded_add_kernel.h"
+#include "embeded_add_kernel.h"
             reprojection_edges[idx]->SelfCheck();
         }
     }
@@ -102,8 +102,12 @@ int main(int argc, char **argv) {
         problem.AddVertex(all_camera_pos[i].get());
         problem.AddVertex(all_camera_rot[i].get());
     }
-    for (auto &vertex: all_points) { problem.AddVertex(vertex.get(), false); }
-    for (auto &edge: reprojection_edges) { problem.AddEdge(edge.get()); }
+    for (auto &vertex: all_points) {
+        problem.AddVertex(vertex.get(), false);
+    }
+    for (auto &edge: reprojection_edges) {
+        problem.AddEdge(edge.get());
+    }
 
     SolverLm<Scalar> solver;
     solver.problem() = &problem;
@@ -113,8 +117,8 @@ int main(int argc, char **argv) {
     solver.Solve(false);
     ReportInfo("[Ticktock] Solve cost time " << tick_tock.TockTickInMillisecond() << " ms");
 
-    // Show optimization result.
-    #include "embeded_show_optimize_result.h"
+// Show optimization result.
+#include "embeded_show_optimize_result.h"
 
     return 0;
 }

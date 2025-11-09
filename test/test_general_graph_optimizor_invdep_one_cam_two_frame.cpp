@@ -1,10 +1,10 @@
 #include "basic_type.h"
+#include "slam_basic_math.h"
 #include "slam_log_reporter.h"
 #include "tick_tock.h"
-#include "slam_basic_math.h"
 
-#include "general_graph_optimizor.h"
 #include "enable_stack_backward.h"
+#include "general_graph_optimizor.h"
 
 using Scalar = float;
 using namespace SLAM_SOLVER;
@@ -14,16 +14,17 @@ using namespace SLAM_SOLVER;
 /* Class Edge reprojection. Project feature 1-dof invdep on visual norm plane via imu pose. */
 template <typename Scalar>
 class EdgeFeatureInvdepToNormPlaneViaImuWithinTwoFramesOneCamera : public Edge<Scalar> {
-// Vertices are [feature, invdep]
-//              [first imu pose, p_wi0]
-//              [first imu pose, q_wi0]
-//              [imu pose, p_wi]
-//              [imu pose, q_wi]
-//              [extrinsic, p_ic]
-//              [extrinsic, q_ic]
+    // Vertices are [feature, invdep]
+    //              [first imu pose, p_wi0]
+    //              [first imu pose, q_wi0]
+    //              [imu pose, p_wi]
+    //              [imu pose, q_wi]
+    //              [extrinsic, p_ic]
+    //              [extrinsic, q_ic]
 
 public:
-    EdgeFeatureInvdepToNormPlaneViaImuWithinTwoFramesOneCamera() : Edge<Scalar>(2, 7) {}
+    EdgeFeatureInvdepToNormPlaneViaImuWithinTwoFramesOneCamera()
+        : Edge<Scalar>(2, 7) {}
     virtual ~EdgeFeatureInvdepToNormPlaneViaImuWithinTwoFramesOneCamera() = default;
 
     // Compute residual and jacobians for each vertex. These operations should be defined by subclass.
@@ -62,9 +63,8 @@ public:
     virtual void ComputeJacobians() override {
         TMat2x3<Scalar> jacobian_2d_3d = TMat2x3<Scalar>::Zero();
         if (!std::isinf(inv_depth_) && !std::isnan(inv_depth_) && inv_depth_ > kZeroFloat) {
-            const Scalar inv_depth_2 = inv_depth_* inv_depth_;
-            jacobian_2d_3d << inv_depth_, 0, - p_c_(0) * inv_depth_2,
-                              0, inv_depth_, - p_c_(1) * inv_depth_2;
+            const Scalar inv_depth_2 = inv_depth_ * inv_depth_;
+            jacobian_2d_3d << inv_depth_, 0, -p_c_(0) * inv_depth_2, 0, inv_depth_, -p_c_(1) * inv_depth_2;
         }
 
         const TQuat<Scalar> q_ci = q_ic_.inverse();
@@ -78,17 +78,16 @@ public:
         const TMat3<Scalar> R_cc0 = q_cc0.toRotationMatrix();
 
         const TMat3<Scalar> jacobian_cam0_p = R_cw;
-        const TMat3<Scalar> jacobian_cam0_q = - R_ci0 * Utility::SkewSymmetricMatrix(p_i0_);
+        const TMat3<Scalar> jacobian_cam0_q = -R_ci0 * Utility::SkewSymmetricMatrix(p_i0_);
 
-        const TMat3<Scalar> jacobian_cam_p = - R_cw;
+        const TMat3<Scalar> jacobian_cam_p = -R_cw;
         const TMat3<Scalar> jacobian_cam_q = R_ci * Utility::SkewSymmetricMatrix(p_i_);
 
-        const TVec3<Scalar> jacobian_invdep = - R_cc0 *
-            TVec3<Scalar>(norm_xy0_.x(), norm_xy0_.y(), static_cast<Scalar>(1)) / (inv_depth0_ * inv_depth0_);
+        const TVec3<Scalar> jacobian_invdep = -R_cc0 * TVec3<Scalar>(norm_xy0_.x(), norm_xy0_.y(), static_cast<Scalar>(1)) / (inv_depth0_ * inv_depth0_);
 
         const TMat3<Scalar> jacobian_ex_p = R_ci * ((q_wi_.inverse() * q_wi0_).matrix() - TMat3<Scalar>::Identity());
-        const TMat3<Scalar> jacobian_ex_q = - R_cc0 * Utility::SkewSymmetricMatrix(p_c0_) + Utility::SkewSymmetricMatrix(R_cc0 * p_c0_) +
-            Utility::SkewSymmetricMatrix(q_ic_.inverse() * (q_wi_.inverse() * (q_wi0_ * p_ic_ + p_wi0_ - p_wi_) - p_ic_));
+        const TMat3<Scalar> jacobian_ex_q = -R_cc0 * Utility::SkewSymmetricMatrix(p_c0_) + Utility::SkewSymmetricMatrix(R_cc0 * p_c0_) +
+                                            Utility::SkewSymmetricMatrix(q_ic_.inverse() * (q_wi_.inverse() * (q_wi0_ * p_ic_ + p_wi0_ - p_wi_) - p_ic_));
 
         this->GetJacobian(0) = jacobian_2d_3d * jacobian_invdep;
         this->GetJacobian(1) = jacobian_2d_3d * jacobian_cam0_p;
@@ -129,11 +128,12 @@ private:
 /* Class Edge pose prior. This can be used to fix a pose with specified weight. */
 template <typename Scalar>
 class EdgePriorPose : public Edge<Scalar> {
-// Vertices are [position, p_wc]
-//              [rotation, q_wc]
+    // Vertices are [position, p_wc]
+    //              [rotation, q_wc]
 
 public:
-    EdgePriorPose() : Edge<Scalar>(6, 2) {}
+    EdgePriorPose()
+        : Edge<Scalar>(6, 2) {}
     virtual ~EdgePriorPose() = default;
 
     // Compute residual and jacobians for each vertex. These operations should be defined by subclass.
@@ -176,14 +176,15 @@ private:
 
 int main(int argc, char **argv) {
     LogFixPercision(3);
-    ReportInfo(YELLOW ">> Test general graph optimizor on bundle adjustment with <invdep> <norm plane> model with <T_ic>." RESET_COLOR);
+    ReportInfo(YELLOW ">> Test general graph optimizor on bundle adjustment with <invdep> <norm plane> model with "
+                      "<T_ic>." RESET_COLOR);
 
     std::vector<Pose<Scalar>> cameras;
     std::vector<TVec3<Scalar>> points;
     GenerateSimulationData(cameras, points);
 
-    // Use include here is interesting.
-    #include "embeded_add_invdep_vertices_of_BA.h"
+// Use include here is interesting.
+#include "embeded_add_invdep_vertices_of_BA.h"
 
     // Generate vertex of camera extrinsics.
     TQuat<Scalar> q_ic = TQuat<Scalar>::Identity();
@@ -200,7 +201,8 @@ int main(int argc, char **argv) {
     }
 
     // Generate edges between cameras and points.
-    std::array<std::unique_ptr<EdgeFeatureInvdepToNormPlaneViaImuWithinTwoFramesOneCamera<Scalar>>, (kCameraFrameNumber - 1) * kPointsNumber> reprojection_edges = {};
+    std::array<std::unique_ptr<EdgeFeatureInvdepToNormPlaneViaImuWithinTwoFramesOneCamera<Scalar>>, (kCameraFrameNumber - 1) * kPointsNumber>
+        reprojection_edges = {};
     int32_t idx = 0;
     for (int32_t i = 0; i < kPointsNumber; ++i) {
         for (int32_t j = 1; j < kCameraFrameNumber; ++j) {
@@ -219,7 +221,7 @@ int main(int argc, char **argv) {
             obv.head<2>() = p_c0.head<2>() / p_c0.z();
             obv.tail<2>() = p_cj.head<2>() / p_cj.z();
             reprojection_edges[idx]->observation() = obv;
-            #include "embeded_add_kernel.h"
+#include "embeded_add_kernel.h"
             reprojection_edges[idx]->SelfCheck();
             ++idx;
         }
@@ -251,9 +253,15 @@ int main(int argc, char **argv) {
         problem.AddVertex(all_camera_pos[i].get());
         problem.AddVertex(all_camera_rot[i].get());
     }
-    for (auto &vertex: all_points) { problem.AddVertex(vertex.get(), false); }
-    for (auto &edge: reprojection_edges) { problem.AddEdge(edge.get()); }
-    for (auto &edge: prior_edges) { problem.AddEdge(edge.get()); }
+    for (auto &vertex: all_points) {
+        problem.AddVertex(vertex.get(), false);
+    }
+    for (auto &edge: reprojection_edges) {
+        problem.AddEdge(edge.get());
+    }
+    for (auto &edge: prior_edges) {
+        problem.AddEdge(edge.get());
+    }
 
     SolverLm<Scalar> solver;
     solver.problem() = &problem;
@@ -264,8 +272,8 @@ int main(int argc, char **argv) {
     problem.VerticesInformation();
     ReportInfo("[Ticktock] Solve cost time " << tick_tock.TockTickInMillisecond() << " ms");
 
-    // Show optimization result.
-    #include "embeded_show_optimize_result.h"
+// Show optimization result.
+#include "embeded_show_optimize_result.h"
 
     return 0;
 }

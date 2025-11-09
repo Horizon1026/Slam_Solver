@@ -1,10 +1,10 @@
 #include "basic_type.h"
+#include "slam_basic_math.h"
 #include "slam_log_reporter.h"
 #include "tick_tock.h"
-#include "slam_basic_math.h"
 
-#include "general_graph_optimizor.h"
 #include "enable_stack_backward.h"
+#include "general_graph_optimizor.h"
 
 using Scalar = float;
 using namespace SLAM_SOLVER;
@@ -14,10 +14,11 @@ using namespace SLAM_SOLVER;
 /* Class Edge reprojection. */
 template <typename Scalar>
 class EdgeReproject : public Edge<Scalar> {
-// vertex is [feature, invdep] [first camera, p_wc0] [first camera, q_wc0] [camera, p_wc] [camera, q_wc].
+    // vertex is [feature, invdep] [first camera, p_wc0] [first camera, q_wc0] [camera, p_wc] [camera, q_wc].
 
 public:
-    EdgeReproject() : Edge<Scalar>(2, 5) {}
+    EdgeReproject()
+        : Edge<Scalar>(2, 5) {}
     virtual ~EdgeReproject() = default;
 
     // Compute residual and jacobians for each vertex. These operations should be defined by subclass.
@@ -49,21 +50,19 @@ public:
         TMat2x3<Scalar> jacobian_2d_3d = TMat2x3<Scalar>::Zero();
         if (!std::isinf(inv_depth) && !std::isnan(inv_depth)) {
             const Scalar inv_depth_2 = inv_depth * inv_depth;
-            jacobian_2d_3d << inv_depth, 0, - p_c(0) * inv_depth_2,
-                              0, inv_depth, - p_c(1) * inv_depth_2;
+            jacobian_2d_3d << inv_depth, 0, -p_c(0) * inv_depth_2, 0, inv_depth, -p_c(1) * inv_depth_2;
         }
 
         const TMat3<Scalar> R_cw = q_wc.toRotationMatrix().transpose();
         const TMat3<Scalar> R_cc0 = R_cw * q_wc0.matrix();
 
-        const TMat3<Scalar> jacobian_cam0_q = - R_cc0 * Utility::SkewSymmetricMatrix(p_c0);
+        const TMat3<Scalar> jacobian_cam0_q = -R_cc0 * Utility::SkewSymmetricMatrix(p_c0);
         const TMat3<Scalar> jacobian_cam0_p = R_cw;
 
         const TMat3<Scalar> jacobian_cam_q = Utility::SkewSymmetricMatrix(p_c);
-        const TMat3<Scalar> jacobian_cam_p = - R_cw;
+        const TMat3<Scalar> jacobian_cam_p = -R_cw;
 
-        const TVec3<Scalar> jacobian_invdep = - R_cc0 *
-            TVec3<Scalar>(norm_xy0(0), norm_xy0(1), static_cast<Scalar>(1)) / (inv_depth0 * inv_depth0);
+        const TVec3<Scalar> jacobian_invdep = -R_cc0 * TVec3<Scalar>(norm_xy0(0), norm_xy0(1), static_cast<Scalar>(1)) / (inv_depth0 * inv_depth0);
 
         this->GetJacobian(0) = jacobian_2d_3d * jacobian_invdep;
         this->GetJacobian(1) = jacobian_2d_3d * jacobian_cam0_p;
@@ -98,8 +97,8 @@ int main(int argc, char **argv) {
     std::vector<TVec3<Scalar>> points;
     GenerateSimulationData(cameras, points);
 
-    // Use include here is interesting.
-    #include "embeded_add_invdep_vertices_of_BA.h"
+// Use include here is interesting.
+#include "embeded_add_invdep_vertices_of_BA.h"
 
     // Generate edges between cameras and points.
     std::array<std::unique_ptr<EdgeReproject<Scalar>>, (kCameraFrameNumber - 1) * kPointsNumber> reprojection_edges = {};
@@ -119,7 +118,7 @@ int main(int argc, char **argv) {
             obv.head<2>() = p_c0.head<2>() / p_c0.z();
             obv.tail<2>() = p_cj.head<2>() / p_cj.z();
             reprojection_edges[idx]->observation() = obv;
-            #include "embeded_add_kernel.h"
+#include "embeded_add_kernel.h"
             reprojection_edges[idx]->SelfCheck();
             reprojection_edges[idx]->SelfCheckJacobians();
             ++idx;
@@ -136,8 +135,12 @@ int main(int argc, char **argv) {
         problem.AddVertex(all_camera_pos[i].get());
         problem.AddVertex(all_camera_rot[i].get());
     }
-    for (auto &vertex: all_points) { problem.AddVertex(vertex.get(), false); }
-    for (auto &edge: reprojection_edges) { problem.AddEdge(edge.get()); }
+    for (auto &vertex: all_points) {
+        problem.AddVertex(vertex.get(), false);
+    }
+    for (auto &edge: reprojection_edges) {
+        problem.AddEdge(edge.get());
+    }
 
     SolverLm<Scalar> solver;
     solver.problem() = &problem;
@@ -147,8 +150,8 @@ int main(int argc, char **argv) {
     solver.Solve(false);
     ReportInfo("[Ticktock] Solve cost time " << tick_tock.TockTickInMillisecond() << " ms");
 
-    // Show optimization result.
-    #include "embeded_show_optimize_result.h"
+// Show optimization result.
+#include "embeded_show_optimize_result.h"
 
     return 0;
 }

@@ -90,10 +90,8 @@ void PoseGraphOptimizor<Scalar>::ComputeAlphaAndWeights() {
 template <typename Scalar>
 void PoseGraphOptimizor<Scalar>::ComputeRelativePoses() {
     // Compute raw A and target A.
-    Utility::ComputeTransformInverseTransform(all_p_wb_.front(), all_q_wb_.front(),
-        all_p_wb_.back(), all_q_wb_.back(), p_raw_A_, q_raw_A_);
-    Utility::ComputeTransformInverseTransform(all_p_wb_.front(), all_q_wb_.front(),
-        desired_p_wb_, desired_q_wb_, p_target_A_, q_target_A_);
+    Utility::ComputeTransformInverseTransform(all_p_wb_.front(), all_q_wb_.front(), all_p_wb_.back(), all_q_wb_.back(), p_raw_A_, q_raw_A_);
+    Utility::ComputeTransformInverseTransform(all_p_wb_.front(), all_q_wb_.front(), desired_p_wb_, desired_q_wb_, p_target_A_, q_target_A_);
 
     // Compute each relative poses.
     const uint32_t size = all_p_wb_.size() - 1;
@@ -102,34 +100,27 @@ void PoseGraphOptimizor<Scalar>::ComputeRelativePoses() {
     for (uint32_t i = 1; i < all_p_wb_.size(); ++i) {
         TVec3<Scalar> p_M = TVec3<Scalar>::Zero();
         TQuat<Scalar> q_M = TQuat<Scalar>::Identity();
-        Utility::ComputeTransformInverseTransform(all_p_wb_[i - 1], all_q_wb_[i - 1],
-            all_p_wb_[i], all_q_wb_[i], p_M, q_M);
+        Utility::ComputeTransformInverseTransform(all_p_wb_[i - 1], all_q_wb_[i - 1], all_p_wb_[i], all_q_wb_[i], p_M, q_M);
         all_p_M_.emplace_back(p_M);
         all_q_M_.emplace_back(q_M);
     }
 }
 
 template <typename Scalar>
-void PoseGraphOptimizor<Scalar>::LogMap(const TVec3<Scalar> &p_in,
-                                        const TQuat<Scalar> &q_in,
-                                        TVec6<Scalar> &v_out) {
+void PoseGraphOptimizor<Scalar>::LogMap(const TVec3<Scalar> &p_in, const TQuat<Scalar> &q_in, TVec6<Scalar> &v_out) {
     v_out.template head<3>() = Utility::Logarithm(q_in);
     v_out.template tail<3>() = alpha_ * p_in;
 }
 
 template <typename Scalar>
-void PoseGraphOptimizor<Scalar>::ExpMap(const TVec6<Scalar> &v_in,
-                                        TVec3<Scalar> &p_out,
-                                        TQuat<Scalar> &q_out) {
+void PoseGraphOptimizor<Scalar>::ExpMap(const TVec6<Scalar> &v_in, TVec3<Scalar> &p_out, TQuat<Scalar> &q_out) {
     const TVec3<Scalar> vec = v_in.template head<3>();
     q_out = Utility::Exponent(vec);
     p_out = v_in.template tail<3>() / alpha_;
 }
 
 template <typename Scalar>
-void PoseGraphOptimizor<Scalar>::FunctionJ(const Scalar s,
-                                           TVec3<Scalar> &p_out,
-                                           TQuat<Scalar> &q_out) {
+void PoseGraphOptimizor<Scalar>::FunctionJ(const Scalar s, TVec3<Scalar> &p_out, TQuat<Scalar> &q_out) {
     TVec3<Scalar> temp_p = TVec3<Scalar>::Zero();
     TQuat<Scalar> temp_q = TQuat<Scalar>::Identity();
     Utility::ComputeTransformInverseTransform(p_raw_A_, q_raw_A_, p_target_A_, q_target_A_, temp_p, temp_q);
@@ -166,14 +157,12 @@ void PoseGraphOptimizor<Scalar>::ComputeDeltaRelativePoses() {
         // Compute M1 * M2 *...* Mi.
         TVec3<Scalar> prev_integrate_p_M = integrate_p_M;
         TQuat<Scalar> prev_integrate_q_M = integrate_q_M;
-        Utility::ComputeTransformTransform(prev_integrate_p_M, prev_integrate_q_M,
-            all_p_M_[i], all_q_M_[i], integrate_p_M, integrate_q_M);
+        Utility::ComputeTransformTransform(prev_integrate_p_M, prev_integrate_q_M, all_p_M_[i], all_q_M_[i], integrate_p_M, integrate_q_M);
 
         // Compute A_.inv * M1 * M2 *...* Mi.
         TVec3<Scalar> p_A_inv_int_Mi = TVec3<Scalar>::Zero();
         TQuat<Scalar> q_A_inv_int_Mi = TQuat<Scalar>::Identity();
-        Utility::ComputeTransformInverseTransform(p_target_A_, q_target_A_, integrate_p_M, integrate_q_M,
-            p_A_inv_int_Mi, q_A_inv_int_Mi);
+        Utility::ComputeTransformInverseTransform(p_target_A_, q_target_A_, integrate_p_M, integrate_q_M, p_A_inv_int_Mi, q_A_inv_int_Mi);
 
         // Compute U_i in A_ = M1U1 * M2U2 * ... * MnUn.
         TVec3<Scalar> p_U__right = TVec3<Scalar>::Zero();
@@ -203,4 +192,4 @@ void PoseGraphOptimizor<Scalar>::CorrectAllPoses() {
     }
 }
 
-}
+}  // namespace SLAM_SOLVER

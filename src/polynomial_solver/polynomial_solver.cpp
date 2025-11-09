@@ -34,56 +34,53 @@
 namespace SLAM_SOLVER {
 namespace {
 
-// Remove leading zero coefficients.
-Eigen::VectorXd RemoveLeadingZeros(const Eigen::VectorXd& coeffs) {
-  Eigen::VectorXd::Index num_zeros = 0;
-  for (; num_zeros < coeffs.size(); ++num_zeros) {
-    if (coeffs(num_zeros) != 0) {
-      break;
+    // Remove leading zero coefficients.
+    Eigen::VectorXd RemoveLeadingZeros(const Eigen::VectorXd &coeffs) {
+        Eigen::VectorXd::Index num_zeros = 0;
+        for (; num_zeros < coeffs.size(); ++num_zeros) {
+            if (coeffs(num_zeros) != 0) {
+                break;
+            }
+        }
+        return coeffs.tail(coeffs.size() - num_zeros);
     }
-  }
-  return coeffs.tail(coeffs.size() - num_zeros);
-}
 
-// Remove trailing zero coefficients.
-Eigen::VectorXd RemoveTrailingZeros(const Eigen::VectorXd& coeffs) {
-  Eigen::VectorXd::Index num_zeros = 0;
-  for (; num_zeros < coeffs.size(); ++num_zeros) {
-    if (coeffs(coeffs.size() - 1 - num_zeros) != 0) {
-      break;
+    // Remove trailing zero coefficients.
+    Eigen::VectorXd RemoveTrailingZeros(const Eigen::VectorXd &coeffs) {
+        Eigen::VectorXd::Index num_zeros = 0;
+        for (; num_zeros < coeffs.size(); ++num_zeros) {
+            if (coeffs(coeffs.size() - 1 - num_zeros) != 0) {
+                break;
+            }
+        }
+        return coeffs.head(coeffs.size() - num_zeros);
     }
-  }
-  return coeffs.head(coeffs.size() - num_zeros);
-}
 
 }  // namespace
 
-bool FindLinearPolynomialRoots(const Eigen::VectorXd& coeffs,
-                               Eigen::VectorXd* real, Eigen::VectorXd* imag) {
-  if (coeffs.size() != 2) {
-    return false;
-  }
+bool FindLinearPolynomialRoots(const Eigen::VectorXd &coeffs, Eigen::VectorXd *real, Eigen::VectorXd *imag) {
+    if (coeffs.size() != 2) {
+        return false;
+    }
 
-  if (coeffs(0) == 0) {
-    return false;
-  }
+    if (coeffs(0) == 0) {
+        return false;
+    }
 
-  if (real != nullptr) {
-    real->resize(1);
-    (*real)(0) = -coeffs(1) / coeffs(0);
-  }
+    if (real != nullptr) {
+        real->resize(1);
+        (*real)(0) = -coeffs(1) / coeffs(0);
+    }
 
-  if (imag != nullptr) {
-    imag->resize(1);
-    (*imag)(0) = 0;
-  }
+    if (imag != nullptr) {
+        imag->resize(1);
+        (*imag)(0) = 0;
+    }
 
-  return true;
+    return true;
 }
 
-bool FindQuadraticPolynomialRoots(const Eigen::VectorXd& coeffs,
-                                  Eigen::VectorXd* real,
-                                  Eigen::VectorXd* imag) {
+bool FindQuadraticPolynomialRoots(const Eigen::VectorXd &coeffs, Eigen::VectorXd *real, Eigen::VectorXd *imag) {
     if (coeffs.size() != 3) {
         return false;
     }
@@ -140,9 +137,7 @@ bool FindQuadraticPolynomialRoots(const Eigen::VectorXd& coeffs,
     return true;
 }
 
-bool FindPolynomialRootsDurandKerner(const Eigen::VectorXd& coeffs_all,
-                                     Eigen::VectorXd* real,
-                                     Eigen::VectorXd* imag) {
+bool FindPolynomialRootsDurandKerner(const Eigen::VectorXd &coeffs_all, Eigen::VectorXd *real, Eigen::VectorXd *imag) {
     const Eigen::VectorXd coeffs = RemoveLeadingZeros(coeffs_all);
 
     const int degree = coeffs.size() - 1;
@@ -200,9 +195,7 @@ bool FindPolynomialRootsDurandKerner(const Eigen::VectorXd& coeffs_all,
     return true;
 }
 
-bool FindPolynomialRootsCompanionMatrix(const Eigen::VectorXd& coeffs_all,
-                                        Eigen::VectorXd* real,
-                                        Eigen::VectorXd* imag) {
+bool FindPolynomialRootsCompanionMatrix(const Eigen::VectorXd &coeffs_all, Eigen::VectorXd *real, Eigen::VectorXd *imag) {
     Eigen::VectorXd coeffs = RemoveLeadingZeros(coeffs_all);
 
     const int degree = coeffs.size() - 1;
@@ -268,7 +261,7 @@ bool FindPolynomialRootsCompanionMatrix(const Eigen::VectorXd& coeffs_all,
 
 Eigen::VectorXd GetRealRoots(const Eigen::VectorXd &real, const Eigen::VectorXd &imag) {
     if (real.size() != imag.size()) {
-      return Eigen::VectorXd();
+        return Eigen::VectorXd();
     }
 
     Eigen::VectorXd roots(real.size());
@@ -285,4 +278,4 @@ Eigen::VectorXd GetRealRoots(const Eigen::VectorXd &real, const Eigen::VectorXd 
     return roots;
 }
 
-} // namespace SLAM_SOLVER
+}  // namespace SLAM_SOLVER

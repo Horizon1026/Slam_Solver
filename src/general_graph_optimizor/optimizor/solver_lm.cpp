@@ -18,8 +18,8 @@ void SolverLm<Scalar>::InitializeSolver() {
 
     // Report information of initialize state if enabled.
     if (this->options().kEnableReportEachIteration) {
-        ReportInfo("[LM] Init lambda is " << lambda_ << ", cost is " << this->cost_at_latest_step() << "/" <<
-            this->cost_at_linearized_point() << "(" << this->problem()->prior_residual().squaredNorm() << "), dx_norm is " << this->dx().norm());
+        ReportInfo("[LM] Init lambda is " << lambda_ << ", cost is " << this->cost_at_latest_step() << "/" << this->cost_at_linearized_point() << "("
+                                          << this->problem()->prior_residual().squaredNorm() << "), dx_norm is " << this->dx().norm());
     }
 }
 
@@ -57,9 +57,7 @@ void SolverLm<Scalar>::SolveIncrementalFunction() {
         for (const auto &vertex: this->problem()->sparse_vertices()) {
             const int32_t index = vertex->ColIndex();
             const int32_t dim = vertex->GetIncrementDimension();
-            this->SolveLinearlizedFunction(hessian.block(index, index, dim, dim),
-                                           marg_bias_.segment(index - reverse, dim),
-                                           marg_dx_);
+            this->SolveLinearlizedFunction(hessian.block(index, index, dim, dim), marg_bias_.segment(index - reverse, dim), marg_dx_);
             this->dx().segment(index, dim) = marg_dx_;
         }
     }
@@ -74,20 +72,17 @@ bool SolverLm<Scalar>::IsUpdateValid(Scalar min_allowed_gain_rate) {
     // Reference: The Levenberg-Marquardt method for nonlinear least squares curve-fitting problems.pdf
     TVec<Scalar> temp_vec = lambda_ * this->dx() + this->problem()->bias();
     const Scalar scale = temp_vec.dot(this->dx()) + static_cast<Scalar>(1e-6);
-    const Scalar rho = static_cast<Scalar>(0.5) * (
-        this->cost_at_linearized_point() - this->cost_at_latest_step()
-    ) / scale;
+    const Scalar rho = static_cast<Scalar>(0.5) * (this->cost_at_linearized_point() - this->cost_at_latest_step()) / scale;
 
     // Report information of this iteration if enabled.
     if (this->options().kEnableReportEachIteration) {
-        ReportInfo("[LM] lambda is " << lambda_ << ", rho is " << rho << ", cost is " << this->cost_at_latest_step() << "/" <<
-            this->cost_at_linearized_point() << "(" << this->problem()->prior_residual().squaredNorm() << "), dx_norm is " << this->dx().norm());
+        ReportInfo("[LM] lambda is " << lambda_ << ", rho is " << rho << ", cost is " << this->cost_at_latest_step() << "/" << this->cost_at_linearized_point()
+                                     << "(" << this->problem()->prior_residual().squaredNorm() << "), dx_norm is " << this->dx().norm());
     }
 
     bool result = true;
     if (rho > min_allowed_gain_rate && std::isfinite(this->cost_at_latest_step())) {
-        lambda_ *= std::max(static_cast<Scalar>(0.33333),
-                            static_cast<Scalar>((1.0 - std::pow(2.0 * rho - 1.0, 3))));
+        lambda_ *= std::max(static_cast<Scalar>(0.33333), static_cast<Scalar>((1.0 - std::pow(2.0 * rho - 1.0, 3))));
         v_ = static_cast<Scalar>(2);
         result = true;
     } else {
@@ -101,4 +96,4 @@ bool SolverLm<Scalar>::IsUpdateValid(Scalar min_allowed_gain_rate) {
     return result;
 }
 
-}
+}  // namespace SLAM_SOLVER

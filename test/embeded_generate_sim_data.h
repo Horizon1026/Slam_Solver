@@ -8,8 +8,7 @@ struct Pose {
     TVec3<Scalar> p_wc = TVec3<Scalar>::Zero();
 };
 
-void GenerateSimulationData(std::vector<Pose<Scalar>> &cameras,
-                            std::vector<TVec3<Scalar>> &points) {
+void GenerateSimulationData(std::vector<Pose<Scalar>> &cameras, std::vector<TVec3<Scalar>> &points) {
     cameras.clear();
     points.clear();
 

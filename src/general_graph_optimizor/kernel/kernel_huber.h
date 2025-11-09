@@ -11,7 +11,9 @@ class KernelHuber : public Kernel<Scalar> {
 
 public:
     KernelHuber() = default;
-    explicit KernelHuber(Scalar delta) : delta_(delta), dsqr_(delta * delta) {}
+    explicit KernelHuber(Scalar delta)
+        : delta_(delta)
+        , dsqr_(delta * delta) {}
     virtual ~KernelHuber() = default;
 
     virtual void Compute(const Scalar x) override {
@@ -30,9 +32,8 @@ public:
 private:
     Scalar delta_ = static_cast<Scalar>(1);
     Scalar dsqr_ = static_cast<Scalar>(1);
-
 };
 
-}
+}  // namespace SLAM_SOLVER
 
-#endif // end of _GENERAL_GRAPH_OPTIMIZOR_KERNEL_HUBER_H_
+#endif  // end of _GENERAL_GRAPH_OPTIMIZOR_KERNEL_HUBER_H_

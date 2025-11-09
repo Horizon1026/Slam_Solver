@@ -10,8 +10,8 @@
 #include "kernel.h"
 #include "kernel_huber.h"
 
-#include "solver_lm.h"
 #include "solver_dogleg.h"
+#include "solver_lm.h"
 
 #include "marginalizor.h"
 

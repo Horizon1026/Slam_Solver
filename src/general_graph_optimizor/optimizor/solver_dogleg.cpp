@@ -21,9 +21,8 @@ void SolverDogleg<Scalar>::InitializeSolver() {
     // Report information of this iteration if enabled.
     const Scalar delta_x_norm = this->dx().norm();
     if (this->options().kEnableReportEachIteration) {
-        ReportInfo("[Dogleg] Init radius is " << radius_ << ", cost is " << this->cost_at_latest_step() << "/" <<
-            this->cost_at_linearized_point() << "(" << this->problem()->prior_residual().squaredNorm() <<
-            "), dx_norm is " << delta_x_norm);
+        ReportInfo("[Dogleg] Init radius is " << radius_ << ", cost is " << this->cost_at_latest_step() << "/" << this->cost_at_linearized_point() << "("
+                                              << this->problem()->prior_residual().squaredNorm() << "), dx_norm is " << delta_x_norm);
     }
 }
 
@@ -58,9 +57,7 @@ void SolverDogleg<Scalar>::SolveIncrementalFunction() {
         for (const auto &vertex: this->problem()->sparse_vertices()) {
             const int32_t index = vertex->ColIndex();
             const int32_t dim = vertex->GetIncrementDimension();
-            this->SolveLinearlizedFunction(hessian.block(index, index, dim, dim),
-                                           marg_bias_.segment(index - reverse, dim),
-                                           marg_dx_);
+            this->SolveLinearlizedFunction(hessian.block(index, index, dim, dim), marg_bias_.segment(index - reverse, dim), marg_dx_);
             dx_gn_.segment(index, dim) = marg_dx_;
         }
     }
@@ -99,8 +96,9 @@ bool SolverDogleg<Scalar>::IsUpdateValid(Scalar min_allowed_gain_rate) {
     // Report information of this iteration if enabled.
     const Scalar delta_x_norm = this->dx().norm();
     if (this->options().kEnableReportEachIteration) {
-        ReportInfo("[Dogleg] radius is " << radius_ << ", rho is " << rho << ", cost is " << this->cost_at_latest_step() << "/" <<
-            this->cost_at_linearized_point() << "(" << this->problem()->prior_residual().squaredNorm() << "), dx_norm is " << delta_x_norm);
+        ReportInfo("[Dogleg] radius is " << radius_ << ", rho is " << rho << ", cost is " << this->cost_at_latest_step() << "/"
+                                         << this->cost_at_linearized_point() << "(" << this->problem()->prior_residual().squaredNorm() << "), dx_norm is "
+                                         << delta_x_norm);
     }
 
     if (rho > min_allowed_gain_rate && std::isfinite(this->cost_at_latest_step()) && !std::isnan(this->cost_at_latest_step())) {
@@ -117,4 +115,4 @@ bool SolverDogleg<Scalar>::IsUpdateValid(Scalar min_allowed_gain_rate) {
     }
 }
 
-}
+}  // namespace SLAM_SOLVER

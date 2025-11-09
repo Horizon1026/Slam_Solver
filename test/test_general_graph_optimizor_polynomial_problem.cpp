@@ -11,7 +11,8 @@ class VertexParam : public Vertex<Scalar> {
 
 public:
     VertexParam() = delete;
-    VertexParam(int32_t param_dim, int32_t delta_dim) : Vertex<Scalar>(param_dim, delta_dim) {}
+    VertexParam(int32_t param_dim, int32_t delta_dim)
+        : Vertex<Scalar>(param_dim, delta_dim) {}
     virtual ~VertexParam() = default;
 };
 
@@ -20,7 +21,8 @@ class EdgePolynomial : public Edge<Scalar> {
 
 public:
     EdgePolynomial() = delete;
-    EdgePolynomial(int32_t residual_dim, int32_t vertex_num) : Edge<Scalar>(residual_dim, vertex_num) {}
+    EdgePolynomial(int32_t residual_dim, int32_t vertex_num)
+        : Edge<Scalar>(residual_dim, vertex_num) {}
     virtual ~EdgePolynomial() = default;
 
     virtual void ComputeResidual() override {
@@ -48,7 +50,6 @@ public:
 
 private:
     Scalar x_, y_, a_, b_, c_;
-
 };
 
 constexpr int32_t kMaxSampleNum = 100;
@@ -82,8 +83,12 @@ int main(int argc, char **argv) {
     }
 
     Graph<Scalar> problem;
-    for (auto &vertex: vertices) { problem.AddVertex(vertex.get()); }
-    for (auto &edge: edges) { problem.AddEdge(edge.get()); }
+    for (auto &vertex: vertices) {
+        problem.AddVertex(vertex.get());
+    }
+    for (auto &edge: edges) {
+        problem.AddEdge(edge.get());
+    }
     SolverLm<Scalar> solver;
     solver.problem() = &problem;
     solver.Solve(true);

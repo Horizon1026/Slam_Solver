@@ -11,10 +11,10 @@ class KernelCauchy : public Kernel<Scalar> {
 
 public:
     KernelCauchy() = default;
-    explicit KernelCauchy(Scalar delta) :
-        delta_(delta),
-        dsqr_(delta * delta),
-        inv_dsqr_(static_cast<Scalar>(1) / delta / delta) {}
+    explicit KernelCauchy(Scalar delta)
+        : delta_(delta)
+        , dsqr_(delta * delta)
+        , inv_dsqr_(static_cast<Scalar>(1) / delta / delta) {}
     virtual ~KernelCauchy() = default;
 
     virtual void Compute(const Scalar x) override {
@@ -28,9 +28,8 @@ private:
     Scalar delta_ = static_cast<Scalar>(1);
     Scalar dsqr_ = static_cast<Scalar>(1);
     Scalar inv_dsqr_ = static_cast<Scalar>(1);
-
 };
 
-}
+}  // namespace SLAM_SOLVER
 
-#endif // end of _GENERAL_GRAPH_OPTIMIZOR_KERNEL_CAUCHY_H_
+#endif  // end of _GENERAL_GRAPH_OPTIMIZOR_KERNEL_CAUCHY_H_

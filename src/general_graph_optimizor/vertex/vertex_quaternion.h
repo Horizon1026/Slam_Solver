@@ -11,7 +11,8 @@ template <typename Scalar>
 class VertexQuat : public Vertex<Scalar> {
 
 public:
-    VertexQuat() : Vertex<Scalar>(4, 3) {}
+    VertexQuat()
+        : Vertex<Scalar>(4, 3) {}
     virtual ~VertexQuat() = default;
 
     // Update param with delta_param solved by solver.
@@ -25,6 +26,6 @@ public:
     }
 };
 
-}
+}  // namespace SLAM_SOLVER
 
-#endif // end of _GENERAL_GRAPH_OPTIMIZOR_VERTEX_QUATERNION_H_
+#endif  // end of _GENERAL_GRAPH_OPTIMIZOR_VERTEX_QUATERNION_H_

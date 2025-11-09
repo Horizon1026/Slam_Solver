@@ -2,8 +2,8 @@
 #define _GENERAL_GRAPH_OPTIMIZOR_VERTEX_SO3_H_
 
 #include "basic_type.h"
-#include "vertex.h"
 #include "slam_basic_math.h"
+#include "vertex.h"
 
 namespace SLAM_SOLVER {
 
@@ -12,7 +12,8 @@ template <typename Scalar>
 class VertexSO3 : public Vertex<Scalar> {
 
 public:
-    VertexSO3() : Vertex<Scalar>(4, 3) {}
+    VertexSO3()
+        : Vertex<Scalar>(4, 3) {}
     virtual ~VertexSO3() = default;
 
     // Update param with delta_param solved by solver.
@@ -26,6 +27,6 @@ public:
     }
 };
 
-}
+}  // namespace SLAM_SOLVER
 
-#endif // end of _GENERAL_GRAPH_OPTIMIZOR_VERTEX_SO3_H_
+#endif  // end of _GENERAL_GRAPH_OPTIMIZOR_VERTEX_SO3_H_

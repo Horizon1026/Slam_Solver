@@ -59,9 +59,7 @@ public:
     bool IsConvergedAfterUpdate(int32_t iter);
 
     // Use PCG solver to solve linearlized function.
-    void SolveLinearlizedFunction(const TMat<Scalar> &A,
-                                  const TVec<Scalar> &b,
-                                  TVec<Scalar> &x);
+    void SolveLinearlizedFunction(const TMat<Scalar> &A, const TVec<Scalar> &b, TVec<Scalar> &x);
 
     // Reference for member variables.
     SolverOptions<Scalar> &options() { return options_; }
@@ -102,9 +100,8 @@ private:
     // Backup for prior information.
     TVec<Scalar> prior_bias_backup_ = TVec3<Scalar>::Zero();
     TVec<Scalar> prior_residual_backup_ = TVec3<Scalar>::Zero();
-
 };
 
-}
+}  // namespace SLAM_SOLVER
 
-#endif // end of _GENERAL_GRAPH_OPTIMIZOR_SOLVER_H_
+#endif  // end of _GENERAL_GRAPH_OPTIMIZOR_SOLVER_H_

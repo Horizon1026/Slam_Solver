@@ -11,7 +11,8 @@ template <typename Scalar>
 class InformationFilterDynamic : public InverseFilter<Scalar, InformationFilterDynamic<Scalar>> {
 
 public:
-    InformationFilterDynamic() : InverseFilter<Scalar, InformationFilterDynamic<Scalar>>() {}
+    InformationFilterDynamic()
+        : InverseFilter<Scalar, InformationFilterDynamic<Scalar>>() {}
     virtual ~InformationFilterDynamic() = default;
 
     bool PropagateInformationImpl();
@@ -51,17 +52,17 @@ private:
     // Process noise Q and measurement noise R.
     TMat<Scalar> inverse_Q_ = TMat<Scalar>::Zero(1, 1);
     TMat<Scalar> inverse_R_ = TMat<Scalar>::Zero(1, 1);
-
 };
 
 /* Class Basic Information Filer Declaration. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 class InformationFilterStatic : public InverseFilter<Scalar, InformationFilterStatic<Scalar, StateSize, ObserveSize>> {
 
-static_assert(StateSize > 0 && ObserveSize > 0, "Size of state and observe must be larger than 0.");
+    static_assert(StateSize > 0 && ObserveSize > 0, "Size of state and observe must be larger than 0.");
 
 public:
-    InformationFilterStatic() : InverseFilter<Scalar, InformationFilterStatic<Scalar, StateSize, ObserveSize>>() {}
+    InformationFilterStatic()
+        : InverseFilter<Scalar, InformationFilterStatic<Scalar, StateSize, ObserveSize>>() {}
     virtual ~InformationFilterStatic() = default;
 
     bool PropagateInformationImpl();
@@ -127,6 +128,6 @@ bool InformationFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAndInfo
     return true;
 }
 
-}
+}  // namespace SLAM_SOLVER
 
-#endif // end of _INFORMATION_FILTER_SOLVER_H_
+#endif  // end of _INFORMATION_FILTER_SOLVER_H_

@@ -30,4 +30,4 @@ bool InformationFilterDynamic<Scalar>::UpdateStateAndInformationImpl(const TMat<
     return true;
 }
 
-}
+}  // namespace SLAM_SOLVER

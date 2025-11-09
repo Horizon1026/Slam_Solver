@@ -5,8 +5,8 @@
 #include "slam_basic_math.h"
 #include "slam_log_reporter.h"
 
-#include "vertex.h"
 #include "graph.h"
+#include "vertex.h"
 
 #include "vector"
 
@@ -31,27 +31,15 @@ public:
     virtual ~Marginalizor() = default;
 
     // Marginalize graph optimization problem.
-    bool Marginalize(std::vector<Vertex<Scalar> *> &vertices,
-                     bool use_prior = true);
-    bool Marginalize(TMat<Scalar> &hessian,
-                     TVec<Scalar> &bias,
-                     uint32_t row_index,
-                     uint32_t dimension);
-
+    bool Marginalize(std::vector<Vertex<Scalar> *> &vertices, bool use_prior = true);
+    bool Marginalize(TMat<Scalar> &hessian, TVec<Scalar> &bias, uint32_t row_index, uint32_t dimension);
 
 
     // Decompose hessian and bias to be jacobian and residual.
-    void DecomposeHessianAndBias(TMat<Scalar> &hessian,
-                                 TVec<Scalar> &bias,
-                                 TMat<Scalar> &jacobian,
-                                 TVec<Scalar> &residual,
-                                 TMat<Scalar> &jacobian_t_inv);
+    void DecomposeHessianAndBias(TMat<Scalar> &hessian, TVec<Scalar> &bias, TMat<Scalar> &jacobian, TVec<Scalar> &residual, TMat<Scalar> &jacobian_t_inv);
 
     // Discard specified cols and rows of hessian and bias.
-    bool DiscardPriorInformation(TMat<Scalar> &hessian,
-                                 TVec<Scalar> &bias,
-                                 uint32_t row_index,
-                                 uint32_t dimension);
+    bool DiscardPriorInformation(TMat<Scalar> &hessian, TVec<Scalar> &bias, uint32_t row_index, uint32_t dimension);
 
     // Reference for member variables.
     MargOptions<Scalar> &options() { return options_; }
@@ -78,34 +66,18 @@ private:
     void CreatePriorInformation(int32_t reverse_size, int32_t marge_size);
 
     // Create prior information, but only hessian and bias.
-    void CreatePriorInformationOnlyHessianAndBias(const TMat<Scalar> &hessian,
-                                                  const TVec<Scalar> &bias,
-                                                  int32_t reverse_size,
-                                                  int32_t marge_size);
+    void CreatePriorInformationOnlyHessianAndBias(const TMat<Scalar> &hessian, const TVec<Scalar> &bias, int32_t reverse_size, int32_t marge_size);
 
     // Compute prior information with schur complement.
-    void ComputePriorBySchurComplement(const TMat<Scalar> &Hrr,
-                                       const TMat<Scalar> &Hrm,
-                                       const TMat<Scalar> &Hmr,
-                                       const TMat<Scalar> &Hmm,
-                                       const TVec<Scalar> &br,
-                                       const TVec<Scalar> &bm);
+    void ComputePriorBySchurComplement(const TMat<Scalar> &Hrr, const TMat<Scalar> &Hrm, const TMat<Scalar> &Hmr, const TMat<Scalar> &Hmm,
+                                       const TVec<Scalar> &br, const TVec<Scalar> &bm);
 
     // Do schur complement.
-    void SchurComplement(const TMat<Scalar> &Hrr,
-                         const TMat<Scalar> &Hrm,
-                         const TMat<Scalar> &Hmr,
-                         const TMat<Scalar> &Hmm,
-                         const TVec<Scalar> &br,
-                         const TVec<Scalar> &bm,
-                         TMat<Scalar> &hessian,
-                         TVec<Scalar> &bias) const;
+    void SchurComplement(const TMat<Scalar> &Hrr, const TMat<Scalar> &Hrm, const TMat<Scalar> &Hmr, const TMat<Scalar> &Hmm, const TVec<Scalar> &br,
+                         const TVec<Scalar> &bm, TMat<Scalar> &hessian, TVec<Scalar> &bias) const;
 
     // Move the matrix block which needs to be margnalized to the bound of matrix.
-    bool MoveMatrixBlocksNeedMarginalization(TMat<Scalar> &hessian,
-                                             TVec<Scalar> &bias,
-                                             uint32_t row_index,
-                                             uint32_t dimension);
+    bool MoveMatrixBlocksNeedMarginalization(TMat<Scalar> &hessian, TVec<Scalar> &bias, uint32_t row_index, uint32_t dimension);
 
 private:
     // General options for marginalizor.
@@ -121,9 +93,8 @@ private:
     // Parameters of schur complement.
     TMat<Scalar> reverse_hessian_;
     TVec<Scalar> reverse_bias_;
-
 };
 
-}
+}  // namespace SLAM_SOLVER
 
-#endif // end of _GENERAL_GRAPH_OPTIMIZOR_MARGINALIZOR_H_
+#endif  // end of _GENERAL_GRAPH_OPTIMIZOR_MARGINALIZOR_H_

@@ -11,7 +11,8 @@ template <typename Scalar>
 class ErrorInformationFilterDynamic : public InverseFilter<Scalar, ErrorInformationFilterDynamic<Scalar>> {
 
 public:
-    ErrorInformationFilterDynamic() : InverseFilter<Scalar, ErrorInformationFilterDynamic<Scalar>>() {}
+    ErrorInformationFilterDynamic()
+        : InverseFilter<Scalar, ErrorInformationFilterDynamic<Scalar>>() {}
     virtual ~ErrorInformationFilterDynamic() = default;
 
     bool PropagateInformationImpl();
@@ -47,17 +48,17 @@ private:
     // Process noise Q and measurement noise R.
     TMat<Scalar> inverse_Q_ = TMat<Scalar>::Zero(1, 1);
     TMat<Scalar> inverse_R_ = TMat<Scalar>::Zero(1, 1);
-
 };
 
 /* Class Error Information Filer Declaration. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 class ErrorInformationFilterStatic : public InverseFilter<Scalar, ErrorInformationFilterStatic<Scalar, StateSize, ObserveSize>> {
 
-static_assert(StateSize > 0 && ObserveSize > 0, "Size of state and observe must be larger than 0.");
+    static_assert(StateSize > 0 && ObserveSize > 0, "Size of state and observe must be larger than 0.");
 
 public:
-    ErrorInformationFilterStatic() : InverseFilter<Scalar, ErrorInformationFilterStatic<Scalar, StateSize, ObserveSize>>() {}
+    ErrorInformationFilterStatic()
+        : InverseFilter<Scalar, ErrorInformationFilterStatic<Scalar, StateSize, ObserveSize>>() {}
     virtual ~ErrorInformationFilterStatic() = default;
 
     bool PropagateInformationImpl();
@@ -118,6 +119,6 @@ bool ErrorInformationFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAn
     return true;
 }
 
-}
+}  // namespace SLAM_SOLVER
 
-#endif // end of _ERROR_INFORMATION_FILTER_SOLVER_H_
+#endif  // end of _ERROR_INFORMATION_FILTER_SOLVER_H_

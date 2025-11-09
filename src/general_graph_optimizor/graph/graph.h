@@ -2,11 +2,11 @@
 #define _GENERAL_GRAPH_OPTIMIZOR_GRAPH_H_
 
 #include "basic_type.h"
-#include "vertex.h"
 #include "edge.h"
+#include "vertex.h"
 
-#include "vector"
 #include "memory"
+#include "vector"
 
 namespace SLAM_SOLVER {
 
@@ -111,9 +111,8 @@ private:
     TVec<Scalar> prior_residual_;
     TVec<Scalar> backup_prior_bias_;
     TVec<Scalar> backup_prior_residual_;
-
 };
 
-}
+}  // namespace SLAM_SOLVER
 
 #endif

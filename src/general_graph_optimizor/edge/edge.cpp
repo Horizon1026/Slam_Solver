@@ -24,7 +24,7 @@ Edge<Scalar>::Edge(int32_t residual_dim, int32_t vertex_num) {
 
 // Set vertex of this edge.
 template <typename Scalar>
-bool Edge<Scalar>::SetVertex(Vertex<Scalar> * vertex, uint32_t index) {
+bool Edge<Scalar>::SetVertex(Vertex<Scalar> *vertex, uint32_t index) {
     if (vertex == nullptr || index > vertices_.size() - 1) {
         return false;
     }
@@ -145,7 +145,7 @@ void Edge<Scalar>::ComputeNumbericalJacobians() {
             ComputeResidual();
             const TVec<Scalar> residual_i = this->residual();
 
-            dx(j) = - eps;
+            dx(j) = -eps;
             vertex->RollbackParam();
             vertex->UpdateParam(dx);
             ComputeResidual();
@@ -157,4 +157,4 @@ void Edge<Scalar>::ComputeNumbericalJacobians() {
     }
 }
 
-}
+}  // namespace SLAM_SOLVER

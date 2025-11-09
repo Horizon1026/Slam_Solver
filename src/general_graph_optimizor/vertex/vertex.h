@@ -65,6 +65,6 @@ private:
 template <typename Scalar>
 uint32_t Vertex<Scalar>::global_id_ = 0;
 
-}
+}  // namespace SLAM_SOLVER
 
-#endif // end of _GENERAL_GRAPH_OPTIMIZOR_VERTEX_H_
+#endif  // end of _GENERAL_GRAPH_OPTIMIZOR_VERTEX_H_

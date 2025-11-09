@@ -1,17 +1,17 @@
 #include "basic_type.h"
+#include "slam_basic_math.h"
 #include "slam_log_reporter.h"
 #include "slam_operations.h"
-#include "slam_basic_math.h"
 #include "tick_tock.h"
 
 #include "image_painter.h"
 #include "visualizor_2d.h"
 #include "visualizor_3d.h"
 
-#include "plane.h"
-#include "line_segment.h"
-#include "general_graph_optimizor.h"
 #include "enable_stack_backward.h"
+#include "general_graph_optimizor.h"
+#include "line_segment.h"
+#include "plane.h"
 
 using Scalar = double;
 using namespace SLAM_UTILITY;
@@ -32,7 +32,8 @@ template <typename Scalar>
 class VertexLine : public Vertex<Scalar> {
 
 public:
-    VertexLine() : Vertex<Scalar>(6, 4) {}
+    VertexLine()
+        : Vertex<Scalar>(6, 4) {}
     virtual ~VertexLine() = default;
 
     // Update param with delta_param solved by solver.
@@ -46,12 +47,13 @@ public:
 /* Class Edge reprojection. Project orthonormal line (4-dof) on visual norm plane. */
 template <typename Scalar>
 class EdgeOrthonormalLineToNormPlane : public Edge<Scalar> {
-// Vertices are [line, plucker]
-//              [camera, p_wc]
-//              [camera, q_wc]
+    // Vertices are [line, plucker]
+    //              [camera, p_wc]
+    //              [camera, q_wc]
 
 public:
-    EdgeOrthonormalLineToNormPlane() : Edge<Scalar>(2, 3) {}
+    EdgeOrthonormalLineToNormPlane()
+        : Edge<Scalar>(2, 3) {}
     virtual ~EdgeOrthonormalLineToNormPlane() = default;
 
     // Compute residual and jacobians for each vertex. These operations should be defined by subclass.
@@ -75,8 +77,7 @@ public:
         const Scalar l_2_2 = l(0) * l(0) + l(1) * l(1);
         const Scalar l_1_2 = std::sqrt(l_2_2);
         // Compute residual. Define it by distance from point to line.
-        this->residual() = TVec2<Scalar>(s_point.dot(l) / l_1_2,
-                                         e_point.dot(l) / l_1_2);
+        this->residual() = TVec2<Scalar>(s_point.dot(l) / l_1_2, e_point.dot(l) / l_1_2);
     }
 
     virtual void ComputeJacobians() override {
@@ -84,16 +85,12 @@ public:
         const Scalar l_1_2 = std::sqrt(l_2_2);
         const Scalar l_3_2 = l_2_2 * l_1_2;
         const TMat3<Scalar> R_cw = R_wc.transpose();
-        const TVec3<Scalar> p_cw(- R_cw * p_wc);
+        const TVec3<Scalar> p_cw(-R_cw * p_wc);
 
         // Compute jacobian of d_residual to d_line_in_c.
         TMat2x3<Scalar> jacobian_residual_line_in_c = TMat2x3<Scalar>::Zero();
-        jacobian_residual_line_in_c << s_point.x() / l_1_2 - l[0] * s_point.dot(l) / l_3_2,
-                                       s_point.y() / l_1_2 - l[1] * s_point.dot(l) / l_3_2,
-                                       1.0f / l_1_2,
-                                       e_point.x() / l_1_2 - l[0] * e_point.dot(l) / l_3_2,
-                                       e_point.y() / l_1_2 - l[1] * e_point.dot(l) / l_3_2,
-                                       1.0f / l_1_2;
+        jacobian_residual_line_in_c << s_point.x() / l_1_2 - l[0] * s_point.dot(l) / l_3_2, s_point.y() / l_1_2 - l[1] * s_point.dot(l) / l_3_2, 1.0f / l_1_2,
+            e_point.x() / l_1_2 - l[0] * e_point.dot(l) / l_3_2, e_point.y() / l_1_2 - l[1] * e_point.dot(l) / l_3_2, 1.0f / l_1_2;
         // Compute jacobian of d_line_in_c to d_plucker_in_c.
         TMat3x6<Scalar> jacobian_line_to_plucker = TMat3x6<Scalar>::Zero();
         jacobian_line_to_plucker.template block<3, 3>(0, 0) = TMat3<Scalar>::Identity();
@@ -107,22 +104,15 @@ public:
         jacobian_plucker_to_camera_pos.template block<3, 3>(0, 0) = R_cw * Utility::SkewSymmetricMatrix(d_w);
         // Compute jacobian of d_plucker_in_c to d_camera_rot.
         TMat6x3<Scalar> jacobian_plucker_to_camera_rot = TMat6x3<Scalar>::Zero();
-        jacobian_plucker_to_camera_rot.template block<3, 3>(0, 0) = Utility::SkewSymmetricMatrix(R_cw * n_w)
-            - Utility::SkewSymmetricMatrix(R_cw * Utility::SkewSymmetricMatrix(p_wc) * d_w);
+        jacobian_plucker_to_camera_rot.template block<3, 3>(0, 0) =
+            Utility::SkewSymmetricMatrix(R_cw * n_w) - Utility::SkewSymmetricMatrix(R_cw * Utility::SkewSymmetricMatrix(p_wc) * d_w);
         jacobian_plucker_to_camera_rot.template block<3, 3>(3, 0) = Utility::SkewSymmetricMatrix(R_cw * d_w);
 
         // Set jacobian of d_residual to d_line.
-        this->GetJacobian(0) = jacobian_residual_line_in_c *
-                               jacobian_line_to_plucker *
-                               jacobian_plucker_c_to_w *
-                               jacobian_plucker_to_orthonormal;
+        this->GetJacobian(0) = jacobian_residual_line_in_c * jacobian_line_to_plucker * jacobian_plucker_c_to_w * jacobian_plucker_to_orthonormal;
         // Set jacobian of d_residual to d_camera_pose.
-        this->GetJacobian(1) = jacobian_residual_line_in_c *
-                               jacobian_line_to_plucker *
-                               jacobian_plucker_to_camera_pos;
-        this->GetJacobian(2) = jacobian_residual_line_in_c *
-                               jacobian_line_to_plucker *
-                               jacobian_plucker_to_camera_rot;
+        this->GetJacobian(1) = jacobian_residual_line_in_c * jacobian_line_to_plucker * jacobian_plucker_to_camera_pos;
+        this->GetJacobian(2) = jacobian_residual_line_in_c * jacobian_line_to_plucker * jacobian_plucker_to_camera_rot;
     }
 
 private:
@@ -141,10 +131,11 @@ private:
 /* Class Edge position prior. This can be used to fix a position parameter with specified weight. */
 template <typename Scalar>
 class EdgePriorPosition : public Edge<Scalar> {
-// Vertices are [position, p_wc]
+    // Vertices are [position, p_wc]
 
 public:
-    EdgePriorPosition() : Edge<Scalar>(3, 1) {}
+    EdgePriorPosition()
+        : Edge<Scalar>(3, 1) {}
     virtual ~EdgePriorPosition() = default;
 
     // Compute residual and jacobians for each vertex. These operations should be defined by subclass.
@@ -175,29 +166,21 @@ int main(int argc, char **argv) {
     const float radius = 8.0f;
     for (int32_t i = 0; i < kNumberOfCameras; ++i) {
         const float theta = i * 2 * kPai / kNumberOfCameras;
-        cameras_pose.emplace_back(Pose{
+        cameras_pose.emplace_back(Pose {
             .p_wc = Vec3(radius * std::cos(theta), radius * std::sin(theta), 1.0f * std::sin(2.0f * theta)),
             .q_wc = Quat(Eigen::AngleAxis<float>(theta + kPai, Vec3::UnitZ())) * Quat(Eigen::AngleAxis<float>(kPai / 2.0f, Vec3::UnitY())),
         });
     }
-    std::vector<LineSegment3D> lines_in_a_cube = std::vector{
-        LineSegment3D{Vec3(0, 0, 0), Vec3(0, 0, 1)},
-        LineSegment3D{Vec3(0, 0, 0), Vec3(0, 1, 0)},
-        LineSegment3D{Vec3(0, 1, 1), Vec3(0, 1, 0)},
-        LineSegment3D{Vec3(0, 1, 1), Vec3(0, 0, 1)},
-        LineSegment3D{Vec3(1, 0, 0), Vec3(1, 0, 1)},
-        LineSegment3D{Vec3(1, 0, 0), Vec3(1, 1, 0)},
-        LineSegment3D{Vec3(1, 1, 1), Vec3(1, 1, 0)},
-        LineSegment3D{Vec3(1, 1, 1), Vec3(1, 0, 1)},
-        LineSegment3D{Vec3(0, 0, 0), Vec3(1, 0, 0)},
-        LineSegment3D{Vec3(0, 1, 1), Vec3(1, 1, 1)},
-        LineSegment3D{Vec3(0, 1, 0), Vec3(1, 1, 0)},
-        LineSegment3D{Vec3(0, 0, 1), Vec3(1, 0, 1)},
+    std::vector<LineSegment3D> lines_in_a_cube = std::vector {
+        LineSegment3D {Vec3(0, 0, 0), Vec3(0, 0, 1)}, LineSegment3D {Vec3(0, 0, 0), Vec3(0, 1, 0)}, LineSegment3D {Vec3(0, 1, 1), Vec3(0, 1, 0)},
+        LineSegment3D {Vec3(0, 1, 1), Vec3(0, 0, 1)}, LineSegment3D {Vec3(1, 0, 0), Vec3(1, 0, 1)}, LineSegment3D {Vec3(1, 0, 0), Vec3(1, 1, 0)},
+        LineSegment3D {Vec3(1, 1, 1), Vec3(1, 1, 0)}, LineSegment3D {Vec3(1, 1, 1), Vec3(1, 0, 1)}, LineSegment3D {Vec3(0, 0, 0), Vec3(1, 0, 0)},
+        LineSegment3D {Vec3(0, 1, 1), Vec3(1, 1, 1)}, LineSegment3D {Vec3(0, 1, 0), Vec3(1, 1, 0)}, LineSegment3D {Vec3(0, 0, 1), Vec3(1, 0, 1)},
     };
     std::vector<LineSegment3D> line_segments_3d;
     for (int32_t i = 0; i < kNumberOfLines; ++i) {
         BREAK_IF(i >= static_cast<int32_t>(lines_in_a_cube.size()));
-        line_segments_3d.emplace_back(LineSegment3D{
+        line_segments_3d.emplace_back(LineSegment3D {
             lines_in_a_cube[i].start_point() - Vec3::Ones() * 0.5f,
             lines_in_a_cube[i].end_point() - Vec3::Ones() * 0.5f,
         });
@@ -210,21 +193,18 @@ int main(int argc, char **argv) {
         all_camera_pos[i] = std::make_unique<Vertex<Scalar>>(3, 3);
         all_camera_pos[i]->param() = (cameras_pose[i].p_wc + Vec3::Random() * 0.05f).cast<Scalar>();
         all_camera_rot[i] = std::make_unique<VertexQuat<Scalar>>();
-        all_camera_rot[i]->param() << cameras_pose[i].q_wc.w(), cameras_pose[i].q_wc.x(),
-            cameras_pose[i].q_wc.y(), cameras_pose[i].q_wc.z();
+        all_camera_rot[i]->param() << cameras_pose[i].q_wc.w(), cameras_pose[i].q_wc.x(), cameras_pose[i].q_wc.y(), cameras_pose[i].q_wc.z();
     }
     std::array<std::unique_ptr<VertexLine<Scalar>>, kNumberOfLines> all_lines;
     for (int32_t i = 0; i < kNumberOfLines; ++i) {
         all_lines[i] = std::make_unique<VertexLine<Scalar>>();
-        const LineSegment3D noised_line_3d = LineSegment3D(
-            line_segments_3d[i].start_point() + Vec3::Random() * 0.2f,
-            line_segments_3d[i].end_point() + Vec3::Random() * 0.2f);
+        const LineSegment3D noised_line_3d =
+            LineSegment3D(line_segments_3d[i].start_point() + Vec3::Random() * 0.2f, line_segments_3d[i].end_point() + Vec3::Random() * 0.2f);
         all_lines[i]->param() = LinePlucker3D(LineSegment3D(noised_line_3d)).param().cast<Scalar>();
     }
 
     // Generate edge of observations.
-    std::array<std::unique_ptr<EdgeOrthonormalLineToNormPlane<Scalar>>,
-        kNumberOfCameras * kNumberOfLines> reprojection_edges;
+    std::array<std::unique_ptr<EdgeOrthonormalLineToNormPlane<Scalar>>, kNumberOfCameras * kNumberOfLines> reprojection_edges;
     for (int32_t i = 0; i < kNumberOfCameras; ++i) {
         for (int32_t j = 0; j < kNumberOfLines; ++j) {
             const int32_t idx = i * kNumberOfLines + j;
@@ -261,9 +241,15 @@ int main(int argc, char **argv) {
         problem.AddVertex(all_camera_pos[i].get());
         problem.AddVertex(all_camera_rot[i].get());
     }
-    for (auto &vertex: all_lines) { problem.AddVertex(vertex.get(), false); }
-    for (auto &edge: reprojection_edges) { problem.AddEdge(edge.get()); }
-    for (auto &edge: prior_edges) { problem.AddEdge(edge.get()); }
+    for (auto &vertex: all_lines) {
+        problem.AddVertex(vertex.get(), false);
+    }
+    for (auto &edge: reprojection_edges) {
+        problem.AddEdge(edge.get());
+    }
+    for (auto &edge: prior_edges) {
+        problem.AddEdge(edge.get());
+    }
     problem.EdgesInformation();
 
     // Construct solver to solve problem.
@@ -281,7 +267,7 @@ int main(int argc, char **argv) {
         for (int32_t j = 0; j < kNumberOfLines; ++j) {
             const Vec3 p1_c = cameras_pose[i].q_wc.inverse() * (line_segments_3d[j].start_point() - cameras_pose[i].p_wc);
             const Vec3 p2_c = cameras_pose[i].q_wc.inverse() * (line_segments_3d[j].end_point() - cameras_pose[i].p_wc);
-            Visualizor3D::lines().emplace_back(LineType{
+            Visualizor3D::lines().emplace_back(LineType {
                 .p_w_i = cameras_pose[i].q_wc * p1_c / p1_c.z() + cameras_pose[i].p_wc,
                 .p_w_j = cameras_pose[i].q_wc * p2_c / p2_c.z() + cameras_pose[i].p_wc,
                 .color = RgbColor::kYellow,
@@ -290,14 +276,14 @@ int main(int argc, char **argv) {
     }
     // Draw ground truth of camera pose and line in world frame.
     for (const auto &camera_pose: cameras_pose) {
-        Visualizor3D::poses().emplace_back(PoseType{
+        Visualizor3D::poses().emplace_back(PoseType {
             .p_wb = camera_pose.p_wc,
             .q_wb = camera_pose.q_wc,
             .scale = 0.5f,
         });
     }
     for (const auto &line_segment_3d: line_segments_3d) {
-        Visualizor3D::lines().emplace_back(LineType{
+        Visualizor3D::lines().emplace_back(LineType {
             .p_w_i = line_segment_3d.start_point(),
             .p_w_j = line_segment_3d.end_point(),
             .color = RgbColor::kRed,
@@ -310,7 +296,7 @@ int main(int argc, char **argv) {
         q_wc.x() = all_camera_rot[i]->param()(1);
         q_wc.y() = all_camera_rot[i]->param()(2);
         q_wc.z() = all_camera_rot[i]->param()(3);
-        Visualizor3D::camera_poses().emplace_back(CameraPoseType{
+        Visualizor3D::camera_poses().emplace_back(CameraPoseType {
             .p_wc = Vec3(all_camera_pos[i]->param().cast<float>()),
             .q_wc = q_wc,
             .scale = 0.3f,
@@ -320,7 +306,7 @@ int main(int argc, char **argv) {
         const auto &line = all_lines[i];
         const auto &line_segment = line_segments_3d[i];
         const LinePlucker3D plucker(Vec6(line->param().cast<float>()));
-        Visualizor3D::lines().emplace_back(LineType{
+        Visualizor3D::lines().emplace_back(LineType {
             .p_w_i = plucker.ProjectPointOnLine(line_segment.start_point()),
             .p_w_j = plucker.ProjectPointOnLine(line_segment.end_point()),
             .color = RgbColor::kCyan,
