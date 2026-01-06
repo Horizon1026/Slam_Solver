@@ -10,7 +10,31 @@ struct ErrorKalmanFilterOptions {
     StateCovUpdateMethod kMethod = StateCovUpdateMethod::kSimple;
 };
 
-/* Class Error State Kalman Filter Declaration. */
+/**
+ * @brief Error State Kalman Filter (ESKF)
+ * 
+ * References:
+ * - "Quaternion kinematics for the error-state Kalman filter", Joan Sola.
+ * 
+ * Algorithm Flow:
+ * 1. Predict:
+ *    - dx = 0 (reset error state)
+ *    - P_pre = F * P * F^T + Q
+ * 2. Update:
+ *    - S = H * P_pre * H^T + R
+ *    - K = P_pre * H^T * S^-1
+ *    - dx = K * residual (where residual = z - H * x_nominal)
+ *    - P = (I - K * H) * P_pre (Simple)
+ *    - P = (I - K * H) * P_pre * (I - K * H)^T + K * R * K^T (Joseph form, Full)
+ * 
+ * Variables:
+ * - dx: Error state vector
+ * - P: Error state covariance matrix
+ * - F: Error state transition matrix (Jacobian)
+ * - H: Measurement Jacobian matrix
+ * - Q: Process noise covariance matrix
+ * - R: Measurement noise covariance matrix
+ */
 template <typename Scalar>
 class ErrorKalmanFilterDynamic: public Filter<Scalar, ErrorKalmanFilterDynamic<Scalar>> {
 
@@ -59,7 +83,13 @@ private:
     TMat<Scalar> R_ = TMat<Scalar>::Zero(1, 1);
 };
 
-/* Class Error State Kalman Filter Declaration. */
+/**
+ * @brief Static Dimensional Error State Kalman Filter (ESKF)
+ * @tparam StateSize Dimension of the error state vector
+ * @tparam ObserveSize Dimension of the measurement vector
+ * 
+ * Algorithm and variables same as ErrorKalmanFilterDynamic.
+ */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 class ErrorKalmanFilterStatic: public Filter<Scalar, ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>> {
 
@@ -113,6 +143,7 @@ private:
 /* Class Error State Kalman Filter Definition. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 bool ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>::PropagateCovarianceImpl() {
+    dx_.setZero();
     predict_P_ = F_ * P_ * F_.transpose() + Q_;
     return true;
 }
@@ -122,14 +153,13 @@ bool ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAndCova
     // Compute Kalman gain.
     const TMat<Scalar, StateSize, ObserveSize> H_t = H_.transpose();
     predict_S_ = H_ * predict_P_ * H_t + R_;
-    const TMat<Scalar, StateSize, ObserveSize> K_ = predict_P_ * H_t * predict_S_.inverse();
+    const TMat<Scalar, StateSize, ObserveSize> K_ = predict_P_ * H_t * predict_S_.ldlt().solve(TMat<Scalar, ObserveSize, ObserveSize>::Identity());
 
     // Update error state.
     dx_ = K_ * residual;
 
     // Update covariance of new state.
-    TMat<Scalar, StateSize, StateSize> I_KH = -K_ * H_;
-    I_KH.diagonal().array() += static_cast<Scalar>(1);
+    TMat<Scalar, StateSize, StateSize> I_KH = TMat<Scalar, StateSize, StateSize>::Identity() - K_ * H_;
     switch (options_.kMethod) {
         default:
         case StateCovUpdateMethod::kSimple:
@@ -139,6 +169,9 @@ bool ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAndCova
             P_ = I_KH * predict_P_ * I_KH.transpose() + K_ * R_ * K_.transpose();
             break;
     }
+
+    // Maintenance of symmetry.
+    P_ = (P_ + P_.transpose()) * static_cast<Scalar>(0.5);
 
     return true;
 }

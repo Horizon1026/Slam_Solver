@@ -10,7 +10,35 @@ struct KalmanFilterOptions {
     StateCovUpdateMethod kMethod = StateCovUpdateMethod::kSimple;
 };
 
-/* Class Basic Kalman Filter Declaration. */
+/**
+ * @brief Kalman Filter (KF)
+ * 
+ * References:
+ * - "A New Approach to Linear Filtering and Prediction Problems", Kalman, 1960.
+ * - "Optimal State Estimation: Kalman, H Infinity, and Nonlinear Approaches", Dan Simon.
+ * 
+ * Algorithm Flow:
+ * 1. Predict:
+ *    - x_pre = F * x
+ *    - P_pre = F * P * F^T + Q
+ * 2. Update:
+ *    - S = H * P_pre * H^T + R
+ *    - K = P_pre * H^T * S^-1
+ *    - x = x_pre + K * (z - H * x_pre)
+ *    - P = (I - K * H) * P_pre (Simple)
+ *    - P = (I - K * H) * P_pre * (I - K * H)^T + K * R * K^T (Joseph form, Full)
+ * 
+ * Variables:
+ * - x: State vector
+ * - P: State covariance matrix
+ * - F: State transition matrix
+ * - H: Measurement matrix
+ * - Q: Process noise covariance matrix
+ * - R: Measurement noise covariance matrix
+ * - z: Measurement vector
+ * - K: Kalman gain
+ * - S: Innovation covariance
+ */
 template <typename Scalar>
 class KalmanFilterDynamic: public Filter<Scalar, KalmanFilterDynamic<Scalar>> {
 
@@ -62,7 +90,13 @@ private:
     TMat<Scalar> R_ = TMat<Scalar>::Zero(1, 1);
 };
 
-/* Class Basic Kalman Filter Declaration. */
+/**
+ * @brief Static Dimensional Kalman Filter (KF)
+ * @tparam StateSize Dimension of the state vector
+ * @tparam ObserveSize Dimension of the measurement vector
+ * 
+ * Algorithm and variables same as KalmanFilterDynamic.
+ */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 class KalmanFilterStatic: public Filter<Scalar, KalmanFilterStatic<Scalar, StateSize, ObserveSize>> {
 
@@ -109,7 +143,7 @@ private:
 
     // Process function F and measurement function H.
     TMat<Scalar, StateSize, StateSize> F_ = TMat<Scalar, StateSize, StateSize>::Identity();
-    TMat<Scalar, ObserveSize, StateSize> H_ = TMat<Scalar, ObserveSize, StateSize>::Identity();
+    TMat<Scalar, ObserveSize, StateSize> H_ = TMat<Scalar, ObserveSize, StateSize>::Zero();
 
     // Process noise Q and measurement noise R.
     TMat<Scalar, StateSize, StateSize> Q_ = TMat<Scalar, StateSize, StateSize>::Zero();
@@ -119,6 +153,7 @@ private:
 /* Class Basic Kalman Filter Definition. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 bool KalmanFilterStatic<Scalar, StateSize, ObserveSize>::PropagateCovarianceImpl() {
+    predict_x_ = F_ * x_;
     predict_P_ = F_ * P_ * F_.transpose() + Q_;
     return true;
 }
@@ -129,15 +164,14 @@ bool KalmanFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAndCovarianc
 
     // Compute Kalman gain.
     predict_S_ = H_ * predict_P_ * H_t + R_;
-    const TMat<Scalar, StateSize, ObserveSize> K_ = predict_P_ * H_t * predict_S_.inverse();
+    const TMat<Scalar, StateSize, ObserveSize> K_ = predict_P_ * H_t * predict_S_.ldlt().solve(TMat<Scalar, ObserveSize, ObserveSize>::Identity());
 
     // Update new state.
-    const TVec<Scalar, StateSize> v_ = observation - H_ * predict_x_;
+    const TVec<Scalar, ObserveSize> v_ = observation - H_ * predict_x_;
     x_ = predict_x_ + K_ * v_;
 
     // Update covariance of new state.
-    TMat<Scalar, StateSize, StateSize> I_KH = -K_ * H_;
-    I_KH.diagonal().array() += static_cast<Scalar>(1);
+    TMat<Scalar, StateSize, StateSize> I_KH = TMat<Scalar, StateSize, StateSize>::Identity() - K_ * H_;
     switch (options_.kMethod) {
         default:
         case StateCovUpdateMethod::kSimple:
@@ -147,6 +181,9 @@ bool KalmanFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAndCovarianc
             P_ = I_KH * predict_P_ * I_KH.transpose() + K_ * R_ * K_.transpose();
             break;
     }
+
+    // Maintenance of symmetry.
+    P_ = (P_ + P_.transpose()) * static_cast<Scalar>(0.5);
 
     return true;
 }

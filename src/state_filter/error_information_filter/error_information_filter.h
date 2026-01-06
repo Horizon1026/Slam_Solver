@@ -6,7 +6,26 @@
 
 namespace slam_solver {
 
-/* Class Error Information Filter Declaration. */
+/**
+ * @brief Error State Information Filter (EIF)
+ * 
+ * Algorithm Flow:
+ * 1. Predict:
+ *    - dx = 0 (reset error state)
+ *    - I_pre = Q^-1 - Q^-1 * F * (I + F^T * Q^-1 * F)^-1 * F^T * Q^-1
+ * 2. Update:
+ *    - I = I_pre + H^T * R^-1 * H
+ *    - K = I^-1 * H^T * R^-1
+ *    - dx = K * residual
+ * 
+ * Variables:
+ * - dx: Error state vector
+ * - I: Error state information matrix (P^-1)
+ * - F: Error state transition matrix
+ * - H: Measurement Jacobian matrix
+ * - inverse_Q: Process noise information matrix (Q^-1)
+ * - inverse_R: Measurement noise information matrix (R^-1)
+ */
 template <typename Scalar>
 class ErrorInformationFilterDynamic: public InverseFilter<Scalar, ErrorInformationFilterDynamic<Scalar>> {
 
@@ -49,7 +68,13 @@ private:
     TMat<Scalar> inverse_R_ = TMat<Scalar>::Zero(1, 1);
 };
 
-/* Class Error Information Filer Declaration. */
+/**
+ * @brief Static Dimensional Error Information Filter (EIF)
+ * @tparam StateSize Dimension of the error state vector
+ * @tparam ObserveSize Dimension of the measurement vector
+ * 
+ * Algorithm and variables same as ErrorInformationFilterDynamic.
+ */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 class ErrorInformationFilterStatic: public InverseFilter<Scalar, ErrorInformationFilterStatic<Scalar, StateSize, ObserveSize>> {
 
@@ -87,7 +112,7 @@ private:
 
     // Process function F and measurement function H.
     TMat<Scalar, StateSize, StateSize> F_ = TMat<Scalar, StateSize, StateSize>::Identity();
-    TMat<Scalar, ObserveSize, StateSize> H_ = TMat<Scalar, ObserveSize, StateSize>::Identity();
+    TMat<Scalar, ObserveSize, StateSize> H_ = TMat<Scalar, ObserveSize, StateSize>::Zero();
 
     // Process noise Q and measurement noise R.
     TMat<Scalar, StateSize, StateSize> inverse_Q_ = TMat<Scalar, StateSize, StateSize>::Zero();
@@ -97,8 +122,10 @@ private:
 /* Class Basic Information Filter Definition. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 bool ErrorInformationFilterStatic<Scalar, StateSize, ObserveSize>::PropagateInformationImpl() {
+    dx_.setZero();
     const TMat<Scalar, StateSize, StateSize> F_t = F_.transpose();
-    predict_I_ = inverse_Q_ - inverse_Q_ * F_ * (I_ + F_t * inverse_Q_ * F_).inverse() * F_t * inverse_Q_;
+    const TMat<Scalar, StateSize, StateSize> tmp = I_ + F_t * inverse_Q_ * F_;
+    predict_I_ = inverse_Q_ - inverse_Q_ * F_ * tmp.ldlt().solve(F_t * inverse_Q_);
     return true;
 }
 
@@ -110,7 +137,7 @@ bool ErrorInformationFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAn
     I_ = predict_I_ + H_t * inverse_R_ * H_;
 
     // Compute kalman gain.
-    const TMat<Scalar, StateSize, ObserveSize> K_ = I_.inverse() * H_t * inverse_R_;
+    const TMat<Scalar, StateSize, ObserveSize> K_ = I_.ldlt().solve(H_t * inverse_R_);
 
     // Update error state.
     dx_ = K_ * residual;

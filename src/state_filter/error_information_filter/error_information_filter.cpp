@@ -9,8 +9,10 @@ template class ErrorInformationFilterDynamic<double>;
 /* Class Informaion Filer Definition. */
 template <typename Scalar>
 bool ErrorInformationFilterDynamic<Scalar>::PropagateInformationImpl() {
+    dx_.setZero();
     const TMat<Scalar> F_t = F_.transpose();
-    predict_I_ = inverse_Q_ - inverse_Q_ * F_ * (I_ + F_t * inverse_Q_ * F_).inverse() * F_t * inverse_Q_;
+    const TMat<Scalar> tmp = I_ + F_t * inverse_Q_ * F_;
+    predict_I_ = inverse_Q_ - inverse_Q_ * F_ * tmp.ldlt().solve(F_t * inverse_Q_);
     return true;
 }
 
@@ -22,7 +24,7 @@ bool ErrorInformationFilterDynamic<Scalar>::UpdateStateAndInformationImpl(const 
     I_ = predict_I_ + H_t * inverse_R_ * H_;
 
     // Compute kalman gain.
-    const TMat<Scalar> K_ = I_.inverse() * H_t * inverse_R_;
+    const TMat<Scalar> K_ = I_.ldlt().solve(H_t * inverse_R_);
 
     // Update error state.
     dx_ = K_ * residual;

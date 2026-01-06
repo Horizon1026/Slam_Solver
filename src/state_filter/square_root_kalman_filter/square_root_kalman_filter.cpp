@@ -10,6 +10,7 @@ template class SquareRootKalmanFilterDynamic<double>;
 /* Class Square Root Error State Kalman Filter Definition. */
 template <typename Scalar>
 bool SquareRootKalmanFilterDynamic<Scalar>::PropagateCovarianceImpl() {
+    dx_.setZero();
     const int32_t state_size = S_t_.cols();
     const int32_t extend_size = S_t_.rows() + state_size;
     if (extend_predict_S_t_.rows() != extend_size) {
@@ -23,8 +24,7 @@ bool SquareRootKalmanFilterDynamic<Scalar>::PropagateCovarianceImpl() {
 
     // After QR decomposing of extend_predict_S_t_, the top matrix of the upper triangular matrix becomes predict_S_t_.
     Eigen::HouseholderQR<TMat<Scalar>> qr_solver(extend_predict_S_t_);
-    extend_predict_S_t_ = qr_solver.matrixQR().template triangularView<Eigen::Upper>();
-    predict_S_t_ = extend_predict_S_t_.template block(0, 0, state_size, state_size);
+    predict_S_t_ = qr_solver.matrixQR().template block(0, 0, state_size, state_size).template triangularView<Eigen::Upper>();
     return true;
 }
 
@@ -50,11 +50,13 @@ bool SquareRootKalmanFilterDynamic<Scalar>::UpdateStateAndCovarianceImpl(const T
     M_.template block(obv_size, 0, state_size, obv_size) = predict_S_t_ * H_.transpose();
     M_.template block(obv_size, obv_size, state_size, state_size) = predict_S_t_;
     Eigen::HouseholderQR<TMat<Scalar>> qr_solver(M_);
-    M_ = qr_solver.matrixQR().template triangularView<Eigen::Upper>();
+    TMat<Scalar> R_upper = qr_solver.matrixQR().template triangularView<Eigen::Upper>();
 
-    // Commpute Kalman gain.
+    // Compute Kalman gain.
     // hat_K = (H * pre_P * H.t + R).t/2 * K.
-    const TMat<Scalar> K_ = M_.template block(0, obv_size, obv_size, state_size).transpose() * M_.template block(0, 0, obv_size, obv_size).inverse();
+    const TMat<Scalar> sqrt_S_t = R_upper.template block(0, 0, obv_size, obv_size);
+    const TMat<Scalar> hat_K_t = R_upper.template block(0, obv_size, obv_size, state_size);
+    const TMat<Scalar> K_ = hat_K_t.transpose() * sqrt_S_t.template triangularView<Eigen::Upper>().solve(TMat<Scalar>::Identity(obv_size, obv_size));
 
     // Update error state.
     dx_ = K_ * residual;
@@ -64,7 +66,7 @@ bool SquareRootKalmanFilterDynamic<Scalar>::UpdateStateAndCovarianceImpl(const T
         default:
         case StateCovUpdateMethod::kSimple:
         case StateCovUpdateMethod::kFull:
-            S_t_ = M_.template block(obv_size, obv_size, state_size, state_size);
+            S_t_ = R_upper.template block(obv_size, obv_size, state_size, state_size);
             break;
     }
 
