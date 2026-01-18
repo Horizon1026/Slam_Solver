@@ -257,31 +257,31 @@ void ComputeEstimationResidual(const std::vector<Quat> &truth, const std::vector
 
     std::array<Vec3, 3> mean_min_max = {};
     const Quat res_q = truth.front().inverse() * estimate.front();
-    const Vec3 res_euler = Utility::QuaternionToEuler(res_q);
-    mean_min_max[0] = Vec3::Ones() * res_euler.x();
-    mean_min_max[1] = Vec3::Ones() * res_euler.y();
-    mean_min_max[2] = Vec3::Ones() * res_euler.z();
+    const Vec3 res_euler_rpy = Utility::QuaternionToEuler(res_q);
+    mean_min_max[0] = Vec3::Ones() * res_euler_rpy.x();
+    mean_min_max[1] = Vec3::Ones() * res_euler_rpy.y();
+    mean_min_max[2] = Vec3::Ones() * res_euler_rpy.z();
 
     for (uint32_t i = 0; i < truth.size(); ++i) {
         const Quat q = truth[i].inverse() * estimate[i];
-        const Vec3 euler = Utility::QuaternionToEuler(q);
-        mean_min_max[0](0) += euler.x();
-        mean_min_max[1](0) += euler.y();
-        mean_min_max[2](0) += euler.z();
-        mean_min_max[0](1) = std::min(mean_min_max[0](1), euler.x());
-        mean_min_max[1](1) = std::min(mean_min_max[1](1), euler.y());
-        mean_min_max[2](1) = std::min(mean_min_max[2](1), euler.z());
-        mean_min_max[0](2) = std::max(mean_min_max[0](2), euler.x());
-        mean_min_max[1](2) = std::max(mean_min_max[1](2), euler.y());
-        mean_min_max[2](2) = std::max(mean_min_max[2](2), euler.z());
+        const Vec3 euler_rpy = Utility::QuaternionToEuler(q);
+        mean_min_max[0](0) += euler_rpy.x();
+        mean_min_max[1](0) += euler_rpy.y();
+        mean_min_max[2](0) += euler_rpy.z();
+        mean_min_max[0](1) = std::min(mean_min_max[0](1), euler_rpy.x());
+        mean_min_max[1](1) = std::min(mean_min_max[1](1), euler_rpy.y());
+        mean_min_max[2](1) = std::min(mean_min_max[2](1), euler_rpy.z());
+        mean_min_max[0](2) = std::max(mean_min_max[0](2), euler_rpy.x());
+        mean_min_max[1](2) = std::max(mean_min_max[1](2), euler_rpy.y());
+        mean_min_max[2](2) = std::max(mean_min_max[2](2), euler_rpy.z());
     }
 
     for (uint32_t i = 0; i < 3; ++i) {
         mean_min_max[i](0) /= static_cast<float>(truth.size());
     }
 
-    ReportInfo("The mean/min/max residual of pitch is " << LogVec(mean_min_max[0]) << " deg.");
-    ReportInfo("The mean/min/max residual of roll is " << LogVec(mean_min_max[1]) << " deg.");
+    ReportInfo("The mean/min/max residual of roll is " << LogVec(mean_min_max[0]) << " deg.");
+    ReportInfo("The mean/min/max residual of pitch is " << LogVec(mean_min_max[1]) << " deg.");
     ReportInfo("The mean/min/max residual of yaw is " << LogVec(mean_min_max[2]) << " deg.");
 }
 

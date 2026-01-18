@@ -26,8 +26,8 @@ void GenerateSimulationData(std::vector<Pose<Scalar>> &poses) {
     // Poses.
     for (int32_t i = 0; i <= 20; ++i) {
         Pose<Scalar> pose;
-        const TVec3<Scalar> euler = TVec3<Scalar>(0, -90 + i * 20, 0);
-        pose.q_wb = Utility::EulerToQuaternion(euler);
+        const TVec3<Scalar> euler_rpy = TVec3<Scalar>(-90 + i * 20, 0, 0);
+        pose.q_wb = Utility::EulerToQuaternion(euler_rpy);
         pose.p_wb = TVec3<Scalar>(0, 0, 0) - pose.q_wb * TVec3<Scalar>(0, 0, 8 + i * 0.1);
         poses.emplace_back(pose);
     }
@@ -288,7 +288,8 @@ int main(int argc, char **argv) {
     AddAllCorrectPosesIntoVisualizor(corr_p_wb, corr_q_wb);
 
     // Visualize.
-    Visualizor3D::camera_view().p_wc = Vec3(0, 0, -20);
+    Visualizor3D::camera_view().p_wc = Vec3(-160, -90, 60);
+    Visualizor3D::camera_view().q_wc = Quat(-0.5, 0.7, -0.4, 0.3).normalized();
     do {
         Visualizor3D::Refresh("Visualizor", 50);
     } while (!Visualizor3D::ShouldQuit());

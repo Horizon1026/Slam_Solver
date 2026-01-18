@@ -310,7 +310,7 @@ int main(int argc, char **argv) {
         });
     }
 
-    Visualizor3D::camera_view().p_wc = Vec3(0, 0, -5);
+    Visualizor3D::camera_view().p_wc = Vec3(0, 0, -100);
     Visualizor3D::camera_view().q_wc = Quat::Identity();
     while (!Visualizor3D::ShouldQuit()) {
         Visualizor3D::Refresh("Visualizor 3D", 30);
