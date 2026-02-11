@@ -1,4 +1,5 @@
-/[Bb]uild/
-/[Oo]utput/
-/.vscode/
-/.cache/
+[Bb]uild
+[Oo]utput
+.vscode
+.cache
+__pycache__
