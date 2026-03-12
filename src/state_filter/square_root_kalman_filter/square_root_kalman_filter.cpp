@@ -47,19 +47,23 @@ bool SquareRootKalmanFilterDynamic<Scalar>::UpdateStateAndCovarianceImpl(const T
         T is a exist unit orthogonal matrix. */
     M_.template block(0, 0, obv_size, obv_size) = sqrt_R_t_;
     M_.template block(0, obv_size, obv_size, state_size).setZero();
-    M_.template block(obv_size, 0, state_size, obv_size) = predict_S_t_ * H_.transpose();
+    M_.template block(obv_size, 0, state_size, obv_size).noalias() = predict_S_t_ * H_.transpose();
     M_.template block(obv_size, obv_size, state_size, state_size) = predict_S_t_;
-    Eigen::HouseholderQR<TMat<Scalar>> qr_solver(M_);
+    
+    Eigen::HouseholderQR<Eigen::Ref<TMat<Scalar>>> qr_solver(M_);
     TMat<Scalar> R_upper = qr_solver.matrixQR().template triangularView<Eigen::Upper>();
 
-    // Compute Kalman gain.
+    // Compute Kalman gain and Update error state.
+    // Optimized: Avoid explicit Identity matrix solve.
     // hat_K = (H * pre_P * H.t + R).t/2 * K.
     const TMat<Scalar> sqrt_S_t = R_upper.template block(0, 0, obv_size, obv_size);
     const TMat<Scalar> hat_K_t = R_upper.template block(0, obv_size, obv_size, state_size);
-    const TMat<Scalar> K_ = hat_K_t.transpose() * sqrt_S_t.template triangularView<Eigen::Upper>().solve(TMat<Scalar>::Identity(obv_size, obv_size));
-
-    // Update error state.
-    dx_ = K_ * residual;
+    
+    // K = hat_K * (sqrt_S_t)^-1 -> K.t = (sqrt_S_t.t)^-1 * hat_K.t
+    // Solve hat_S * temp = residual -> temp = inv(hat_S) * residual
+    // K = hat_K.T * inv(hat_S)
+    // dx = K * residual = hat_K.T * (inv(hat_S) * residual)
+    dx_.noalias() = hat_K_t.transpose() * (sqrt_S_t.template triangularView<Eigen::Upper>().solve(residual));
 
     // Update covariance of new state.
     switch (options_.kMethod) {

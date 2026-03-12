@@ -172,21 +172,20 @@ bool SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAn
         T is a exist unit orthogonal matrix. */
     M_.template block<ObserveSize, ObserveSize>(0, 0) = sqrt_R_t_;
     M_.template block<ObserveSize, StateSize>(0, ObserveSize).setZero();
-    M_.template block<StateSize, ObserveSize>(ObserveSize, 0) = predict_S_t_ * H_.transpose();
+    M_.template block<StateSize, ObserveSize>(ObserveSize, 0).noalias() = predict_S_t_ * H_.transpose();
     M_.template block<StateSize, StateSize>(ObserveSize, ObserveSize) = predict_S_t_;
-    Eigen::HouseholderQR<TMat<Scalar, ObserveSize + StateSize, ObserveSize + StateSize>> qr_solver(M_);
+    
+    Eigen::HouseholderQR<Eigen::Ref<TMat<Scalar, ObserveSize + StateSize, ObserveSize + StateSize>>> qr_solver(M_);
     TMat<Scalar, ObserveSize + StateSize, ObserveSize + StateSize> R_upper = qr_solver.matrixQR().template triangularView<Eigen::Upper>();
 
-    // Compute Kalman gain.
+    // Compute Kalman gain and Update error state.
     // hat_K = (H * pre_P * H.t + R).t/2 * K.
     const TMat<Scalar, ObserveSize, ObserveSize> sqrt_S_t = R_upper.template block<ObserveSize, ObserveSize>(0, 0);
     const TMat<Scalar, ObserveSize, StateSize> hat_K_t = R_upper.template block<ObserveSize, StateSize>(0, ObserveSize);
 
     // K = hat_K * (sqrt_S_t)^-1 -> K.t = (sqrt_S_t.t)^-1 * hat_K.t
-    const TMat<Scalar, StateSize, ObserveSize> K_ = hat_K_t.transpose() * sqrt_S_t.template triangularView<Eigen::Upper>().solve(TMat<Scalar, ObserveSize, ObserveSize>::Identity());
-
-    // Update error state.
-    dx_ = K_ * residual;
+    // dx = hat_K.T * (inv(hat_S) * residual)
+    dx_.noalias() = hat_K_t.transpose() * (sqrt_S_t.template triangularView<Eigen::Upper>().solve(residual));
 
     // Update covariance of new state.
     switch (options_.kMethod) {
