@@ -45,7 +45,7 @@ void PoseGraphOptimizor<Scalar>::ComputeAlphaAndWeights() {
     // If covariance is not valid, directly compute alpha and weights.
     if (all_p_wb_.size() != all_cov_p_.size() || all_q_wb_.size() != all_cov_q_.size()) {
         alpha_ = static_cast<Scalar>(0.5);
-        weights_.resize(all_p_wb_.size() - 1, static_cast<Scalar>(1) / static_cast<Scalar>(all_p_wb_.size() - 1));
+        weights_.assign(all_p_wb_.size() - 1, static_cast<Scalar>(1) / static_cast<Scalar>(all_p_wb_.size() - 1));
         return;
     }
 

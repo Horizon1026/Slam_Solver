@@ -14,7 +14,7 @@ Edge<Scalar>::Edge(int32_t residual_dim, int32_t vertex_num) {
         residual_.resize(residual_dim);
         information_.setIdentity(residual_dim, residual_dim);
     }
-    vertices_.resize(vertex_num, nullptr);
+    vertices_.assign(vertex_num, nullptr);
     jacobians_.resize(vertex_num);
 
     // Set index.
