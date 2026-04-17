@@ -34,7 +34,7 @@ bool LoadImuMeasurements(const std::string &imu_file, std::vector<ImuMeasurement
     }
 
     std::string oneLine;
-    double time_stamp_s;
+    double time_stamp_s = 0.0;
     TVec3<double> acc, gyr, pos;
     TQuat<double> q;
     uint32_t cnt = 0;
@@ -77,7 +77,7 @@ void TestErrorKalmanFilter(const std::vector<ImuMeasurement> &meas, std::vector<
 
     for (uint32_t i = 1; i < meas.size(); ++i) {
         const Vec3 gyro = 0.5f * (meas[i - 1].gyro + meas[i].gyro) - est_bw[i - 1];
-        const float dt = meas[i].time_stamp_s - meas[i - 1].time_stamp_s;
+        const float dt = static_cast<float>(meas[i].time_stamp_s - meas[i - 1].time_stamp_s);
 
         // Propagate nominal state.
         est_q[i] = est_q[i - 1] * Utility::DeltaQ(gyro * dt);
@@ -125,7 +125,7 @@ void TestSquareRootKalmanFilter(const std::vector<ImuMeasurement> &meas, std::ve
 
     for (uint32_t i = 1; i < meas.size(); ++i) {
         const Vec3 gyro = 0.5f * (meas[i - 1].gyro + meas[i].gyro) - est_bw[i - 1];
-        const float dt = meas[i].time_stamp_s - meas[i - 1].time_stamp_s;
+        const float dt = static_cast<float>(meas[i].time_stamp_s - meas[i - 1].time_stamp_s);
 
         // Propagate nominal state.
         est_q[i] = est_q[i - 1] * Utility::DeltaQ(gyro * dt);
@@ -173,7 +173,7 @@ void TestErrorInformationFilter(const std::vector<ImuMeasurement> &meas, std::ve
 
     for (uint32_t i = 1; i < meas.size(); ++i) {
         const Vec3 gyro = 0.5f * (meas[i - 1].gyro + meas[i].gyro) - est_bw[i - 1];
-        const float dt = meas[i].time_stamp_s - meas[i - 1].time_stamp_s;
+        const float dt = static_cast<float>(meas[i].time_stamp_s - meas[i - 1].time_stamp_s);
 
         // Propagate nominal state.
         est_q[i] = est_q[i - 1] * Utility::DeltaQ(gyro * dt);
@@ -221,7 +221,7 @@ void TestSquareRootInformationFilter(const std::vector<ImuMeasurement> &meas, st
 
     for (uint32_t i = 1; i < meas.size(); ++i) {
         const Vec3 gyro = 0.5f * (meas[i - 1].gyro + meas[i].gyro) - est_bw[i - 1];
-        const float dt = meas[i].time_stamp_s - meas[i - 1].time_stamp_s;
+        const float dt = static_cast<float>(meas[i].time_stamp_s - meas[i - 1].time_stamp_s);
 
         // Propagate nominal state.
         est_q[i] = est_q[i - 1] * Utility::DeltaQ(gyro * dt);
