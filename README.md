@@ -24,10 +24,16 @@ General solver for slam problem, such as graph optimization problem solver.
 - [x] Linear pose graph solver.
 
 # Dependence
+
+### Project repositories
 - Slam_Utility
-- Visualizor2D (only for test)
-- Visualizor3D (only for test)
-- oneTBB (没有也可以用)
+- Visualizor2D（only for test）
+- Visualizor3D（only for test）
+
+### Third-party repositories
+- Eigen3 (>= 3.3.7)（`sudo apt install libeigen3-dev`）
+- oneTBB（`sudo apt install libtbb-dev`）（optional）
+- dw (`sudo apt install libdw-dev`)
 
 # Compile and Run
 - 第三方仓库的话需要自行 apt-get install 安装
