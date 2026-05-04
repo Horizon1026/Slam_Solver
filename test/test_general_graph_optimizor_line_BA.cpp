@@ -3,15 +3,16 @@
 #include "slam_log_reporter.h"
 #include "slam_operations.h"
 #include "tick_tock.h"
+#include "general_graph_optimizor.h"
+#include "line_segment.h"
+#include "plane.h"
+#include "string"
 
 #include "image_painter.h"
 #include "visualizor_2d.h"
 #include "visualizor_3d.h"
 
 #include "enable_stack_backward.h"
-#include "general_graph_optimizor.h"
-#include "line_segment.h"
-#include "plane.h"
 
 using Scalar = double;
 using namespace slam_utility;
@@ -256,6 +257,22 @@ int main(int argc, char **argv) {
     TickTock tick_tock;
     solver.Solve(false);
     ReportInfo("[Ticktock] Solve cost time " << tick_tock.TockTickInMillisecond() << " ms");
+
+    // Show optimization result.
+    for (uint32_t i = 0; i < all_camera_pos.size(); ++i) {
+        ReportInfo("[Camera pos] [truth] " << LogVec(cameras_pose[i].p_wc) << " | [result] " << LogVec(all_camera_pos[i]->param()));
+    }
+    for (uint32_t i = 0; i < all_camera_rot.size(); ++i) {
+        ReportInfo("[Camera quat] [truth] " << LogQuat(cameras_pose[i].q_wc) << " | [result] " << LogVec(all_camera_rot[i]->param()));
+    }
+    for (uint32_t i = 0; i < all_lines.size(); ++i) {
+        const auto &line_segment = line_segments_3d[i];
+        const LinePlucker3D plucker(Vec6(all_lines[i]->param().cast<float>()));
+        const Vec3 result_start_point = plucker.ProjectPointOnLine(line_segment.start_point());
+        const Vec3 result_end_point = plucker.ProjectPointOnLine(line_segment.end_point());
+        ReportInfo("[Line segment] [truth] " << LogVec(line_segment.start_point()) << " - " << LogVec(line_segment.end_point()) << " | [result] "
+                                             << LogVec(result_start_point) << " - " << LogVec(result_end_point));
+    }
 
     // Visualize.
     Visualizor3D::Clear();
