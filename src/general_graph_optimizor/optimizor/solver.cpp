@@ -1,6 +1,7 @@
 #include "solver.h"
 #include "slam_basic_math.h"
 #include "slam_log_reporter.h"
+#include "slam_operations.h"
 #include "tick_tock.h"
 
 namespace slam_solver {
@@ -119,17 +120,21 @@ void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A, const TVec<
 
             // If initial value is ok, return.
             x.setZero(size);
-            TVec<Scalar> r0(b);  // initial r = b - A*0 = b
-            if (r0.norm() < options_.kMaxPcgSolverConvergedResidual) {
-                return;
+            RETURN_IF(size == 0 || A.rows() != size || A.cols() != size || !A.allFinite() || !b.allFinite());
+            // Initial r = b - A*0 = b.
+            TVec<Scalar> r0(b);
+            for (int32_t row = 0; row < size; ++row) {
+                if (A.row(row).cwiseAbs().maxCoeff() == static_cast<Scalar>(0) && A.col(row).cwiseAbs().maxCoeff() == static_cast<Scalar>(0)) {
+                    r0(row) = static_cast<Scalar>(0);
+                }
             }
+            RETURN_IF(r0.norm() < options_.kMaxPcgSolverConvergedResidual);
 
             // Compute precondition matrix.
-            TVec<Scalar> M_inv_diag = A.diagonal();
-            M_inv_diag.array() = static_cast<Scalar>(1) / M_inv_diag.array();
-            for (int32_t i = 0; i < M_inv_diag.rows(); ++i) {
-                if (std::isinf(M_inv_diag(i))) {
-                    M_inv_diag(i) = 0;
+            TVec<Scalar> M_inv_diag = TVec<Scalar>::Zero(size);
+            for (int32_t i = 0; i < size; ++i) {
+                if (A(i, i) != static_cast<Scalar>(0) && std::isfinite(A(i, i))) {
+                    M_inv_diag(i) = static_cast<Scalar>(1) / A(i, i);
                 }
             }
             TVec<Scalar> z0 = M_inv_diag.array() * r0.array();  // solve M * z0 = r0
@@ -138,9 +143,17 @@ void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A, const TVec<
             TVec<Scalar> p(z0);
             TVec<Scalar> w = A * p;
             Scalar r0z0 = r0.dot(z0);
-            Scalar alpha = r0z0 / p.dot(w);
+            Scalar pAw = p.dot(w);
+            RETURN_IF(r0z0 == static_cast<Scalar>(0) || pAw == static_cast<Scalar>(0) || !std::isfinite(r0z0) || !std::isfinite(pAw));
+            Scalar alpha = r0z0 / pAw;
+            RETURN_IF(!std::isfinite(alpha));
             x += alpha * p;
             TVec<Scalar> r1 = r0 - alpha * w;
+            for (int32_t row = 0; row < size; ++row) {
+                if (M_inv_diag(row) == static_cast<Scalar>(0)) {
+                    r1(row) = static_cast<Scalar>(0);
+                }
+            }
 
             // Set threshold to check if converged.
             const Scalar threshold = options_.kMaxPcgSolverCostDecreaseRate * r0.norm();
@@ -151,15 +164,29 @@ void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A, const TVec<
                 i++;
                 z1 = M_inv_diag.array() * r1.array();
                 const Scalar r1z1 = r1.dot(z1);
+                BREAK_IF(r0z0 == static_cast<Scalar>(0) || r1z1 == static_cast<Scalar>(0) || !std::isfinite(r0z0) || !std::isfinite(r1z1));
                 const Scalar belta = r1z1 / r0z0;
+                BREAK_IF(!std::isfinite(belta));
                 z0 = z1;
                 r0z0 = r1z1;
                 r0 = r1;
                 p = belta * p + z1;
                 w = A * p;
-                alpha = r1z1 / p.dot(w);
+                pAw = p.dot(w);
+                BREAK_IF(pAw == static_cast<Scalar>(0) || !std::isfinite(pAw));
+                alpha = r1z1 / pAw;
+                BREAK_IF(!std::isfinite(alpha));
                 x += alpha * p;
                 r1 -= alpha * w;
+                for (int32_t row = 0; row < size; ++row) {
+                    if (M_inv_diag(row) == static_cast<Scalar>(0)) {
+                        r1(row) = static_cast<Scalar>(0);
+                    }
+                }
+            }
+
+            if (!x.allFinite()) {
+                x.setZero(size);
             }
             break;
         }
@@ -182,22 +209,16 @@ void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A, const TVec<
         }
     }
 
-    if (!options_.kEnableDegenerateElimination) {
-        return;
-    }
+    RETURN_IF(!options_.kEnableDegenerateElimination);
 
     // Reference: On Degeneracy of Optimization-based State Estimation Problems.pdf (There is typo in this paper.)
     // For Hx = b, which can be written as J.transpose() * J * dx = -J.transpose() * r. Actually we solve J * dx = -r.
     // Compute eigen value and vector of A.
     Eigen::SelfAdjointEigenSolver<TMat<Scalar>> solver(A);
-    if (solver.info() != Eigen::Success) {
-        return;
-    }
+    RETURN_IF(solver.info() != Eigen::Success);
     // Eigen values are sorted in increasing order. The smallest eigen value is at the first position.
     const TVec<Scalar> &eigen_values = solver.eigenvalues().real();
-    if (eigen_values(0) > options_.kMinEigenValueThresholdForDegenerateElimination) {
-        return;
-    }
+    RETURN_IF(eigen_values(0) > options_.kMinEigenValueThresholdForDegenerateElimination);
     // Eigen vectors are sorted by eigen values as columns.
     const TMat<Scalar> &eigen_vectors = solver.eigenvectors().real();
     const TMat<Scalar> &matrix_f_inv = eigen_vectors;  // For eigen vectors matrix, transpose is equal to inverse.
