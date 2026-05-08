@@ -23,6 +23,27 @@ public:
         q.normalize();
         this->param() << q.w(), q.x(), q.y(), q.z();
     }
+
+    // Compute manifold jacobian dx/d_delta.
+    // Mathematical Principle: Manifold derivative of unit quaternion (4D) w.r.t. 3D Lie algebra increment
+    // Jacobian = 0.5 * [ -x  -y  -z ]
+    //                  [  w  -z   y ]
+    //                  [  z   w  -x ]
+    //                  [ -y   x   w ]
+    // Derived from quaternion right-increment update rule: q <- q * Exp(delta)
+    // This matrix maps 3D tangent space delta to 4D quaternion parameter space derivative
+    virtual void ComputeManifoldJacobian(TMat<Scalar> &jacobian) const override {
+        jacobian.setZero(4, 3);
+        const Scalar w = this->param()(0);
+        const Scalar x = this->param()(1);
+        const Scalar y = this->param()(2);
+        const Scalar z = this->param()(3);
+        jacobian << -x, -y, -z,
+                     w, -z,  y,
+                     z,  w, -x,
+                    -y,  x,  w;
+        jacobian *= static_cast<Scalar>(0.5);
+    }
 };
 
 }  // namespace slam_solver

@@ -103,6 +103,7 @@ set( UNIT_TEST_OF_GENERAL_GRAPH_OPTIMIZOR_LIST
     test_general_graph_optimizor_polynomial_problem
     test_general_graph_optimizor_pos_norm_plane_BA
     test_general_graph_optimizor_invdep_norm_plane_BA
+    test_general_graph_optimizor_invdep_norm_plane_BA_autodiff
     test_general_graph_optimizor_pos_unit_sphere_BA
     test_general_graph_optimizor_invdep_unit_sphere_BA
     test_general_graph_optimizor_invdep_one_cam_two_frame

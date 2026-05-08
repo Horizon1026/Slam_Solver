@@ -5,9 +5,11 @@
 
 #include "enable_stack_backward.h"
 #include "general_graph_optimizor.h"
+#include "visualizor_3d.h"
 
 using Scalar = float;
 using namespace slam_solver;
+using namespace slam_visualizor;
 
 #include "embeded_generate_sim_data.h"
 
@@ -92,7 +94,7 @@ int main(int argc, char **argv) {
             TVec2<Scalar> obv = p_c.head<2>() / p_c.z();
             reprojection_edges[idx]->SetTrangetBase(p_c);
             reprojection_edges[idx]->observation() = obv;
-#include "embeded_add_kernel.h"
+            reprojection_edges[idx]->kernel() = std::make_unique<KernelHuber<Scalar>>(0.5f);
             reprojection_edges[idx]->SelfCheck();
         }
     }
