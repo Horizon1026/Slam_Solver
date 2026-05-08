@@ -113,84 +113,48 @@ bool Solver<Scalar>::IsConvergedAfterUpdate(int32_t iter) {
 // Default Use PCG solver to solve linearlized function. Other solvers can also be added here.
 template <typename Scalar>
 void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A, const TVec<Scalar> &b, TVec<Scalar> &x) {
+    const int32_t size = b.rows();
+    x.setZero(size);
+    RETURN_IF(size == 0 || A.rows() != size || A.cols() != size || !A.allFinite() || !b.allFinite());
+
+    // Prepare for solving.
+    const TMat<Scalar> *A_ptr = &A;
+    const TVec<Scalar> *b_ptr = &b;
+
+    // Step 1: Jacobian scaling.
+    TVec<Scalar> D_inv_diag = TVec<Scalar>::Ones(size);
+    TMat<Scalar> A_scaled;
+    TVec<Scalar> b_scaled;
+    if (options_.kEnableJacobianScaling) {
+        for (int i = 0; i < size; ++i) {
+            Scalar diagonal = A(i, i);
+            if (diagonal > static_cast<Scalar>(0)) {
+                D_inv_diag(i) = static_cast<Scalar>(1) / std::sqrt(diagonal);
+            }
+        }
+        A_scaled = D_inv_diag.asDiagonal() * A * D_inv_diag.asDiagonal();
+        b_scaled = D_inv_diag.array() * b.array();
+        A_ptr = &A_scaled;
+        b_ptr = &b_scaled;
+    }
+
+    // Step 2: Solve linear system.
+    SolveLinearSystem(*A_ptr, *b_ptr, x);
+    if (options_.kEnableJacobianScaling) {
+        x = D_inv_diag.array() * x.array();
+    }
+
+    // Step 3: Eliminate degeneracy.
+    EliminateDegeneracy(A, x);
+}
+
+template <typename Scalar>
+void Solver<Scalar>::SolveLinearSystem(const TMat<Scalar> &A, const TVec<Scalar> &b, TVec<Scalar> &x) {
     switch (options_.kLinearFunctionSolverType) {
         case LinearFunctionSolverType::kPcgSolver: {
-            const int32_t size = b.rows();
-            const int32_t maxIteration = size;
-
-            // If initial value is ok, return.
-            x.setZero(size);
-            RETURN_IF(size == 0 || A.rows() != size || A.cols() != size || !A.allFinite() || !b.allFinite());
-            // Initial r = b - A*0 = b.
-            TVec<Scalar> r0(b);
-            for (int32_t row = 0; row < size; ++row) {
-                if (A.row(row).cwiseAbs().maxCoeff() == static_cast<Scalar>(0) && A.col(row).cwiseAbs().maxCoeff() == static_cast<Scalar>(0)) {
-                    r0(row) = static_cast<Scalar>(0);
-                }
-            }
-            RETURN_IF(r0.norm() < options_.kMaxPcgSolverConvergedResidual);
-
-            // Compute precondition matrix.
-            TVec<Scalar> M_inv_diag = TVec<Scalar>::Zero(size);
-            for (int32_t i = 0; i < size; ++i) {
-                if (A(i, i) != static_cast<Scalar>(0) && std::isfinite(A(i, i))) {
-                    M_inv_diag(i) = static_cast<Scalar>(1) / A(i, i);
-                }
-            }
-            TVec<Scalar> z0 = M_inv_diag.array() * r0.array();  // solve M * z0 = r0
-
-            // Get first basis vector, compute weight alpha, update x.
-            TVec<Scalar> p(z0);
-            TVec<Scalar> w = A * p;
-            Scalar r0z0 = r0.dot(z0);
-            Scalar pAw = p.dot(w);
-            RETURN_IF(r0z0 == static_cast<Scalar>(0) || pAw == static_cast<Scalar>(0) || !std::isfinite(r0z0) || !std::isfinite(pAw));
-            Scalar alpha = r0z0 / pAw;
-            RETURN_IF(!std::isfinite(alpha));
-            x += alpha * p;
-            TVec<Scalar> r1 = r0 - alpha * w;
-            for (int32_t row = 0; row < size; ++row) {
-                if (M_inv_diag(row) == static_cast<Scalar>(0)) {
-                    r1(row) = static_cast<Scalar>(0);
-                }
-            }
-
-            // Set threshold to check if converged.
-            const Scalar threshold = options_.kMaxPcgSolverCostDecreaseRate * r0.norm();
-
-            int32_t i = 0;
-            TVec<Scalar> z1;
-            while (r1.norm() > threshold && i < maxIteration) {
-                i++;
-                z1 = M_inv_diag.array() * r1.array();
-                const Scalar r1z1 = r1.dot(z1);
-                BREAK_IF(r0z0 == static_cast<Scalar>(0) || r1z1 == static_cast<Scalar>(0) || !std::isfinite(r0z0) || !std::isfinite(r1z1));
-                const Scalar belta = r1z1 / r0z0;
-                BREAK_IF(!std::isfinite(belta));
-                z0 = z1;
-                r0z0 = r1z1;
-                r0 = r1;
-                p = belta * p + z1;
-                w = A * p;
-                pAw = p.dot(w);
-                BREAK_IF(pAw == static_cast<Scalar>(0) || !std::isfinite(pAw));
-                alpha = r1z1 / pAw;
-                BREAK_IF(!std::isfinite(alpha));
-                x += alpha * p;
-                r1 -= alpha * w;
-                for (int32_t row = 0; row < size; ++row) {
-                    if (M_inv_diag(row) == static_cast<Scalar>(0)) {
-                        r1(row) = static_cast<Scalar>(0);
-                    }
-                }
-            }
-
-            if (!x.allFinite()) {
-                x.setZero(size);
-            }
+            SolvePcg(A, b, x);
             break;
         }
-
         case LinearFunctionSolverType::kCholeskySolver: {
             x = A.template ldlt().solve(b);
             break;
@@ -208,7 +172,84 @@ void Solver<Scalar>::SolveLinearlizedFunction(const TMat<Scalar> &A, const TVec<
             break;
         }
     }
+}
 
+template <typename Scalar>
+void Solver<Scalar>::SolvePcg(const TMat<Scalar> &A, const TVec<Scalar> &b, TVec<Scalar> &x) {
+    const int32_t size = b.rows();
+    const int32_t maxIteration = size;
+
+    // Initial r = b - A*0 = b.
+    TVec<Scalar> r0(b);
+    for (int32_t row = 0; row < size; ++row) {
+        if (A.row(row).cwiseAbs().maxCoeff() == static_cast<Scalar>(0) && A.col(row).cwiseAbs().maxCoeff() == static_cast<Scalar>(0)) {
+            r0(row) = static_cast<Scalar>(0);
+        }
+    }
+    RETURN_IF(r0.norm() < options_.kMaxPcgSolverConvergedResidual);
+
+    // Compute precondition matrix.
+    TVec<Scalar> M_inv_diag = TVec<Scalar>::Zero(size);
+    for (int32_t i = 0; i < size; ++i) {
+        if (A(i, i) != static_cast<Scalar>(0) && std::isfinite(A(i, i))) {
+            M_inv_diag(i) = static_cast<Scalar>(1) / A(i, i);
+        }
+    }
+    TVec<Scalar> z0 = M_inv_diag.array() * r0.array();  // solve M * z0 = r0
+
+    // Get first basis vector, compute weight alpha, update x.
+    TVec<Scalar> p(z0);
+    TVec<Scalar> w = A * p;
+    Scalar r0z0 = r0.dot(z0);
+    Scalar pAw = p.dot(w);
+    RETURN_IF(r0z0 == static_cast<Scalar>(0) || pAw == static_cast<Scalar>(0) || !std::isfinite(r0z0) || !std::isfinite(pAw));
+    Scalar alpha = r0z0 / pAw;
+    RETURN_IF(!std::isfinite(alpha));
+    x += alpha * p;
+    TVec<Scalar> r1 = r0 - alpha * w;
+    for (int32_t row = 0; row < size; ++row) {
+        if (M_inv_diag(row) == static_cast<Scalar>(0)) {
+            r1(row) = static_cast<Scalar>(0);
+        }
+    }
+
+    // Set threshold to check if converged.
+    const Scalar threshold = options_.kMaxPcgSolverCostDecreaseRate * r0.norm();
+
+    int32_t i = 0;
+    TVec<Scalar> z1;
+    while (r1.norm() > threshold && i < maxIteration) {
+        i++;
+        z1 = M_inv_diag.array() * r1.array();
+        const Scalar r1z1 = r1.dot(z1);
+        BREAK_IF(r0z0 == static_cast<Scalar>(0) || r1z1 == static_cast<Scalar>(0) || !std::isfinite(r0z0) || !std::isfinite(r1z1));
+        const Scalar belta = r1z1 / r0z0;
+        BREAK_IF(!std::isfinite(belta));
+        z0 = z1;
+        r0z0 = r1z1;
+        r0 = r1;
+        p = belta * p + z1;
+        w = A * p;
+        pAw = p.dot(w);
+        BREAK_IF(pAw == static_cast<Scalar>(0) || !std::isfinite(pAw));
+        alpha = r1z1 / pAw;
+        BREAK_IF(!std::isfinite(alpha));
+        x += alpha * p;
+        r1 -= alpha * w;
+        for (int32_t row = 0; row < size; ++row) {
+            if (M_inv_diag(row) == static_cast<Scalar>(0)) {
+                r1(row) = static_cast<Scalar>(0);
+            }
+        }
+    }
+
+    if (!x.allFinite()) {
+        x.setZero(size);
+    }
+}
+
+template <typename Scalar>
+void Solver<Scalar>::EliminateDegeneracy(const TMat<Scalar> &A, TVec<Scalar> &x) {
     RETURN_IF(!options_.kEnableDegenerateElimination);
 
     // Reference: On Degeneracy of Optimization-based State Estimation Problems.pdf (There is typo in this paper.)

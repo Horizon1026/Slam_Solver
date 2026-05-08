@@ -29,6 +29,7 @@ public:
         Scalar kMinEigenValueThresholdForDegenerateElimination = 1e-6;
         float kMaxCostTimeInSecond = 1.0f;
         LinearFunctionSolverType kLinearFunctionSolverType = LinearFunctionSolverType::kPcgSolver;
+        bool kEnableJacobianScaling = true;
     };
 
 public:
@@ -82,6 +83,14 @@ public:
     const TVec<Scalar> &dx() const { return dx_; }
     const TVec<Scalar> &prior_bias_backup() const { return prior_bias_backup_; }
     const TVec<Scalar> &prior_residual_backup() const { return prior_residual_backup_; }
+
+private:
+    // Solve linear system with specified solver.
+    void SolveLinearSystem(const TMat<Scalar> &A, const TVec<Scalar> &b, TVec<Scalar> &x);
+    // Use PCG solver to solve linear system.
+    void SolvePcg(const TMat<Scalar> &A, const TVec<Scalar> &b, TVec<Scalar> &x);
+    // Eliminate degeneracy of the linear system.
+    void EliminateDegeneracy(const TMat<Scalar> &A, TVec<Scalar> &x);
 
 private:
     // General options for solver.
