@@ -164,7 +164,7 @@ int main(int argc, char **argv) {
     std::vector<Vertex<Scalar> *> vertices_to_be_marged = {all_camera_pos[0].get(), all_camera_rot[0].get()};
     Marginalizor<Scalar> marger;
     marger.problem() = &problem;
-    marger.options().kSortDirection = SortMargedVerticesDirection::kSortAtBack;
+    marger.options().kSortDirection = Marginalizor<Scalar>::SortMargedVerticesDirection::kSortAtBack;
     marger.Marginalize(vertices_to_be_marged, false);
 
     // Show result.

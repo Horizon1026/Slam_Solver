@@ -6,16 +6,16 @@
 
 namespace slam_solver {
 
-template <typename Scalar>
-struct SolverLmOptions {
-    Scalar kInitLambda = 1e-7;
-    Scalar kMaxLambda = 1e32;
-    Scalar kMinLambda = 1e-10;
-};
-
 /* Class LM Solver Declaration. */
 template <typename Scalar>
 class SolverLm: public Solver<Scalar> {
+
+public:
+    struct SubOptions {
+        Scalar kInitLambda = 1e-7;
+        Scalar kMaxLambda = 1e32;
+        Scalar kMinLambda = 1e-10;
+    };
 
 public:
     SolverLm(): Solver<Scalar>() {}
@@ -31,14 +31,14 @@ public:
     virtual bool IsUpdateValid(Scalar min_allowed_gain_rate = 0) override;
 
     // Reference for member variables.
-    SolverLmOptions<Scalar> &lm_options() { return lm_options_; }
+    SubOptions &sub_options() { return sub_options_; }
 
     // Const reference for member variables.
-    const SolverLmOptions<Scalar> &lm_options() const { return lm_options_; }
+    const SubOptions &sub_options() const { return sub_options_; }
 
 private:
     // Options for LM solver.
-    SolverLmOptions<Scalar> lm_options_;
+    SubOptions sub_options_;
 
     // Parameters of LM solver.
     Scalar lambda_ = 0;

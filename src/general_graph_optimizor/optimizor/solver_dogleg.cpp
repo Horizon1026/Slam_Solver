@@ -11,12 +11,12 @@ template class SolverDogleg<double>;
 template <typename Scalar>
 void SolverDogleg<Scalar>::InitializeSolver() {
     // Use 'this->' to run function definded in basis class.
-    radius_ = dogleg_options_.kInitRadius;
+    radius_ = sub_options_.kInitRadius;
     this->cost_at_linearized_point() = this->cost_at_latest_step();
 
     auto &hessian = this->problem()->hessian();
     radius_ = std::max(radius_, hessian.diagonal().array().maxCoeff());
-    radius_ = std::min(radius_, dogleg_options_.kMaxRadius);
+    radius_ = std::min(radius_, sub_options_.kMaxRadius);
 
     // Report information of this iteration if enabled.
     const Scalar delta_x_norm = this->dx().norm();

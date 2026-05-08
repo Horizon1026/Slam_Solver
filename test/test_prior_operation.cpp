@@ -44,7 +44,7 @@ void TestMarginalizeOnlyHessian() {
 
     // Do operation.
     Marginalizor<Scalar> marger;
-    marger.options().kSortDirection = SortMargedVerticesDirection::kSortAtBack;
+    marger.options().kSortDirection = Marginalizor<Scalar>::SortMargedVerticesDirection::kSortAtBack;
     marger.Marginalize(hessian, bias, 4, 1);
     ReportInfo("Prior hessian marged:\n" << hessian);
     ReportInfo("Prior bias marged:\n" << bias);

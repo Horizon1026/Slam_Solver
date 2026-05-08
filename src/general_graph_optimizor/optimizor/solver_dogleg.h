@@ -6,16 +6,16 @@
 
 namespace slam_solver {
 
-template <typename Scalar>
-struct SolverDoglegOptions {
-    Scalar kInitRadius = 1e4;
-    Scalar kMaxRadius = 1e8;
-    Scalar kMinRadius = 1e-8;
-};
-
 /* Class Dogleg Solver Declaration. */
 template <typename Scalar>
 class SolverDogleg: public Solver<Scalar> {
+
+public:
+    struct SubOptions {
+        Scalar kInitRadius = 1e4;
+        Scalar kMaxRadius = 1e8;
+        Scalar kMinRadius = 1e-8;
+    };
 
 public:
     SolverDogleg(): Solver<Scalar>() {}
@@ -31,14 +31,14 @@ public:
     virtual bool IsUpdateValid(Scalar min_allowed_gain_rate = 0) override;
 
     // Reference for member variables.
-    SolverDoglegOptions<Scalar> &dogleg_options() { return dogleg_options_; }
+    SubOptions &sub_options() { return sub_options_; }
 
     // Const reference for member variables.
-    const SolverDoglegOptions<Scalar> &dogleg_options() const { return dogleg_options_; }
+    const SubOptions &sub_options() const { return sub_options_; }
 
 private:
     // Options for Dogleg solver.
-    SolverDoglegOptions<Scalar> dogleg_options_;
+    SubOptions sub_options_;
 
     // Parameters of Dogleg solver.
     Scalar radius_ = 0;

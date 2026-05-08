@@ -11,8 +11,8 @@ template class SolverLm<double>;
 template <typename Scalar>
 void SolverLm<Scalar>::InitializeSolver() {
     // Use 'this->' to run function definded in basis class.
-    lambda_ = lm_options_.kInitLambda * this->problem()->hessian().diagonal().maxCoeff();
-    lambda_ = std::min(lambda_, lm_options_.kInitLambda);
+    lambda_ = sub_options_.kInitLambda * this->problem()->hessian().diagonal().maxCoeff();
+    lambda_ = std::min(lambda_, sub_options_.kInitLambda);
     this->cost_at_linearized_point() = this->cost_at_latest_step();
     v_ = static_cast<Scalar>(2);
 
@@ -32,7 +32,7 @@ void SolverLm<Scalar>::SolveIncrementalFunction() {
     // Add diagnal of hessian.
     diagnal_of_hessian_ = hessian.diagonal();
     for (int32_t i = 0; i < hessian_size; ++i) {
-        const Scalar temp = std::min(lm_options_.kMaxLambda, std::max(lm_options_.kMinLambda, hessian(i, i)));
+        const Scalar temp = std::min(sub_options_.kMaxLambda, std::max(sub_options_.kMinLambda, hessian(i, i)));
         hessian(i, i) += lambda_ * temp;
     }
 
@@ -91,7 +91,7 @@ bool SolverLm<Scalar>::IsUpdateValid(Scalar min_allowed_gain_rate) {
         result = false;
     }
 
-    lambda_ = std::max(lm_options_.kMinLambda, std::min(lm_options_.kMaxLambda, lambda_));
+    lambda_ = std::max(sub_options_.kMinLambda, std::min(sub_options_.kMaxLambda, lambda_));
 
     return result;
 }

@@ -6,30 +6,30 @@
 
 namespace slam_solver {
 
-enum class LinearFunctionSolverType {
-    kCholeskySolver = 0,
-    kPcgSolver = 1,
-    kQrSolver = 2,
-    kSvdSolver = 3,
-};
-
-template <typename Scalar>
-struct SolverOptions {
-    int32_t kMaxIteration = 30;
-    Scalar kMaxConvergedSquaredStepLength = 1e-6;
-    Scalar kMaxPcgSolverCostDecreaseRate = 1e-6;
-    Scalar kMaxPcgSolverConvergedResidual = 1e-6;
-    bool kEnableReportEachIteration = true;
-    bool kOnlyUseFirstEstimatedJacobian = false;
-    bool kEnableDegenerateElimination = true;
-    Scalar kMinEigenValueThresholdForDegenerateElimination = 1e-6;
-    float kMaxCostTimeInSecond = 1.0f;
-    LinearFunctionSolverType kLinearFunctionSolverType = LinearFunctionSolverType::kPcgSolver;
-};
-
 /* Class Solver Declaration. */
 template <typename Scalar>
 class Solver {
+
+public:
+    enum class LinearFunctionSolverType {
+        kCholeskySolver = 0,
+        kPcgSolver = 1,
+        kQrSolver = 2,
+        kSvdSolver = 3,
+    };
+
+    struct Options {
+        int32_t kMaxIteration = 30;
+        Scalar kMaxConvergedSquaredStepLength = 1e-6;
+        Scalar kMaxPcgSolverCostDecreaseRate = 1e-6;
+        Scalar kMaxPcgSolverConvergedResidual = 1e-6;
+        bool kEnableReportEachIteration = true;
+        bool kOnlyUseFirstEstimatedJacobian = false;
+        bool kEnableDegenerateElimination = true;
+        Scalar kMinEigenValueThresholdForDegenerateElimination = 1e-6;
+        float kMaxCostTimeInSecond = 1.0f;
+        LinearFunctionSolverType kLinearFunctionSolverType = LinearFunctionSolverType::kPcgSolver;
+    };
 
 public:
     Solver() = default;
@@ -62,7 +62,7 @@ public:
     void SolveLinearlizedFunction(const TMat<Scalar> &A, const TVec<Scalar> &b, TVec<Scalar> &x);
 
     // Reference for member variables.
-    SolverOptions<Scalar> &options() { return options_; }
+    Options &options() { return options_; }
     Graph<Scalar> *&problem() { return problem_; }
 
     Scalar &cost_at_linearized_point() { return cost_at_linearized_point_; }
@@ -73,7 +73,7 @@ public:
     TVec<Scalar> &prior_residual_backup() { return prior_residual_backup_; }
 
     // Const reference for member variables.
-    const SolverOptions<Scalar> &options() const { return options_; }
+    const Options &options() const { return options_; }
     const Graph<Scalar> *problem() const { return problem_; }
 
     const Scalar &cost_at_linearized_point() const { return cost_at_linearized_point_; }
@@ -85,7 +85,7 @@ public:
 
 private:
     // General options for solver.
-    SolverOptions<Scalar> options_;
+    Options options_;
 
     // The graph optimization problem to be solved.
     Graph<Scalar> *problem_ = nullptr;
