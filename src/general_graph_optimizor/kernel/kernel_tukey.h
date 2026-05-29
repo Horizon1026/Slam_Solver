@@ -19,7 +19,7 @@ public:
 
         const Scalar sqrt_x = std::sqrt(x);
         if (sqrt_x < this->delta_) {
-            const Scalar aux = x / this->delta_;
+            const Scalar aux = x / this->dsqr_;
             const Scalar _aux = static_cast<Scalar>(1) - aux;
             const Scalar _aux_2 = _aux * _aux;
             const Scalar _aux_3 = _aux_2 * _aux;
