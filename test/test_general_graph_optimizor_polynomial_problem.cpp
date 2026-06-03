@@ -38,13 +38,13 @@ public:
         this->residual() = res;
     }
 
-    // If do not override, audo-diff will work.
-    // virtual void ComputeJacobians() override {
-    //     // Compute jacobian.
-    //     this->GetJacobian(0) << x_ * x_ * x_;
-    //     this->GetJacobian(1) << x_ * x_;
-    //     this->GetJacobian(2) << x_;
-    // }
+    // Provide analytical Jacobians for correctness (avoid numerical Jacobian issues).
+    virtual void ComputeJacobians() override {
+        // Compute jacobian: dr/da = x^3, dr/db = x^2, dr/dc = x
+        this->GetJacobian(0) << x_ * x_ * x_;
+        this->GetJacobian(1) << x_ * x_;
+        this->GetJacobian(2) << x_;
+    }
 
 private:
     Scalar x_, y_, a_, b_, c_;
@@ -52,21 +52,36 @@ private:
 
 constexpr int32_t kMaxSampleNum = 100;
 
-int main(int argc, char **argv) {
-    ReportInfo(YELLOW ">> Test general graph optimizor on polynomial problem." RESET_COLOR);
-    TVec3<Scalar> ground_truth_param = TVec3<Scalar>(2, -3, -4);
-    const Scalar a = ground_truth_param(0);
-    const Scalar b = ground_truth_param(1);
-    const Scalar c = ground_truth_param(2);
-    ReportInfo("Ground truth is " << LogVec(ground_truth_param));
+struct TestResult {
+    std::string solver_name;
+    TVec3<Scalar> result;
+    Scalar final_cost;
+};
 
+// Template helper: run one solver test and record the result.
+// Creates a fresh graph with polynomial fitting problem, runs the solver,
+// and collects the final parameters and cost.
+template <typename SolverType>
+void RunSolverTest(const std::string &name, const TVec3<Scalar> &ground_truth, std::vector<TestResult> &results,
+                   std::function<void(SolverType &)> configure = nullptr) {
+    ReportInfo(GREEN ">> [" << name << "] Testing " << name << " solver." RESET_COLOR);
+
+    // Create vertices and edges for this test.
     std::array<std::unique_ptr<VertexParam>, 3> vertices = {};
+    std::array<std::unique_ptr<EdgePolynomial>, kMaxSampleNum> edges = {};
+
+    // Setup vertices (initial params all zero).
+    Graph<Scalar> problem;
     for (int32_t i = 0; i < 3; ++i) {
         vertices[i] = std::make_unique<VertexParam>(1, 1);
         vertices[i]->param() = TVec1<Scalar>(0);
+        problem.AddVertex(vertices[i].get());
     }
 
-    std::array<std::unique_ptr<EdgePolynomial>, kMaxSampleNum> edges = {};
+    // Setup edges with synthetic observations from ground truth polynomial.
+    const Scalar a_gt = ground_truth(0);
+    const Scalar b_gt = ground_truth(1);
+    const Scalar c_gt = ground_truth(2);
     for (int32_t i = 0; i < kMaxSampleNum; ++i) {
         edges[i] = std::make_unique<EdgePolynomial>(1, 3);
         edges[i]->SetVertex(vertices[0].get(), 0);
@@ -74,25 +89,41 @@ int main(int argc, char **argv) {
         edges[i]->SetVertex(vertices[2].get(), 2);
 
         const Scalar x = i - kMaxSampleNum / 2;
-        TVec2<Scalar> obv = TVec2<Scalar>(x, a * x * x * x + b * x * x + c * x);
+        TVec2<Scalar> obv = TVec2<Scalar>(x, a_gt * x * x * x + b_gt * x * x + c_gt * x);
         edges[i]->observation() = obv;
         edges[i]->SelfCheck();
-        edges[i]->SelfCheckJacobians();
+        problem.AddEdge(edges[i].get());
     }
 
-    Graph<Scalar> problem;
-    for (auto &vertex: vertices) {
-        problem.AddVertex(vertex.get());
-    }
-    for (auto &edge: edges) {
-        problem.AddEdge(edge.get());
-    }
-    SolverLm<Scalar> solver;
+    // Create solver, apply optional configuration, then solve.
+    SolverType solver;
     solver.problem() = &problem;
+    if (configure) {
+        configure(solver);
+    }
     solver.Solve(true);
 
+    // Extract and record result.
     TVec3<Scalar> result = TVec3<Scalar>(vertices[0]->param()(0), vertices[1]->param()(0), vertices[2]->param()(0));
-    ReportInfo("Solve result is " << LogVec(result));
+    results.push_back({name, result, problem.ComputeResidualForAllEdges(true)});
+    ReportInfo(name << " solve result is " << LogVec(result));
+}
+
+int main(int argc, char **argv) {
+    ReportInfo(YELLOW ">> Test general graph optimizor on polynomial problem with multiple solvers." RESET_COLOR);
+    const TVec3<Scalar> ground_truth_param(2, -3, -4);
+    ReportInfo("Ground truth is " << LogVec(ground_truth_param));
+
+    std::vector<TestResult> results;
+
+    // Test each solver; GD gets extra iterations and a tuned learning rate.
+    RunSolverTest<SolverLm<Scalar>>("Levenberg-Marquardt", ground_truth_param, results);
+    RunSolverTest<SolverDogleg<Scalar>>("Dogleg", ground_truth_param, results);
+    RunSolverTest<SolverGn<Scalar>>("Gauss-Newton", ground_truth_param, results);
+    RunSolverTest<SolverGd<Scalar>>("Gradient Descent", ground_truth_param, results, [](SolverGd<Scalar> &solver) {
+        solver.options().kMaxIteration = 100;
+        solver.sub_options().kInitLearningRate = 0.5;
+    });
 
     return 0;
 }

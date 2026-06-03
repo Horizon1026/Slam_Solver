@@ -14,6 +14,8 @@
 
 #include "solver_dogleg.h"
 #include "solver_lm.h"
+#include "solver_gn.h"
+#include "solver_gd.h"
 
 #include "marginalizor.h"
 

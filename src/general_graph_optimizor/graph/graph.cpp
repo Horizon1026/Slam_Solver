@@ -260,7 +260,119 @@ void Graph<Scalar>::ComputeJacobiansForAllEdges() {
 
 // Construct incremental function with full size.
 template <typename Scalar>
-void Graph<Scalar>::ConstructFullSizeJacobianAndResidual(bool use_prior) {}
+void Graph<Scalar>::ConstructFullSizeJacobianAndResidual(bool use_prior) {
+    // Compute total residual size (sum of all edge residual dims).
+    full_size_of_residuals_ = 0;
+    for (const auto &edge: edges_) {
+        full_size_of_residuals_ += edge->residual().size();
+    }
+
+    const int32_t param_size = full_size_of_dense_vertices_ + full_size_of_sparse_vertices_;
+    const int32_t residual_size = full_size_of_residuals_;
+    jacobian_.setZero(residual_size, param_size);
+    residual_.setZero(residual_size);
+
+#ifdef ENABLE_TBB_PARALLEL
+    // Each edge writes to disjoint row blocks — no mutex needed.
+    tbb::parallel_for(tbb::blocked_range<uint32_t>(0, edges_.size()), [&](tbb::blocked_range<uint32_t> range) {
+        for (uint32_t k = range.begin(); k < range.end(); ++k) {
+            const auto &edge = edges_[k];
+            const uint32_t vertex_num = edge->GetVertexNum();
+            const auto &vertices_in_edge = edge->GetVertices();
+            const auto &jacobians_in_edge = edge->GetJacobians();
+            const int32_t residual_dim = edge->residual().size();
+
+            // Compute row offset for this edge in the full residual vector.
+            // (In TBB mode, compute it here since edges are processed out of order.)
+            int32_t residual_row = 0;
+            for (uint32_t m = 0; m < k; ++m) {
+                residual_row += edges_[m]->residual().size();
+            }
+
+            // Weight: sqrt(kernel_y1) * sqrt(information)
+            // For kernel = identity (y1=1) and information = I, w = 1.
+            const Scalar sqrt_w = std::sqrt(edge->kernel()->y(1));
+
+            // Fill residual segment: r_weighted = sqrt(w) * S^{1/2} * r
+            // For diagonal information: S^{1/2} = sqrt(information_diag)
+            // For full information: use LLT decomposition.
+            TVec<Scalar> weighted_residual;
+            if (edge->information().isIdentity()) {
+                weighted_residual = sqrt_w * edge->residual();
+            } else {
+                // Use LLT for general information matrix: S = L * L^T (S^{1/2} = L^T)
+                Eigen::LLT<TMat<Scalar>> llt(edge->information());
+                const TMat<Scalar> sqrt_info = llt.matrixL().transpose();
+                weighted_residual = sqrt_w * sqrt_info * edge->residual();
+            }
+            residual_.segment(residual_row, residual_dim) = weighted_residual;
+
+            // Fill Jacobian blocks for each vertex in this edge.
+            for (uint32_t i = 0; i < vertex_num; ++i) {
+                CONTINUE_IF(vertices_in_edge[i]->IsFixed());
+                const int32_t col_index = vertices_in_edge[i]->ColIndex();
+                const int32_t col_dim = vertices_in_edge[i]->GetIncrementDimension();
+
+                // J_weighted = sqrt(w) * S^{1/2} * J
+                TMat<Scalar> weighted_J;
+                if (edge->information().isIdentity()) {
+                    weighted_J = sqrt_w * jacobians_in_edge[i];
+                } else {
+                    Eigen::LLT<TMat<Scalar>> llt(edge->information());
+                    const TMat<Scalar> sqrt_info = llt.matrixL().transpose();
+                    weighted_J = sqrt_w * sqrt_info * jacobians_in_edge[i];
+                }
+                jacobian_.block(residual_row, col_index, residual_dim, col_dim) = weighted_J;
+            }
+        }
+    });
+#else   // ENABLE_TBB_PARALLEL
+    int32_t residual_row = 0;
+    for (const auto &edge: edges_) {
+        const int32_t residual_dim = edge->residual().size();
+        const uint32_t vertex_num = edge->GetVertexNum();
+        const auto &vertices_in_edge = edge->GetVertices();
+        const auto &jacobians_in_edge = edge->GetJacobians();
+
+        // Weight: sqrt(kernel_y1) * sqrt(information)
+        const Scalar sqrt_w = std::sqrt(edge->kernel()->y(1));
+
+        // Fill residual segment.
+        if (edge->information().isIdentity()) {
+            residual_.segment(residual_row, residual_dim) = sqrt_w * edge->residual();
+        } else {
+            const auto &info = edge->information();
+            residual_.segment(residual_row, residual_dim) = sqrt_w * info.template llt().matrixL().transpose() * edge->residual();
+        }
+
+        // Fill Jacobian blocks for each vertex in this edge.
+        for (uint32_t i = 0; i < vertex_num; ++i) {
+            CONTINUE_IF(vertices_in_edge[i]->IsFixed());
+            const int32_t col_index = vertices_in_edge[i]->ColIndex();
+            const int32_t col_dim = vertices_in_edge[i]->GetIncrementDimension();
+
+            if (edge->information().isIdentity()) {
+                jacobian_.block(residual_row, col_index, residual_dim, col_dim) = sqrt_w * jacobians_in_edge[i];
+            } else {
+                const auto &info = edge->information();
+                jacobian_.block(residual_row, col_index, residual_dim, col_dim) = sqrt_w * info.template llt().matrixL().transpose() * jacobians_in_edge[i];
+            }
+        }
+
+        residual_row += residual_dim;
+    }
+#endif  // end of ENABLE_TBB_PARALLEL
+
+    // Add prior information on incremental function, if configured to use prior.
+    if (use_prior && prior_hessian_.rows() > 0) {
+        // Prior information is decomposed as: sqrt(S_prior) * J_prior
+        // So the prior contributes additional rows to the Jacobian and residual.
+        // For simplicity, the prior is added as extra rows at the bottom.
+        // This is a simplified handling — a full implementation would stack the prior
+        // Jacobian factor [J_prior; r_prior] below the existing J and r.
+        ReportWarn("[Graph] Prior information in Jacobian/residual form is not fully implemented.");
+    }
+}
 
 // Construct incremental function with full size.
 template <typename Scalar>
