@@ -44,8 +44,8 @@ bool LoadImuMeasurements(const std::string &imu_file, std::vector<ImuMeasurement
             acc.z();
 
         ImuMeasurement meas;
-        meas.accel = acc.cast<float>();
-        meas.gyro = gyr.cast<float>();
+        meas.accel_mps2 = acc.cast<float>();
+        meas.gyro_rps = gyr.cast<float>();
         meas.time_stamp_s = time_stamp_s;
         measurements.emplace_back(meas);
         position.emplace_back(pos.cast<float>());
@@ -76,7 +76,7 @@ void TestErrorKalmanFilter(const std::vector<ImuMeasurement> &meas, std::vector<
     filter.Q().setIdentity();
 
     for (uint32_t i = 1; i < meas.size(); ++i) {
-        const Vec3 gyro = 0.5f * (meas[i - 1].gyro + meas[i].gyro) - est_bw[i - 1];
+        const Vec3 gyro = 0.5f * (meas[i - 1].gyro_rps + meas[i].gyro_rps) - est_bw[i - 1];
         const float dt = static_cast<float>(meas[i].time_stamp_s - meas[i - 1].time_stamp_s);
 
         // Propagate nominal state.
@@ -92,11 +92,11 @@ void TestErrorKalmanFilter(const std::vector<ImuMeasurement> &meas, std::vector<
         filter.PropagateCovariance();
 
         // Update state and covariance with observations.
-        const Vec3 obv = meas[i].accel / meas[i].accel.norm();
+        const Vec3 obv = meas[i].accel_mps2 / meas[i].accel_mps2.norm();
         const Vec3 pred = est_q[i].matrix().transpose().col(2);
         const Vec3 residual = Utility::SkewSymmetricMatrix(pred) * obv;
         filter.H().block<3, 3>(0, 0) = Utility::SkewSymmetricMatrix(obv) * Utility::SkewSymmetricMatrix(pred);
-        const float weight = std::fabs(meas[i].accel.norm() - 9.81f);
+        const float weight = std::fabs(meas[i].accel_mps2.norm() - 9.81f);
         filter.R() = Mat3::Identity() * (weight + 0.001f);
         filter.UpdateStateAndCovariance(residual);
 
@@ -124,7 +124,7 @@ void TestSquareRootKalmanFilter(const std::vector<ImuMeasurement> &meas, std::ve
     filter.sqrt_Q_t().setIdentity();
 
     for (uint32_t i = 1; i < meas.size(); ++i) {
-        const Vec3 gyro = 0.5f * (meas[i - 1].gyro + meas[i].gyro) - est_bw[i - 1];
+        const Vec3 gyro = 0.5f * (meas[i - 1].gyro_rps + meas[i].gyro_rps) - est_bw[i - 1];
         const float dt = static_cast<float>(meas[i].time_stamp_s - meas[i - 1].time_stamp_s);
 
         // Propagate nominal state.
@@ -140,11 +140,11 @@ void TestSquareRootKalmanFilter(const std::vector<ImuMeasurement> &meas, std::ve
         filter.PropagateCovariance();
 
         // Update state and covariance with observations.
-        const Vec3 obv = meas[i].accel / meas[i].accel.norm();
+        const Vec3 obv = meas[i].accel_mps2 / meas[i].accel_mps2.norm();
         const Vec3 pred = est_q[i].matrix().transpose().col(2);
         const Vec3 residual = Utility::SkewSymmetricMatrix(pred) * obv;
         filter.H().block<3, 3>(0, 0) = Utility::SkewSymmetricMatrix(obv) * Utility::SkewSymmetricMatrix(pred);
-        const float weight = std::fabs(meas[i].accel.norm() - 9.81f);
+        const float weight = std::fabs(meas[i].accel_mps2.norm() - 9.81f);
         filter.sqrt_R_t() = Mat3::Identity() * std::sqrt(weight + 0.001f);
         filter.UpdateStateAndCovariance(residual);
 
@@ -172,7 +172,7 @@ void TestErrorInformationFilter(const std::vector<ImuMeasurement> &meas, std::ve
     filter.inverse_Q().setIdentity();
 
     for (uint32_t i = 1; i < meas.size(); ++i) {
-        const Vec3 gyro = 0.5f * (meas[i - 1].gyro + meas[i].gyro) - est_bw[i - 1];
+        const Vec3 gyro = 0.5f * (meas[i - 1].gyro_rps + meas[i].gyro_rps) - est_bw[i - 1];
         const float dt = static_cast<float>(meas[i].time_stamp_s - meas[i - 1].time_stamp_s);
 
         // Propagate nominal state.
@@ -188,11 +188,11 @@ void TestErrorInformationFilter(const std::vector<ImuMeasurement> &meas, std::ve
         filter.PropagateInformation();
 
         // Update state and information with observations.
-        const Vec3 obv = meas[i].accel / meas[i].accel.norm();
+        const Vec3 obv = meas[i].accel_mps2 / meas[i].accel_mps2.norm();
         const Vec3 pred = est_q[i].matrix().transpose().col(2);
         const Vec3 residual = Utility::SkewSymmetricMatrix(pred) * obv;
         filter.H().block<3, 3>(0, 0) = Utility::SkewSymmetricMatrix(obv) * Utility::SkewSymmetricMatrix(pred);
-        const float weight = std::fabs(meas[i].accel.norm() - 9.81f);
+        const float weight = std::fabs(meas[i].accel_mps2.norm() - 9.81f);
         filter.inverse_R() = Mat3::Identity() / (weight + 0.001f);
         filter.UpdateStateAndInformation(residual);
 
@@ -220,7 +220,7 @@ void TestSquareRootInformationFilter(const std::vector<ImuMeasurement> &meas, st
     filter.inv_sqrt_Q_t().setIdentity();
 
     for (uint32_t i = 1; i < meas.size(); ++i) {
-        const Vec3 gyro = 0.5f * (meas[i - 1].gyro + meas[i].gyro) - est_bw[i - 1];
+        const Vec3 gyro = 0.5f * (meas[i - 1].gyro_rps + meas[i].gyro_rps) - est_bw[i - 1];
         const float dt = static_cast<float>(meas[i].time_stamp_s - meas[i - 1].time_stamp_s);
 
         // Propagate nominal state.
@@ -236,11 +236,11 @@ void TestSquareRootInformationFilter(const std::vector<ImuMeasurement> &meas, st
         filter.PropagateInformation();
 
         // Update state and covariance with observations.
-        const Vec3 obv = meas[i].accel / meas[i].accel.norm();
+        const Vec3 obv = meas[i].accel_mps2 / meas[i].accel_mps2.norm();
         const Vec3 pred = est_q[i].matrix().transpose().col(2);
         const Vec3 residual = Utility::SkewSymmetricMatrix(pred) * obv;
         filter.H().block<3, 3>(0, 0) = Utility::SkewSymmetricMatrix(obv) * Utility::SkewSymmetricMatrix(pred);
-        const float weight = std::fabs(meas[i].accel.norm() - 9.81f);
+        const float weight = std::fabs(meas[i].accel_mps2.norm() - 9.81f);
         filter.inv_sqrt_R_t() = Mat3::Identity() / std::sqrt(weight + 0.001f);
         filter.UpdateStateAndInformation(residual);
 
