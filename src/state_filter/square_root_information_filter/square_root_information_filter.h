@@ -50,6 +50,7 @@ public:
     TMat<Scalar> &inv_sqrt_R_t() { return inv_sqrt_R_t_; }
     TMat<Scalar> &predict_W() { return predict_W_; }
     TVec<Scalar> &predict_b() { return predict_b_; }
+    TMat<Scalar> &null_space() { return null_space_; }
 
     // Const reference for member variables.
     const TVec<Scalar> &dx() const { return dx_; }
@@ -61,6 +62,7 @@ public:
     const TMat<Scalar> &inv_sqrt_R_t() const { return inv_sqrt_R_t_; }
     const TMat<Scalar> &predict_W() const { return predict_W_; }
     const TVec<Scalar> &predict_b() const { return predict_b_; }
+    const TMat<Scalar> &null_space() const { return null_space_; }
 
 private:
     TVec<Scalar> dx_ = TVec<Scalar>::Zero(1, 1);
@@ -81,6 +83,12 @@ private:
     TMat<Scalar> B_ = TMat<Scalar>::Zero(1, 1);
     TMat<Scalar> predict_W_ = TMat<Scalar>::Zero(1, 1);
     TVec<Scalar> predict_b_ = TVec<Scalar>::Zero(1, 1);
+
+    // Null space matrix for projecting the state update.
+    // When set (cols > 0), dx is projected as
+    // dx_proj = (I - N * (N^T*N)^{-1} * N^T) * dx,
+    // so that states in the column space of N are unaffected by the observation.
+    TMat<Scalar> null_space_ = TMat<Scalar>::Zero(0, 0);
 };
 
 /**
@@ -112,6 +120,7 @@ public:
     TMat<Scalar, ObserveSize, ObserveSize> &inv_sqrt_R_t() { return inv_sqrt_R_t_; }
     TMat<Scalar, StateSize, StateSize> &predict_W() { return predict_W_; }
     TVec<Scalar, StateSize> &predict_b() { return predict_b_; }
+    TMat<Scalar, StateSize, Eigen::Dynamic> &null_space() { return null_space_; }
 
     // Const reference for member variables.
     const TVec<Scalar, StateSize> &dx() const { return dx_; }
@@ -123,6 +132,7 @@ public:
     const TMat<Scalar, ObserveSize, ObserveSize> &inv_sqrt_R_t() const { return inv_sqrt_R_t_; }
     const TMat<Scalar, StateSize, StateSize> &predict_W() const { return predict_W_; }
     const TVec<Scalar, StateSize> &predict_b() const { return predict_b_; }
+    const TMat<Scalar, StateSize, Eigen::Dynamic> &null_space() const { return null_space_; }
 
 private:
     TVec<Scalar, StateSize> dx_ = TVec<Scalar, StateSize>::Zero();
@@ -143,6 +153,12 @@ private:
     TMat<Scalar, StateSize + ObserveSize, StateSize + 1> B_ = TMat<Scalar, StateSize + ObserveSize, StateSize + 1>::Zero();
     TMat<Scalar, StateSize, StateSize> predict_W_ = TMat<Scalar, StateSize, StateSize>::Zero();
     TVec<Scalar, StateSize> predict_b_ = TVec<Scalar, StateSize>::Zero();
+
+    // Null space matrix for projecting the state update.
+    // When set (cols > 0), dx is projected as
+    // dx_proj = (I - N * (N^T*N)^{-1} * N^T) * dx,
+    // so that states in the column space of N are unaffected by the observation.
+    TMat<Scalar, StateSize, Eigen::Dynamic> null_space_;
 };
 
 /* Class Square Root Error State Information Filter Definition. */
@@ -202,6 +218,15 @@ bool SquareRootInformationFilterStatic<Scalar, StateSize, ObserveSize>::UpdateSt
 
     // Update error state.
     dx_ = W_.template triangularView<Eigen::Upper>().solve(b_);
+
+    // Project dx using null space (if set).
+    // dx_proj = (I - N * (N^T*N)^{-1} * N^T) * dx
+    // States in the column space of null_space_ will not be affected by the observation.
+    if (null_space_.cols() > 0) {
+        const TMat<Scalar> N = null_space_;
+        const TMat<Scalar> NtN = N.transpose() * N;
+        dx_ -= N * NtN.ldlt().solve(N.transpose() * dx_);
+    }
 
     return true;
 }

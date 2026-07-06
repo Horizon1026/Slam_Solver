@@ -56,6 +56,7 @@ public:
     TMat<Scalar> &H() { return H_; }
     TMat<Scalar> &sqrt_Q_t() { return sqrt_Q_t_; }
     TMat<Scalar> &sqrt_R_t() { return sqrt_R_t_; }
+    TMat<Scalar> &null_space() { return null_space_; }
 
     // Const reference for member variables.
     const SquareRootKalmanFilterOptions &options() const { return options_; }
@@ -66,6 +67,7 @@ public:
     const TMat<Scalar> &H() const { return H_; }
     const TMat<Scalar> &sqrt_Q_t() const { return sqrt_Q_t_; }
     const TMat<Scalar> &sqrt_R_t() const { return sqrt_R_t_; }
+    const TMat<Scalar> &null_space() const { return null_space_; }
 
 private:
     SquareRootKalmanFilterOptions options_;
@@ -86,6 +88,12 @@ private:
     TMat<Scalar> extend_predict_S_t_ = TMat<Scalar>::Zero(2, 1);
     TMat<Scalar> predict_S_t_ = TMat<Scalar>::Zero(1, 1);
     TMat<Scalar> M_ = TMat<Scalar>::Zero(2, 2);
+
+    // Null space matrix for projecting Kalman gain.
+    // When set (cols > 0), hat_K_t is projected as
+    // hat_K_t_proj = hat_K_t * (I - N * (N^T*N)^{-1} * N^T),
+    // so that states in the column space of N are unaffected by the observation.
+    TMat<Scalar> null_space_ = TMat<Scalar>::Zero(0, 0);
 };
 
 /**
@@ -116,6 +124,7 @@ public:
     TMat<Scalar, ObserveSize, StateSize> &H() { return H_; }
     TMat<Scalar, StateSize, StateSize> &sqrt_Q_t() { return sqrt_Q_t_; }
     TMat<Scalar, ObserveSize, ObserveSize> &sqrt_R_t() { return sqrt_R_t_; }
+    TMat<Scalar, StateSize, Eigen::Dynamic> &null_space() { return null_space_; }
 
     // Const reference for member variables.
     const SquareRootKalmanFilterOptions &options() const { return options_; }
@@ -126,6 +135,7 @@ public:
     const TMat<Scalar, ObserveSize, StateSize> &H() const { return H_; }
     const TMat<Scalar, StateSize, StateSize> &sqrt_Q_t() const { return sqrt_Q_t_; }
     const TMat<Scalar, ObserveSize, ObserveSize> &sqrt_R_t() const { return sqrt_R_t_; }
+    const TMat<Scalar, StateSize, Eigen::Dynamic> &null_space() const { return null_space_; }
 
 private:
     SquareRootKalmanFilterOptions options_;
@@ -146,6 +156,12 @@ private:
     TMat<Scalar, StateSize + StateSize, StateSize> extend_predict_S_t_ = TMat<Scalar, StateSize + StateSize, StateSize>::Zero();
     TMat<Scalar, StateSize, StateSize> predict_S_t_ = TMat<Scalar, StateSize, StateSize>::Zero();
     TMat<Scalar, StateSize + ObserveSize, StateSize + ObserveSize> M_ = TMat<Scalar, StateSize + ObserveSize, StateSize + ObserveSize>::Zero();
+
+    // Null space matrix for projecting Kalman gain.
+    // When set (cols > 0), hat_K_t is projected as
+    // hat_K_t_proj = hat_K_t * (I - N * (N^T*N)^{-1} * N^T),
+    // so that states in the column space of N are unaffected by the observation.
+    TMat<Scalar, StateSize, Eigen::Dynamic> null_space_;
 };
 
 /* Class Square Root Error State Kalman Filter Definition. */
@@ -181,7 +197,18 @@ bool SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAn
     // Compute Kalman gain and Update error state.
     // hat_K = (H * pre_P * H.t + R).t/2 * K.
     const TMat<Scalar, ObserveSize, ObserveSize> sqrt_S_t = R_upper.template block<ObserveSize, ObserveSize>(0, 0);
-    const TMat<Scalar, ObserveSize, StateSize> hat_K_t = R_upper.template block<ObserveSize, StateSize>(0, ObserveSize);
+    TMat<Scalar, ObserveSize, StateSize> hat_K_t = R_upper.template block<ObserveSize, StateSize>(0, ObserveSize);
+
+    // Project hat_K_t using null space (if set) so that the effective gain
+    // K = hat_K_t^T * sqrt_S_t^{-1} is projected as
+    // K_proj = (I - N * (N^T*N)^{-1} * N^T) * K.
+    // States in the column space of null_space_ will not be affected by the observation.
+    if (null_space_.cols() > 0) {
+        const TMat<Scalar> N = null_space_;
+        const TMat<Scalar> NtN = N.transpose() * N;
+        // hat_K_t_proj = hat_K_t * (I - N * (N^T*N)^{-1} * N^T)
+        hat_K_t -= hat_K_t * N * NtN.ldlt().solve(N.transpose());
+    }
 
     // K = hat_K * (sqrt_S_t)^-1 -> K.t = (sqrt_S_t.t)^-1 * hat_K.t
     // dx = hat_K.T * (inv(hat_S) * residual)

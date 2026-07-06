@@ -56,7 +56,19 @@ bool SquareRootKalmanFilterDynamic<Scalar>::UpdateStateAndCovarianceImpl(const T
     // Compute Kalman gain and Update error state.
     // hat_K = (H * pre_P * H.t + R).t/2 * K.
     const TMat<Scalar> sqrt_S_t = R_upper.template block(0, 0, obv_size, obv_size);
-    const TMat<Scalar> hat_K_t = R_upper.template block(0, obv_size, obv_size, state_size);
+    TMat<Scalar> hat_K_t = R_upper.template block(0, obv_size, obv_size, state_size);
+
+    // Project hat_K_t using null space (if set) so that the effective gain
+    // K = hat_K_t^T * sqrt_S_t^{-1} is projected as
+    // K_proj = (I - N * (N^T*N)^{-1} * N^T) * K.
+    // States in the column space of null_space_ will not be affected by the observation.
+    if (null_space_.cols() > 0) {
+        const TMat<Scalar> NtN = null_space_.transpose() * null_space_;
+        // hat_K_t_proj = hat_K_t * (I - N * (N^T*N)^{-1} * N^T)
+        const TMat<Scalar> NtN_inv_Nt = NtN.ldlt().solve(null_space_.transpose());
+        hat_K_t -= hat_K_t * null_space_ * NtN_inv_Nt;
+    }
+
     // K = hat_K * (sqrt_S_t)^-1 -> K.t = (sqrt_S_t.t)^-1 * hat_K.t
     // Solve hat_S * temp = residual -> temp = inv(hat_S) * residual
     // K = hat_K.T * inv(hat_S)

@@ -72,6 +72,14 @@ bool SquareRootInformationFilterDynamic<Scalar>::UpdateStateAndInformationImpl(c
     // Update error state.
     dx_ = W_.template triangularView<Eigen::Upper>().solve(b_);
 
+    // Project dx using null space (if set).
+    // dx_proj = (I - N * (N^T*N)^{-1} * N^T) * dx
+    // States in the column space of null_space_ will not be affected by the observation.
+    if (null_space_.cols() > 0) {
+        const TMat<Scalar> NtN = null_space_.transpose() * null_space_;
+        dx_ -= null_space_ * NtN.ldlt().solve(null_space_.transpose() * dx_);
+    }
+
     return true;
 }
 

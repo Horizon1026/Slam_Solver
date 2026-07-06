@@ -58,8 +58,13 @@ bool LoadImuMeasurements(const std::string &imu_file, std::vector<ImuMeasurement
     return true;
 }
 
-void TestErrorKalmanFilter(const std::vector<ImuMeasurement> &meas, std::vector<Quat> &est_q, std::vector<Vec3> &est_bw) {
-    ReportInfo(YELLOW ">> Test error state kalman filter." RESET_COLOR);
+void TestErrorKalmanFilter(const std::vector<ImuMeasurement> &meas, std::vector<Quat> &est_q, std::vector<Vec3> &est_bw,
+                           bool enable_null_space = false) {
+    if (enable_null_space) {
+        ReportInfo(YELLOW ">> Test error state kalman filter (with null space on bias z)." RESET_COLOR);
+    } else {
+        ReportInfo(YELLOW ">> Test error state kalman filter." RESET_COLOR);
+    }
 
     // Set initial state.
     est_q.resize(meas.size());
@@ -74,6 +79,11 @@ void TestErrorKalmanFilter(const std::vector<ImuMeasurement> &meas, std::vector<
     filter.H().setZero();
     filter.R().setIdentity();
     filter.Q().setIdentity();
+
+    // Set null space: [δθ, δbw] — only δbw_z (state index 5) is in null space.
+    if (enable_null_space) {
+        filter.null_space() = Eigen::Matrix<float, 6, 1>::Unit(5);
+    }
 
     for (uint32_t i = 1; i < meas.size(); ++i) {
         const Vec3 gyro = 0.5f * (meas[i - 1].gyro_rps + meas[i].gyro_rps) - est_bw[i - 1];
@@ -106,8 +116,13 @@ void TestErrorKalmanFilter(const std::vector<ImuMeasurement> &meas, std::vector<
     }
 }
 
-void TestSquareRootKalmanFilter(const std::vector<ImuMeasurement> &meas, std::vector<Quat> &est_q, std::vector<Vec3> &est_bw) {
-    ReportInfo(YELLOW ">> Test error state square root kalman filter." RESET_COLOR);
+void TestSquareRootKalmanFilter(const std::vector<ImuMeasurement> &meas, std::vector<Quat> &est_q, std::vector<Vec3> &est_bw,
+                                bool enable_null_space = false) {
+    if (enable_null_space) {
+        ReportInfo(YELLOW ">> Test error state square root kalman filter (with null space on bias z)." RESET_COLOR);
+    } else {
+        ReportInfo(YELLOW ">> Test error state square root kalman filter." RESET_COLOR);
+    }
 
     // Set initial state.
     est_q.resize(meas.size());
@@ -122,6 +137,11 @@ void TestSquareRootKalmanFilter(const std::vector<ImuMeasurement> &meas, std::ve
     filter.H().setZero();
     filter.sqrt_R_t().setIdentity();
     filter.sqrt_Q_t().setIdentity();
+
+    // Set null space: [δθ, δbw] — only δbw_z (state index 5) is in null space.
+    if (enable_null_space) {
+        filter.null_space() = Eigen::Matrix<float, 6, 1>::Unit(5);
+    }
 
     for (uint32_t i = 1; i < meas.size(); ++i) {
         const Vec3 gyro = 0.5f * (meas[i - 1].gyro_rps + meas[i].gyro_rps) - est_bw[i - 1];
@@ -154,8 +174,13 @@ void TestSquareRootKalmanFilter(const std::vector<ImuMeasurement> &meas, std::ve
     }
 }
 
-void TestErrorInformationFilter(const std::vector<ImuMeasurement> &meas, std::vector<Quat> &est_q, std::vector<Vec3> &est_bw) {
-    ReportInfo(YELLOW ">> Test error state information filter." RESET_COLOR);
+void TestErrorInformationFilter(const std::vector<ImuMeasurement> &meas, std::vector<Quat> &est_q, std::vector<Vec3> &est_bw,
+                                bool enable_null_space = false) {
+    if (enable_null_space) {
+        ReportInfo(YELLOW ">> Test error state information filter (with null space on bias z)." RESET_COLOR);
+    } else {
+        ReportInfo(YELLOW ">> Test error state information filter." RESET_COLOR);
+    }
 
     // Set initial state.
     est_q.resize(meas.size());
@@ -170,6 +195,11 @@ void TestErrorInformationFilter(const std::vector<ImuMeasurement> &meas, std::ve
     filter.H().setZero();
     filter.inverse_R().setIdentity();
     filter.inverse_Q().setIdentity();
+
+    // Set null space: [δθ, δbw] — only δbw_z (state index 5) is in null space.
+    if (enable_null_space) {
+        filter.null_space() = Eigen::Matrix<float, 6, 1>::Unit(5);
+    }
 
     for (uint32_t i = 1; i < meas.size(); ++i) {
         const Vec3 gyro = 0.5f * (meas[i - 1].gyro_rps + meas[i].gyro_rps) - est_bw[i - 1];
@@ -202,8 +232,13 @@ void TestErrorInformationFilter(const std::vector<ImuMeasurement> &meas, std::ve
     }
 }
 
-void TestSquareRootInformationFilter(const std::vector<ImuMeasurement> &meas, std::vector<Quat> &est_q, std::vector<Vec3> &est_bw) {
-    ReportInfo(YELLOW ">> Test error state square root information filter." RESET_COLOR);
+void TestSquareRootInformationFilter(const std::vector<ImuMeasurement> &meas, std::vector<Quat> &est_q, std::vector<Vec3> &est_bw,
+                                     bool enable_null_space = false) {
+    if (enable_null_space) {
+        ReportInfo(YELLOW ">> Test error state square root information filter (with null space on bias z)." RESET_COLOR);
+    } else {
+        ReportInfo(YELLOW ">> Test error state square root information filter." RESET_COLOR);
+    }
 
     // Set initial state.
     est_q.resize(meas.size());
@@ -218,6 +253,11 @@ void TestSquareRootInformationFilter(const std::vector<ImuMeasurement> &meas, st
     filter.H().setZero();
     filter.inv_sqrt_R_t().setIdentity();
     filter.inv_sqrt_Q_t().setIdentity();
+
+    // Set null space: [δθ, δbw] — only δbw_z (state index 5) is in null space.
+    if (enable_null_space) {
+        filter.null_space() = Eigen::Matrix<float, 6, 1>::Unit(5);
+    }
 
     for (uint32_t i = 1; i < meas.size(); ++i) {
         const Vec3 gyro = 0.5f * (meas[i - 1].gyro_rps + meas[i].gyro_rps) - est_bw[i - 1];
@@ -304,23 +344,60 @@ int main(int argc, char **argv) {
     std::vector<Quat> estimation_q;
     std::vector<Vec3> estimation_bw;
 
-    TestErrorKalmanFilter(measurements, estimation_q, estimation_bw);
+    ReportInfo("");
+    ReportInfo(">>> Running filters WITHOUT null space:");
+    ReportInfo("");
+
+    TestErrorKalmanFilter(measurements, estimation_q, estimation_bw, false);
     ComputeEstimationResidual(rotation, estimation_q);
+    ReportInfo("Final bias estimate: " << LogVec(estimation_bw.back()));
     estimation_bw.clear();
     estimation_q.clear();
 
-    TestSquareRootKalmanFilter(measurements, estimation_q, estimation_bw);
+    TestSquareRootKalmanFilter(measurements, estimation_q, estimation_bw, false);
     ComputeEstimationResidual(rotation, estimation_q);
+    ReportInfo("Final bias estimate: " << LogVec(estimation_bw.back()));
     estimation_bw.clear();
     estimation_q.clear();
 
-    TestErrorInformationFilter(measurements, estimation_q, estimation_bw);
+    TestErrorInformationFilter(measurements, estimation_q, estimation_bw, false);
     ComputeEstimationResidual(rotation, estimation_q);
+    ReportInfo("Final bias estimate: " << LogVec(estimation_bw.back()));
     estimation_bw.clear();
     estimation_q.clear();
 
-    TestSquareRootInformationFilter(measurements, estimation_q, estimation_bw);
+    TestSquareRootInformationFilter(measurements, estimation_q, estimation_bw, false);
     ComputeEstimationResidual(rotation, estimation_q);
+    ReportInfo("Final bias estimate: " << LogVec(estimation_bw.back()));
+    estimation_bw.clear();
+    estimation_q.clear();
+
+    ReportInfo("");
+    ReportInfo(">>> Running filters WITH null space on bias z:");
+    ReportInfo("");
+
+    TestErrorKalmanFilter(measurements, estimation_q, estimation_bw, true);
+    ComputeEstimationResidual(rotation, estimation_q);
+    ReportInfo("Final bias estimate: " << LogVec(estimation_bw.back()));
+    ReportInfo("  (bias_z should remain near 0 due to null space)");
+    estimation_bw.clear();
+    estimation_q.clear();
+
+    TestSquareRootKalmanFilter(measurements, estimation_q, estimation_bw, true);
+    ComputeEstimationResidual(rotation, estimation_q);
+    ReportInfo("Final bias estimate: " << LogVec(estimation_bw.back()));
+    estimation_bw.clear();
+    estimation_q.clear();
+
+    TestErrorInformationFilter(measurements, estimation_q, estimation_bw, true);
+    ComputeEstimationResidual(rotation, estimation_q);
+    ReportInfo("Final bias estimate: " << LogVec(estimation_bw.back()));
+    estimation_bw.clear();
+    estimation_q.clear();
+
+    TestSquareRootInformationFilter(measurements, estimation_q, estimation_bw, true);
+    ComputeEstimationResidual(rotation, estimation_q);
+    ReportInfo("Final bias estimate: " << LogVec(estimation_bw.back()));
     estimation_bw.clear();
     estimation_q.clear();
 

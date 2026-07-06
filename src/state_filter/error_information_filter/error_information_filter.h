@@ -8,7 +8,7 @@ namespace slam_solver {
 
 /**
  * @brief Error State Information Filter (EIF)
- * 
+ *
  * Algorithm Flow:
  * 1. Predict:
  *    - dx = 0 (reset error state)
@@ -17,7 +17,7 @@ namespace slam_solver {
  *    - I = I_pre + H^T * R^-1 * H
  *    - K = I^-1 * H^T * R^-1
  *    - dx = K * residual
- * 
+ *
  * Variables:
  * - dx: Error state vector
  * - I: Error state information matrix (P^-1)
@@ -44,6 +44,7 @@ public:
     TMat<Scalar> &H() { return H_; }
     TMat<Scalar> &inverse_Q() { return inverse_Q_; }
     TMat<Scalar> &inverse_R() { return inverse_R_; }
+    TMat<Scalar> &null_space() { return null_space_; }
 
     // Const reference for member variables.
     const TVec<Scalar> &dx() const { return dx_; }
@@ -53,6 +54,7 @@ public:
     const TMat<Scalar> &H() const { return H_; }
     const TMat<Scalar> &inverse_Q() const { return inverse_Q_; }
     const TMat<Scalar> &inverse_R() const { return inverse_R_; }
+    const TMat<Scalar> &null_space() const { return null_space_; }
 
 private:
     TVec<Scalar> dx_ = TVec<Scalar>::Zero(1, 1);
@@ -66,13 +68,19 @@ private:
     // Process noise Q and measurement noise R.
     TMat<Scalar> inverse_Q_ = TMat<Scalar>::Zero(1, 1);
     TMat<Scalar> inverse_R_ = TMat<Scalar>::Zero(1, 1);
+
+    // Null space matrix for projecting Kalman gain.
+    // When set (cols > 0), the Kalman gain is projected as
+    // K_proj = (I - N * (N^T*N)^{-1} * N^T) * K,
+    // so that states in the column space of N are unaffected by the observation.
+    TMat<Scalar> null_space_ = TMat<Scalar>::Zero(0, 0);
 };
 
 /**
  * @brief Static Dimensional Error Information Filter (EIF)
  * @tparam StateSize Dimension of the error state vector
  * @tparam ObserveSize Dimension of the measurement vector
- * 
+ *
  * Algorithm and variables same as ErrorInformationFilterDynamic.
  */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
@@ -95,6 +103,7 @@ public:
     TMat<Scalar, ObserveSize, StateSize> &H() { return H_; }
     TMat<Scalar, StateSize, StateSize> &inverse_Q() { return inverse_Q_; }
     TMat<Scalar, ObserveSize, ObserveSize> &inverse_R() { return inverse_R_; }
+    TMat<Scalar, StateSize, Eigen::Dynamic> &null_space() { return null_space_; }
 
     // Const reference for member variables.
     const TVec<Scalar, StateSize> &dx() const { return dx_; }
@@ -104,6 +113,7 @@ public:
     const TMat<Scalar, ObserveSize, StateSize> &H() const { return H_; }
     const TMat<Scalar, StateSize, StateSize> &inverse_Q() const { return inverse_Q_; }
     const TMat<Scalar, ObserveSize, ObserveSize> &inverse_R() const { return inverse_R_; }
+    const TMat<Scalar, StateSize, Eigen::Dynamic> &null_space() const { return null_space_; }
 
 private:
     TVec<Scalar, StateSize> dx_ = TVec<Scalar, StateSize>::Zero();
@@ -117,6 +127,12 @@ private:
     // Process noise Q and measurement noise R.
     TMat<Scalar, StateSize, StateSize> inverse_Q_ = TMat<Scalar, StateSize, StateSize>::Zero();
     TMat<Scalar, ObserveSize, ObserveSize> inverse_R_ = TMat<Scalar, ObserveSize, ObserveSize>::Zero();
+
+    // Null space matrix for projecting Kalman gain.
+    // When set (cols > 0), the Kalman gain is projected as
+    // K_proj = (I - N * (N^T*N)^{-1} * N^T) * K,
+    // so that states in the column space of N are unaffected by the observation.
+    TMat<Scalar, StateSize, Eigen::Dynamic> null_space_;
 };
 
 /* Class Basic Information Filter Definition. */
@@ -137,7 +153,16 @@ bool ErrorInformationFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAn
     I_ = predict_I_ + H_t * inverse_R_ * H_;
 
     // Compute kalman gain.
-    const TMat<Scalar, StateSize, ObserveSize> K_ = I_.ldlt().solve(H_t * inverse_R_);
+    TMat<Scalar, StateSize, ObserveSize> K_ = I_.ldlt().solve(H_t * inverse_R_);
+
+    // Project Kalman gain using null space (if set).
+    // K_proj = (I - N * (N^T*N)^{-1} * N^T) * K
+    // States in the column space of null_space_ will not be affected by the observation.
+    if (null_space_.cols() > 0) {
+        const TMat<Scalar> N = null_space_;
+        const TMat<Scalar> NtN = null_space_.transpose() * null_space_;
+        K_ -= null_space_ * NtN.ldlt().solve(null_space_.transpose() * K_);
+    }
 
     // Update error state.
     dx_ = K_ * residual;

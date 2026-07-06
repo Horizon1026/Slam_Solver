@@ -24,7 +24,15 @@ bool ErrorInformationFilterDynamic<Scalar>::UpdateStateAndInformationImpl(const 
     I_ = predict_I_ + H_t * inverse_R_ * H_;
 
     // Compute kalman gain.
-    const TMat<Scalar> K_ = I_.ldlt().solve(H_t * inverse_R_);
+    TMat<Scalar> K_ = I_.ldlt().solve(H_t * inverse_R_);
+
+    // Project Kalman gain using null space (if set).
+    // K_proj = (I - N * (N^T*N)^{-1} * N^T) * K
+    // States in the column space of null_space_ will not be affected by the observation.
+    if (null_space_.cols() > 0) {
+        const TMat<Scalar> NtN = null_space_.transpose() * null_space_;
+        K_ -= null_space_ * NtN.ldlt().solve(null_space_.transpose() * K_);
+    }
 
     // Update error state.
     dx_ = K_ * residual;

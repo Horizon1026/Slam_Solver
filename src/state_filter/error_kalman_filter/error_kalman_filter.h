@@ -54,6 +54,7 @@ public:
     TMat<Scalar> &H() { return H_; }
     TMat<Scalar> &Q() { return Q_; }
     TMat<Scalar> &R() { return R_; }
+    TMat<Scalar> &null_space() { return null_space_; }
 
     // Const reference for member variables.
     const ErrorKalmanFilterOptions &options() const { return options_; }
@@ -64,6 +65,7 @@ public:
     const TMat<Scalar> &H() const { return H_; }
     const TMat<Scalar> &Q() const { return Q_; }
     const TMat<Scalar> &R() const { return R_; }
+    const TMat<Scalar> &null_space() const { return null_space_; }
 
 private:
     ErrorKalmanFilterOptions options_;
@@ -81,6 +83,12 @@ private:
     // Process noise Q and measurement noise R.
     TMat<Scalar> Q_ = TMat<Scalar>::Zero(1, 1);
     TMat<Scalar> R_ = TMat<Scalar>::Zero(1, 1);
+
+    // Null space matrix for projecting Kalman gain.
+    // When set (cols > 0), the Kalman gain is projected as
+    // K_proj = (I - N * (N^T*N)^{-1} * N^T) * K,
+    // so that states in the column space of N are unaffected by the observation.
+    TMat<Scalar> null_space_ = TMat<Scalar>::Zero(0, 0);
 };
 
 /**
@@ -111,6 +119,7 @@ public:
     TMat<Scalar, ObserveSize, StateSize> &H() { return H_; }
     TMat<Scalar, StateSize, StateSize> &Q() { return Q_; }
     TMat<Scalar, ObserveSize, ObserveSize> &R() { return R_; }
+    TMat<Scalar, StateSize, Eigen::Dynamic> &null_space() { return null_space_; }
 
     // Const reference for member variables.
     const ErrorKalmanFilterOptions &options() const { return options_; }
@@ -121,6 +130,7 @@ public:
     const TMat<Scalar, ObserveSize, StateSize> &H() const { return H_; }
     const TMat<Scalar, StateSize, StateSize> &Q() const { return Q_; }
     const TMat<Scalar, ObserveSize, ObserveSize> &R() const { return R_; }
+    const TMat<Scalar, StateSize, Eigen::Dynamic> &null_space() const { return null_space_; }
 
 private:
     ErrorKalmanFilterOptions options_;
@@ -133,11 +143,17 @@ private:
 
     // Process function F and measurement function H.
     TMat<Scalar, StateSize, StateSize> F_ = TMat<Scalar, StateSize, StateSize>::Identity();
-    TMat<Scalar, ObserveSize, StateSize> H_ = TMat<Scalar, ObserveSize, StateSize>::Identity();
+    TMat<Scalar, ObserveSize, StateSize> H_ = TMat<Scalar, ObserveSize, StateSize>::Zero();
 
     // Process noise Q and measurement noise R.
     TMat<Scalar, StateSize, StateSize> Q_ = TMat<Scalar, StateSize, StateSize>::Zero();
     TMat<Scalar, ObserveSize, ObserveSize> R_ = TMat<Scalar, ObserveSize, ObserveSize>::Zero();
+
+    // Null space matrix for projecting Kalman gain.
+    // When set (cols > 0), the Kalman gain is projected as
+    // K_proj = (I - N * (N^T*N)^{-1} * N^T) * K,
+    // so that states in the column space of N are unaffected by the observation.
+    TMat<Scalar, StateSize, Eigen::Dynamic> null_space_;
 };
 
 /* Class Error State Kalman Filter Definition. */
@@ -153,7 +169,16 @@ bool ErrorKalmanFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAndCova
     // Compute Kalman gain.
     const TMat<Scalar, StateSize, ObserveSize> H_t = H_.transpose();
     predict_S_ = H_ * predict_P_ * H_t + R_;
-    const TMat<Scalar, StateSize, ObserveSize> K_ = predict_P_ * H_t * predict_S_.ldlt().solve(TMat<Scalar, ObserveSize, ObserveSize>::Identity());
+    TMat<Scalar, StateSize, ObserveSize> K_ = predict_P_ * H_t * predict_S_.ldlt().solve(TMat<Scalar, ObserveSize, ObserveSize>::Identity());
+
+    // Project Kalman gain using null space (if set).
+    // K_proj = (I - N * (N^T*N)^{-1} * N^T) * K
+    // States in the column space of null_space_ will not be affected by the observation.
+    if (null_space_.cols() > 0) {
+        const TMat<Scalar> N = null_space_;
+        const TMat<Scalar> NtN = N.transpose() * N;
+        K_ -= N * NtN.ldlt().solve(N.transpose() * K_);
+    }
 
     // Update error state.
     dx_ = K_ * residual;

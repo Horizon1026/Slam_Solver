@@ -19,7 +19,15 @@ bool ErrorKalmanFilterDynamic<Scalar>::UpdateStateAndCovarianceImpl(const TMat<S
     // Compute Kalman gain.
     const TMat<Scalar> H_t = H_.transpose();
     predict_S_ = H_ * predict_P_ * H_t + R_;
-    const TMat<Scalar> K_ = predict_P_ * H_t * predict_S_.ldlt().solve(TMat<Scalar>::Identity(predict_S_.rows(), predict_S_.cols()));
+    TMat<Scalar> K_ = predict_P_ * H_t * predict_S_.ldlt().solve(TMat<Scalar>::Identity(predict_S_.rows(), predict_S_.cols()));
+
+    // Project Kalman gain using null space (if set).
+    // K_proj = (I - N * (N^T*N)^{-1} * N^T) * K
+    // States in the column space of null_space_ will not be affected by the observation.
+    if (null_space_.cols() > 0) {
+        const TMat<Scalar> NtN = null_space_.transpose() * null_space_;
+        K_ -= null_space_ * NtN.ldlt().solve(null_space_.transpose() * K_);
+    }
 
     // Update error state.
     dx_ = K_ * residual;
