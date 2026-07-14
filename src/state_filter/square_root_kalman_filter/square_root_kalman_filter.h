@@ -16,6 +16,7 @@ struct SquareRootKalmanFilterOptions {
  * References:
  * - "Optimal State Estimation: Kalman, H Infinity, and Nonlinear Approaches", Dan Simon.
  * - "Bierman, G. J. (1977). Factorization Methods for Discrete Sequential Estimation."
+ * - "6.3.4 Square root measurement update via triangularization"
  *
  * Algorithm Flow:
  * 1. Predict:
@@ -190,37 +191,43 @@ bool SquareRootKalmanFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAn
     M_.template block<ObserveSize, StateSize>(0, ObserveSize).setZero();
     M_.template block<StateSize, ObserveSize>(ObserveSize, 0).noalias() = predict_S_t_ * H_.transpose();
     M_.template block<StateSize, StateSize>(ObserveSize, ObserveSize) = predict_S_t_;
-    
+
     Eigen::HouseholderQR<Eigen::Ref<TMat<Scalar, ObserveSize + StateSize, ObserveSize + StateSize>>> qr_solver(M_);
     TMat<Scalar, ObserveSize + StateSize, ObserveSize + StateSize> R_upper = qr_solver.matrixQR().template triangularView<Eigen::Upper>();
 
-    // Compute Kalman gain and Update error state.
-    // hat_K = (H * pre_P * H.t + R).t/2 * K.
-    const TMat<Scalar, ObserveSize, ObserveSize> sqrt_S_t = R_upper.template block<ObserveSize, ObserveSize>(0, 0);
-    TMat<Scalar, ObserveSize, StateSize> hat_K_t = R_upper.template block<ObserveSize, StateSize>(0, ObserveSize);
+    // Y = H * pre_P * H.t + R
+    // so, sqrt_Y_t = (H * pre_P * H.t + R).t/2
+    const TMat<Scalar, ObserveSize, ObserveSize> sqrt_Y = R_upper.template block<ObserveSize, ObserveSize>(0, 0).transpose();
+    TMat<Scalar, StateSize, ObserveSize> hat_K = R_upper.template block<ObserveSize, StateSize>(0, ObserveSize).transpose();
+    // For kalman gain K, we have hat_K = K * sqrt_Y (Correct here. Reference book - 6.87 - is wrong.)
+    // so, K = hat_K * sqrt_Y^{-1}
 
-    // Project hat_K_t using null space (if set) so that the effective gain
-    // K = hat_K_t^T * sqrt_S_t^{-1} is projected as
-    // K_proj = (I - N * (N^T*N)^{-1} * N^T) * K.
-    // States in the column space of null_space_ will not be affected by the observation.
+    // Null-space projection: K_proj = (I - N*(N^T*N)^{-1}*N^T) * K = K - N*(N^T*N)^{-1}*N^T * K
+    // so project as hat_K -= N*(N^T*N)^{-1}*N^T * hat_K
     if (null_space_.cols() > 0) {
         const TMat<Scalar> N = null_space_;
         const TMat<Scalar> NtN = N.transpose() * N;
-        // hat_K_t_proj = hat_K_t * (I - N * (N^T*N)^{-1} * N^T)
-        hat_K_t -= hat_K_t * N * NtN.ldlt().solve(N.transpose());
+        hat_K -= N * NtN.ldlt().solve(N.transpose()) * hat_K;
     }
 
-    // K = hat_K * (sqrt_S_t)^-1 -> K.t = (sqrt_S_t.t)^-1 * hat_K.t
-    // dx = hat_K.T * (inv(hat_S) * residual)
-    dx_.noalias() = hat_K_t.transpose() * (sqrt_S_t.template triangularView<Eigen::Upper>().solve(residual));
+    // Compute projected Kalman gain K_t = (hat_K * sqrt_Y^-1) ^ {T}
+    // dx = K * residual = hat_K * sqrt_Y^-1 * residual
+    const TMat<Scalar, ObserveSize, StateSize> K_t = sqrt_Y.transpose().template triangularView<Eigen::Upper>().solve(hat_K.transpose());
+    dx_.noalias() = hat_K * sqrt_Y.template triangularView<Eigen::Lower>().solve(residual);
 
     // Update covariance of new state.
-    switch (options_.kMethod) {
-        default:
-        case StateCovUpdateMethod::kSimple:
-        case StateCovUpdateMethod::kFull:
-            S_t_ = R_upper.template block<StateSize, StateSize>(ObserveSize, ObserveSize);
-            break;
+    if (null_space_.cols() > 0) {
+        // B_t = [ S_up * (I - H_t*K_t) ]
+        //       [    sqrt_R * K_t      ]  ((state+obsv) × state)
+        // where S_up = predict_S_t_ is the stored S_t (upper tri).
+        TMat<Scalar, StateSize + ObserveSize, StateSize> B_t = TMat<Scalar, StateSize + ObserveSize, StateSize>::Zero();
+        const TMat<Scalar, StateSize, StateSize> I_HtKt = TMat<Scalar, StateSize, StateSize>::Identity() - H_.transpose() * K_t;
+        B_t.template topRows<StateSize>() = predict_S_t_ * I_HtKt;
+        B_t.template bottomRows<ObserveSize>() = sqrt_R_t_ * K_t;
+        Eigen::HouseholderQR<TMat<Scalar, StateSize + ObserveSize, StateSize>> qr(B_t);
+        S_t_ = qr.matrixQR().template block<StateSize, StateSize>(0, 0).template triangularView<Eigen::Upper>();
+    } else {
+        S_t_ = R_upper.template block<StateSize, StateSize>(ObserveSize, ObserveSize);
     }
 
     return true;

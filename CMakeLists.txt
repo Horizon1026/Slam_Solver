@@ -130,6 +130,7 @@ endforeach()
 set( UNIT_TEST_OF_STATE_FILTER_LIST
     test_state_filter_constant
     test_state_filter_imu_attitude
+    test_state_filter_consistency
 )
 foreach( unit_test_src ${UNIT_TEST_OF_STATE_FILTER_LIST} )
     add_executable( ${unit_test_src}
