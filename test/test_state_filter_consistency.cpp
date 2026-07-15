@@ -17,7 +17,7 @@
  *   - ESKF / KF:              P stored directly
  *   - Square Root KF:         P = S_t * S_t^T  (S_t is S^T)
  *   - Information Filter / EIF:  P = I^{-1}
- *   - Square Root IF:         P = (W * W^T)^{-1}
+ *   - Square Root IF:         P = (W^T * W)^{-1}
  *
  * Dependencies: only Eigen (provided via Slam_Utility/basic_type) and
  *               the filter headers — no other third-party library.
@@ -296,7 +296,10 @@ static void RunOne(const TestData &d, const std::string &test_label) {
     SRIF srif;
     {
         Eigen::LLT<TMat<Scalar, kStateSize, kStateSize>> llt(d.I_mat);
-        srif.W() = llt.matrixL();
+        // W must satisfy W^T * W = I (upper Cholesky), so that the QR-based
+        // predict/update steps produce consistent results.  matrixU() gives
+        // U where U^T * U = I_mat = P^{-1}.
+        srif.W() = llt.matrixU();
     }
     srif.b() = TVec<Scalar>::Zero(kStateSize);
     srif.F() = setIden(kStateSize);
@@ -310,7 +313,7 @@ static void RunOne(const TestData &d, const std::string &test_label) {
     FilterResult srif_res;
     srif_res.name = "SRIF";
     srif_res.dx   = srif.dx();
-    srif_res.P    = (srif.W() * srif.W().transpose()).inverse();
+    srif_res.P    = (srif.W().transpose() * srif.W()).inverse();
 
     // ----  Compare  -----------------------------------------------------
     FilterResult others[] = {kf_res, srkf_res, inf_res, eif_res, srif_res};

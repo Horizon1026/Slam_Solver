@@ -21,16 +21,17 @@ bool SquareRootInformationFilterDynamic<Scalar>::PropagateInformationImpl() {
     }
 
     /* A = [      W_             0      | b ]
-           [ -sqrt(Q).inv * F  sqrt(Q).inv | 0 ]
+           [ -inv_sqrt_Q_t^{T} * F  inv_sqrt_Q_t^{T} | 0 ]
+       where (inv_sqrt_Q_t^{T})^T * inv_sqrt_Q_t^{T} = Q^{-1}.
        After QR:
-       T * A = [ R11   R12   | b* ]
+       Q * A = [ R11   R12   | b* ]
                [  0     Wk   | bk ]
-       Note: We must put x_{k-1} in the first n columns to eliminate it. */
+       Then: I_pred = Wk^T * Wk, and bk = Wk * dx_pred (= 0 for error state). */
     A_.setZero();
     A_.template block(0, 0, state_size, state_size) = W_;
     A_.template block(0, state_size << 1, state_size, 1) = b_;
-    A_.template block(state_size, 0, state_size, state_size) = -inv_sqrt_Q_t_ * F_;
-    A_.template block(state_size, state_size, state_size, state_size) = inv_sqrt_Q_t_;
+    A_.template block(state_size, 0, state_size, state_size) = -inv_sqrt_Q_t_.transpose() * F_;
+    A_.template block(state_size, state_size, state_size, state_size) = inv_sqrt_Q_t_.transpose();
 
     // After QR decomposing of A_, the bottom right N x N block is predict_W_,
     // and the bottom right N x 1 block of the last column is predict_b_.
@@ -51,16 +52,18 @@ bool SquareRootInformationFilterDynamic<Scalar>::UpdateStateAndInformationImpl(c
         B_.setZero(state_size + measure_size, state_size + 1);
     }
 
-    /* B = [ predict_W       | predict_b ]
-           [ sqrt(R).inv * H | sqrt(R).inv * residual ]
+    /* B = [ predict_W        | predict_b ]
+           [ inv_sqrt_R_t^{T} * H | inv_sqrt_R_t^{T} * residual ]
+       where (inv_sqrt_R_t^{T})^T * inv_sqrt_R_t^{T} = R^{-1}.
        Then QR on B:
-       T * B = [ W_new | b_new ]
-               [   0   |   r   ] */
+       Q * B = [ W_new | b_new ]
+               [   0   |   r   ]
+       Then: I_new = W_new^T * W_new, b_new = W_new * dx_new, dx_new = W_new^{-1} * b_new. */
     B_.setZero();
     B_.template block(0, 0, state_size, state_size) = predict_W_;
     B_.template block(0, state_size, state_size, 1) = predict_b_;
-    B_.template block(state_size, 0, measure_size, state_size) = inv_sqrt_R_t_ * H_;
-    B_.template block(state_size, state_size, measure_size, 1) = inv_sqrt_R_t_ * residual;
+    B_.template block(state_size, 0, measure_size, state_size) = inv_sqrt_R_t_.transpose() * H_;
+    B_.template block(state_size, state_size, measure_size, 1) = inv_sqrt_R_t_.transpose() * residual;
 
     // After QR decomposing of B_, the top left block is new W_.
     Eigen::HouseholderQR<TMat<Scalar>> qr_solver(B_);

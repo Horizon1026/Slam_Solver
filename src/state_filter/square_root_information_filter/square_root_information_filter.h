@@ -13,22 +13,40 @@ namespace slam_solver {
  * - "Optimal State Estimation: Kalman, H Infinity, and Nonlinear Approaches", Dan Simon.
  * - "Factorization Methods for Discrete Sequential Estimation", Gerald J. Bierman.
  *
+ * Conventions:
+ *   I = W^T * W  (information matrix from square root factor)
+ *   b = W * dx   (information vector: transformed error state)
+ *   dx = W^{-1} * b
+ *   P = I^{-1} = (W^T * W)^{-1}
+ *
  * Algorithm Flow (Dyer-McReynolds):
  * 1. Predict (Propagate):
  *    - dx = 0, b = 0 (reset error state info)
- *    - Matrix Augmentation: A = [ Q^{-T/2} , -Q^{-T/2} * F , 0 ; 0 , W_{k-1} , b_{k-1} ]
- *    - QR decomposition on A: T * A = [ R11 , R12 , b* ; 0 , W_pre , b_pre ]
+ *    - Matrix Augmentation: A = [    W_{k-1}    ,       0      | b_{k-1} ]
+ *                                [ -(L_Q^{-1}) ,   (L_Q^{-1})  |   0     ]
+ *      where L_Q is the lower Cholesky factor of Q.
+ *      (inv_sqrt_Q_t_ = L_Q^{-T}, so the code uses inv_sqrt_Q_t_.transpose()
+ *       to get L_Q^{-1} which satisfies (L_Q^{-1})^T * L_Q^{-1} = Q^{-1}.)
+ *    - QR decomposition on A: Q * A = [ R11 , R12 | b* ; 0 , W_pre | b_pre ]
+ *    - W_pre is the square root of the predicted information matrix:
+ *      W_pre^T * W_pre = (F * (W_{k-1}^T*W_{k-1})^{-1} * F^T + Q)^{-1}
  * 2. Update:
- *    - Matrix Augmentation: B = [ W_pre , b_pre ; R^{-T/2} * H , R^{-T/2} * residual ]
- *    - QR decomposition on B: T * B = [ W_new , b_new ; 0 , residual_new ]
- *    - dx = W_new^-1 * b_new
+ *    - Matrix Augmentation: B = [ W_pre , b_pre ; (L_R^{-1}) * H , (L_R^{-1}) * residual ]
+ *      where L_R is the lower Cholesky factor of R.
+ *      (inv_sqrt_R_t_ = L_R^{-T}, transposed to get L_R^{-1} satisfying
+ *       (L_R^{-1})^T * L_R^{-1} = R^{-1}.)
+ *    - QR decomposition on B: Q * B = [ W_new , b_new ; 0 , residual_new ]
+ *    - dx = W_new^{-1} * b_new
  *
  * Variables:
  * - dx: Error state vector
- * - W: Square root of information matrix (I = W * W^T)
- * - b: Information vector (I * dx = b)
- * - inv_sqrt_Q_t: Square root of process noise info matrix (Q^-1 = inv_sqrt_Q * inv_sqrt_Q^T)
- * - inv_sqrt_R_t: Square root of measurement noise info matrix (R^-1 = inv_sqrt_R * inv_sqrt_R^T)
+ * - W: Upper-triangular square root of information matrix (I = W^T * W)
+ * - b: Transformed information vector (b = W * dx)
+ * - inv_sqrt_Q_t: Q^{-T/2}, satisfies inv_sqrt_Q_t * inv_sqrt_Q_t^T = Q^{-1}.
+ *                 Internally the code uses inv_sqrt_Q_t^T (= L_Q^{-1}) in the
+ *                 augmented matrix so that (L_Q^{-1})^T * L_Q^{-1} = Q^{-1}.
+ * - inv_sqrt_R_t: R^{-T/2}, satisfies inv_sqrt_R_t * inv_sqrt_R_t^T = R^{-1}.
+ *                 Similarly transposed internally so that (L_R^{-1})^T * L_R^{-1} = R^{-1}.
  */
 template <typename Scalar>
 class SquareRootInformationFilterDynamic: public InverseFilter<Scalar, SquareRootInformationFilterDynamic<Scalar>> {
@@ -66,8 +84,9 @@ public:
 
 private:
     TVec<Scalar> dx_ = TVec<Scalar>::Zero(1, 1);
-    // I is represent as W * W.t.
+    // I = W^T * W.
     TMat<Scalar> W_ = TMat<Scalar>::Zero(1, 1);
+    // b = W * dx.
     TVec<Scalar> b_ = TVec<Scalar>::Zero(1, 1);
 
     // Process function F and measurement function H.
@@ -136,8 +155,9 @@ public:
 
 private:
     TVec<Scalar, StateSize> dx_ = TVec<Scalar, StateSize>::Zero();
-    // I is represent as W * W.t.
+    // I = W^T * W.
     TMat<Scalar, StateSize, StateSize> W_ = TMat<Scalar, StateSize, StateSize>::Zero();
+    // b = W * dx.
     TVec<Scalar, StateSize> b_ = TVec<Scalar, StateSize>::Zero();
 
     // Process function F and measurement function H.
@@ -169,16 +189,17 @@ bool SquareRootInformationFilterStatic<Scalar, StateSize, ObserveSize>::Propagat
     const int32_t state_size = W_.rows();
 
     /* A = [      W_             0      | b ]
-           [ -sqrt(Q).inv * F  sqrt(Q).inv | 0 ]
+           [ -inv_sqrt_Q_t^{T} * F  inv_sqrt_Q_t^{T} | 0 ]
+       where (inv_sqrt_Q_t^{T})^T * inv_sqrt_Q_t^{T} = Q^{-1}.
        After QR:
-       T * A = [ R11   R12   | b* ]
+       Q * A = [ R11   R12   | b* ]
                [  0     Wk   | bk ]
-       Note: We must put x_{k-1} in the first n columns to eliminate it. */
+       Then: I_pred = Wk^T * Wk, and bk = Wk * dx_pred (= 0 for error state). */
     A_.setZero();
     A_.template block<StateSize, StateSize>(0, 0) = W_;
     A_.template block<StateSize, 1>(0, state_size << 1) = b_;
-    A_.template block<StateSize, StateSize>(StateSize, 0) = -inv_sqrt_Q_t_ * F_;
-    A_.template block<StateSize, StateSize>(StateSize, StateSize) = inv_sqrt_Q_t_;
+    A_.template block<StateSize, StateSize>(StateSize, 0) = -inv_sqrt_Q_t_.transpose() * F_;
+    A_.template block<StateSize, StateSize>(StateSize, StateSize) = inv_sqrt_Q_t_.transpose();
 
     // After QR decomposing of A_, the bottom right N x N block is predict_W_,
     // and the bottom right N x 1 block of the last column is predict_b_.
@@ -196,18 +217,18 @@ bool SquareRootInformationFilterStatic<Scalar, StateSize, ObserveSize>::UpdateSt
     const int32_t state_size = W_.rows();
     const int32_t measure_size = inv_sqrt_R_t_.rows();
 
-    /* B = [     predict_W           0        |  predict_b ]
-           [ sqrt(R).inv * H  sqrt(R).inv * r |      0     ] -> Wait, actually:
-       B = [ predict_W       | predict_b ]
-           [ sqrt(R).inv * H | sqrt(R).inv * residual ]
+    /* B = [ predict_W        | predict_b ]
+           [ inv_sqrt_R_t^{T} * H | inv_sqrt_R_t^{T} * residual ]
+       where (inv_sqrt_R_t^{T})^T * inv_sqrt_R_t^{T} = R^{-1}.
        Then QR on B:
-       T * B = [ W_new | b_new ]
-               [   0   |   r   ] */
+       Q * B = [ W_new | b_new ]
+               [   0   |   r   ]
+       Then: I_new = W_new^T * W_new, b_new = W_new * dx_new, dx_new = W_new^{-1} * b_new. */
     B_.setZero();
     B_.template block(0, 0, state_size, state_size) = predict_W_;
     B_.template block(0, state_size, state_size, 1) = predict_b_;
-    B_.template block(state_size, 0, measure_size, state_size) = inv_sqrt_R_t_ * H_;
-    B_.template block(state_size, state_size, measure_size, 1) = inv_sqrt_R_t_ * residual;
+    B_.template block(state_size, 0, measure_size, state_size) = inv_sqrt_R_t_.transpose() * H_;
+    B_.template block(state_size, state_size, measure_size, 1) = inv_sqrt_R_t_.transpose() * residual;
 
     // After QR decomposing of B_, the top left block is new W_.
     Eigen::HouseholderQR<TMat<Scalar, StateSize + ObserveSize, StateSize + 1>> qr_solver(B_);
