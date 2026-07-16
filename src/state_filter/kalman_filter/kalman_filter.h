@@ -12,11 +12,11 @@ struct KalmanFilterOptions {
 
 /**
  * @brief Kalman Filter (KF)
- * 
+ *
  * References:
  * - "A New Approach to Linear Filtering and Prediction Problems", Kalman, 1960.
  * - "Optimal State Estimation: Kalman, H Infinity, and Nonlinear Approaches", Dan Simon.
- * 
+ *
  * Algorithm Flow:
  * 1. Predict:
  *    - x_pre = F * x
@@ -27,7 +27,7 @@ struct KalmanFilterOptions {
  *    - x = x_pre + K * (z - H * x_pre)
  *    - P = (I - K * H) * P_pre (Simple)
  *    - P = (I - K * H) * P_pre * (I - K * H)^T + K * R * K^T (Joseph form, Full)
- * 
+ *
  * Variables:
  * - x: State vector
  * - P: State covariance matrix
@@ -102,7 +102,7 @@ private:
  * @brief Static Dimensional Kalman Filter (KF)
  * @tparam StateSize Dimension of the state vector
  * @tparam ObserveSize Dimension of the measurement vector
- * 
+ *
  * Algorithm and variables same as KalmanFilterDynamic.
  */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>

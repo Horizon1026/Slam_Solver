@@ -160,8 +160,23 @@ bool ErrorInformationFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAn
     // States in the column space of null_space_ will not be affected by the observation.
     if (null_space_.cols() > 0) {
         const TMat<Scalar> N = null_space_;
-        const TMat<Scalar> NtN = null_space_.transpose() * null_space_;
-        K_ -= null_space_ * NtN.ldlt().solve(null_space_.transpose() * K_);
+        const TMat<Scalar> NtN = N.transpose() * N;
+        K_ -= N * NtN.ldlt().solve(N.transpose() * K_);
+
+        // Recompute information matrix to be consistent with the null-space-projected gain.
+        // The standard info update I = predict_I + H^T * R^{-1} * H adds information in all
+        // observable directions, but the null space states should retain their prior uncertainty.
+        // Using the Joseph-form covariance update with K_proj:
+        //   P_new = (I - K_proj*H) * P_pred * (I - K_proj*H)^T + K_proj * R * K_proj^T
+        // and then converting back: I_new = P_new^{-1}.
+        const TMat<Scalar, StateSize, StateSize> P_pred = predict_I_.ldlt().solve(TMat<Scalar, StateSize, StateSize>::Identity());
+        const TMat<Scalar, StateSize, StateSize> I_KH = TMat<Scalar, StateSize, StateSize>::Identity() - K_ * H_;
+        const TMat<Scalar, ObserveSize, ObserveSize> R_mat = inverse_R_.ldlt().solve(TMat<Scalar, ObserveSize, ObserveSize>::Identity());
+        const TMat<Scalar, StateSize, StateSize> P_new = I_KH * P_pred * I_KH.transpose() + K_ * R_mat * K_.transpose();
+        I_ = P_new.ldlt().solve(TMat<Scalar, StateSize, StateSize>::Identity());
+
+        // Maintenance of symmetry.
+        I_ = (I_ + I_.transpose()) * static_cast<Scalar>(0.5);
     }
 
     // Update error state.

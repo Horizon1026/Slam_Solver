@@ -247,6 +247,48 @@ bool SquareRootInformationFilterStatic<Scalar, StateSize, ObserveSize>::UpdateSt
         const TMat<Scalar> N = null_space_;
         const TMat<Scalar> NtN = N.transpose() * N;
         dx_ -= N * NtN.ldlt().solve(N.transpose() * dx_);
+
+        // Recompute W and b to be consistent with the null space projection.
+        // (1) W_inv  = predict_W^{-1}                          (back-substitution)
+        // (2) P_pred = W_inv * W_inv^T
+        // (3) K      = P_pred * H^T * (H*P_pred*H^T + R)^{-1}
+        // (4) K_proj = P_N * K
+        // (5) P_new  = (I - K_proj*H) * P_pred * (I - K_proj*H)^T + K_proj*R*K_proj^T
+        // (6) I_new  = P_new^{-1}
+        // (7) W_new  = LLT(I_new).matrixU()                    (upper Cholesky of I_new)
+        // (8) b_new  = W_new * dx_proj
+        //
+        // This avoids forming predict_I = predict_W^T * predict_W (the quadratic product
+        // on the information side).  Step (6)–(7) are unavoidable because no orthogonal
+        // transformation can turn P_new^{-1} into an upper-triangular factor without
+        // first forming I_new — the two Cholesky orientations (P_new = L*L^T vs
+        // I_new = U^T*U) give structurally different triangular matrices.
+        const TMat<Scalar, StateSize, StateSize> W_inv =
+            predict_W_.template triangularView<Eigen::Upper>().solve(TMat<Scalar, StateSize, StateSize>::Identity());
+        const TMat<Scalar, StateSize, StateSize> P_pred = W_inv * W_inv.transpose();
+        const TMat<Scalar, StateSize, ObserveSize> H_t = H_.transpose();
+
+        // R from inv_sqrt_R_t:  inv_sqrt_R_t * inv_sqrt_R_t^T = R^{-1}
+        const TMat<Scalar, ObserveSize, ObserveSize> inverse_R = inv_sqrt_R_t_ * inv_sqrt_R_t_.transpose();
+        const TMat<Scalar, ObserveSize, ObserveSize> R_mat = inverse_R.ldlt().solve(TMat<Scalar, ObserveSize, ObserveSize>::Identity());
+
+        // K = P_pred * H^T * (H * P_pred * H^T + R)^{-1}
+        const TMat<Scalar, ObserveSize, ObserveSize> S = H_ * P_pred * H_t + R_mat;
+        const TMat<Scalar, StateSize, ObserveSize> K = P_pred * H_t * S.ldlt().solve(TMat<Scalar, ObserveSize, ObserveSize>::Identity());
+
+        // K_proj = P_N * K
+        const TMat<Scalar, StateSize, ObserveSize> K_proj = K - N * NtN.ldlt().solve(N.transpose() * K);
+
+        // P_new via Joseph form
+        const TMat<Scalar, StateSize, StateSize> I_mat = TMat<Scalar, StateSize, StateSize>::Identity();
+        const TMat<Scalar, StateSize, StateSize> I_KH = I_mat - K_proj * H_;
+        const TMat<Scalar, StateSize, StateSize> P_new = I_KH * P_pred * I_KH.transpose() + K_proj * R_mat * K_proj.transpose();
+
+        // I_new = P_new^{-1}  →  W_new = upper Cholesky of I_new
+        const TMat<Scalar, StateSize, StateSize> I_new = P_new.ldlt().solve(TMat<Scalar, StateSize, StateSize>::Identity());
+        Eigen::LLT<TMat<Scalar, StateSize, StateSize>> llt_i(I_new);
+        W_ = llt_i.matrixU();
+        b_ = W_ * dx_;
     }
 
     return true;

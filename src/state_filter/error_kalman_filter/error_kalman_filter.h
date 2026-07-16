@@ -12,10 +12,10 @@ struct ErrorKalmanFilterOptions {
 
 /**
  * @brief Error State Kalman Filter (ESKF)
- * 
+ *
  * References:
  * - "Quaternion kinematics for the error-state Kalman filter", Joan Sola.
- * 
+ *
  * Algorithm Flow:
  * 1. Predict:
  *    - dx = 0 (reset error state)
@@ -26,7 +26,7 @@ struct ErrorKalmanFilterOptions {
  *    - dx = K * residual (where residual = z - H * x_nominal)
  *    - P = (I - K * H) * P_pre (Simple)
  *    - P = (I - K * H) * P_pre * (I - K * H)^T + K * R * K^T (Joseph form, Full)
- * 
+ *
  * Variables:
  * - dx: Error state vector
  * - P: Error state covariance matrix
@@ -95,7 +95,7 @@ private:
  * @brief Static Dimensional Error State Kalman Filter (ESKF)
  * @tparam StateSize Dimension of the error state vector
  * @tparam ObserveSize Dimension of the measurement vector
- * 
+ *
  * Algorithm and variables same as ErrorKalmanFilterDynamic.
  */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>

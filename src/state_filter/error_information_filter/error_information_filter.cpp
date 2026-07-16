@@ -30,8 +30,19 @@ bool ErrorInformationFilterDynamic<Scalar>::UpdateStateAndInformationImpl(const 
     // K_proj = (I - N * (N^T*N)^{-1} * N^T) * K
     // States in the column space of null_space_ will not be affected by the observation.
     if (null_space_.cols() > 0) {
-        const TMat<Scalar> NtN = null_space_.transpose() * null_space_;
-        K_ -= null_space_ * NtN.ldlt().solve(null_space_.transpose() * K_);
+        const TMat<Scalar> N = null_space_;
+        const TMat<Scalar> NtN = N.transpose() * N;
+        K_ -= N * NtN.ldlt().solve(N.transpose() * K_);
+
+        // Recompute information matrix to be consistent with the null-space-projected gain.
+        const TMat<Scalar> P_pred = predict_I_.ldlt().solve(TMat<Scalar>::Identity(predict_I_.rows(), predict_I_.cols()));
+        const TMat<Scalar> I_KH = TMat<Scalar>::Identity(I_.rows(), I_.cols()) - K_ * H_;
+        const TMat<Scalar> R_mat = inverse_R_.ldlt().solve(TMat<Scalar>::Identity(inverse_R_.rows(), inverse_R_.cols()));
+        const TMat<Scalar> P_new = I_KH * P_pred * I_KH.transpose() + K_ * R_mat * K_.transpose();
+        I_ = P_new.ldlt().solve(TMat<Scalar>::Identity(P_new.rows(), P_new.cols()));
+
+        // Maintenance of symmetry.
+        I_ = (I_ + I_.transpose()) * static_cast<Scalar>(0.5);
     }
 
     // Update error state.

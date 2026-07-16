@@ -8,10 +8,10 @@ namespace slam_solver {
 
 /**
  * @brief Information Filter (IF)
- * 
+ *
  * References:
  * - "Optimal State Estimation: Kalman, H Infinity, and Nonlinear Approaches", Dan Simon.
- * 
+ *
  * Algorithm Flow:
  * 1. Predict:
  *    - x_pre = F * x
@@ -20,7 +20,7 @@ namespace slam_solver {
  *    - I = I_pre + H^T * R^-1 * H
  *    - K = I^-1 * H^T * R^-1
  *    - x = x_pre + K * (z - H * x_pre)
- * 
+ *
  * Variables:
  * - x: State vector
  * - I: Information matrix (P^-1)
@@ -87,7 +87,7 @@ private:
  * @brief Static Dimensional Information Filter (IF)
  * @tparam StateSize Dimension of the state vector
  * @tparam ObserveSize Dimension of the measurement vector
- * 
+ *
  * Algorithm and variables same as InformationFilterDynamic.
  */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
@@ -173,6 +173,15 @@ bool InformationFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAndInfo
         const TMat<Scalar> N = null_space_;
         const TMat<Scalar> NtN = N.transpose() * N;
         K_ -= N * NtN.ldlt().solve(N.transpose() * K_);
+
+        // Recompute information matrix to be consistent with the null-space-projected gain.
+        const TMat<Scalar, StateSize, StateSize> P_pred = predict_I_.ldlt().solve(TMat<Scalar, StateSize, StateSize>::Identity());
+        const TMat<Scalar, StateSize, StateSize> I_KH = TMat<Scalar, StateSize, StateSize>::Identity() - K_ * H_;
+        const TMat<Scalar, ObserveSize, ObserveSize> R_mat = inverse_R_.ldlt().solve(TMat<Scalar, ObserveSize, ObserveSize>::Identity());
+        const TMat<Scalar, StateSize, StateSize> P_new = I_KH * P_pred * I_KH.transpose() + K_ * R_mat * K_.transpose();
+        I_ = P_new.ldlt().solve(TMat<Scalar, StateSize, StateSize>::Identity());
+        // Maintenance of symmetry.
+        I_ = (I_ + I_.transpose()) * static_cast<Scalar>(0.5);
     }
 
     // Update new state.

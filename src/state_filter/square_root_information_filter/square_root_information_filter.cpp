@@ -79,8 +79,35 @@ bool SquareRootInformationFilterDynamic<Scalar>::UpdateStateAndInformationImpl(c
     // dx_proj = (I - N * (N^T*N)^{-1} * N^T) * dx
     // States in the column space of null_space_ will not be affected by the observation.
     if (null_space_.cols() > 0) {
-        const TMat<Scalar> NtN = null_space_.transpose() * null_space_;
-        dx_ -= null_space_ * NtN.ldlt().solve(null_space_.transpose() * dx_);
+        const TMat<Scalar> N = null_space_;
+        const TMat<Scalar> NtN = N.transpose() * N;
+        dx_ -= N * NtN.ldlt().solve(N.transpose() * dx_);
+
+        // Recompute W and b to be consistent with the null space projection.
+        const int32_t state_size = W_.rows();
+        const int32_t meas_size = inv_sqrt_R_t_.rows();
+
+        const TMat<Scalar> W_inv = predict_W_.template triangularView<Eigen::Upper>().solve(TMat<Scalar>::Identity(state_size, state_size));
+        const TMat<Scalar> P_pred = W_inv * W_inv.transpose();
+        const TMat<Scalar> H_t = H_.transpose();
+
+        const TMat<Scalar> inverse_R = inv_sqrt_R_t_ * inv_sqrt_R_t_.transpose();
+        const TMat<Scalar> R_mat = inverse_R.ldlt().solve(TMat<Scalar>::Identity(meas_size, meas_size));
+
+        const TMat<Scalar> S = H_ * P_pred * H_t + R_mat;
+        const TMat<Scalar> K = P_pred * H_t * S.ldlt().solve(TMat<Scalar>::Identity(meas_size, meas_size));
+
+        const TMat<Scalar> K_proj = K - N * NtN.ldlt().solve(N.transpose() * K);
+
+        const TMat<Scalar> I_mat = TMat<Scalar>::Identity(state_size, state_size);
+        const TMat<Scalar> I_KH = I_mat - K_proj * H_;
+        const TMat<Scalar> P_new = I_KH * P_pred * I_KH.transpose() + K_proj * R_mat * K_proj.transpose();
+
+        // I_new = P_new^{-1}  →  W_new = upper Cholesky of I_new
+        const TMat<Scalar> I_new = P_new.ldlt().solve(TMat<Scalar>::Identity(state_size, state_size));
+        Eigen::LLT<TMat<Scalar>> llt_i(I_new);
+        W_ = llt_i.matrixU();
+        b_ = W_ * dx_;
     }
 
     return true;
