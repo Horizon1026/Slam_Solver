@@ -6,9 +6,12 @@ General solver for slam problem, such as graph optimization problem solver.
     - [x] Vertex template.
     - [x] Edge template.
     - [x] Graph problem template.
+    - [x] Robust kernel. (Huber/Cauchy/Tukey)
     - [x] Non-linear optimization solver template.
         - [x] Dog-leg solver.
         - [x] Levenberg-Marquardt solver.
+        - [x] Gauss-Newton solver.
+        - [x] Gradient descent solver.
     - [x] Marginalization.
     - [x] Support tbb parallel.
     - [x] Audo compute jacobians.(Only work on 'double')
@@ -27,13 +30,17 @@ General solver for slam problem, such as graph optimization problem solver.
 
 ### Project repositories
 - Slam_Utility
+- Sensor_Model（only for test）
+- Image_Painter（only for test）
 - Visualizor2D（only for test）
 - Visualizor3D（only for test）
 
 ### Third-party repositories
 - Eigen3 (>= 3.3.7)（`sudo apt install libeigen3-dev`）
 - oneTBB（`sudo apt install libtbb-dev`）（optional）
+- glfw3（`sudo apt install libglfw3-dev`）（only for test）
 - dw (`sudo apt install libdw-dev`)
+- backward-cpp（bundled in Slam_Utility/3rd_libraries/backward）
 
 # Compile and Run
 - 第三方仓库的话需要自行 apt-get install 安装
