@@ -1,12 +1,12 @@
 #ifndef _GENERAL_GRAPH_OPTIMIZOR_MARGINALIZOR_H_
 #define _GENERAL_GRAPH_OPTIMIZOR_MARGINALIZOR_H_
 
+#include "graph.h"
+#include "vertex.h"
+
 #include "basic_type.h"
 #include "slam_basic_math.h"
 #include "slam_log_reporter.h"
-
-#include "graph.h"
-#include "vertex.h"
 
 #include "vector"
 

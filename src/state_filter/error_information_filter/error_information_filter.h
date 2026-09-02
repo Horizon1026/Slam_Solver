@@ -1,8 +1,9 @@
 #ifndef _ERROR_INFORMATION_FILTER_SOLVER_H_
 #define _ERROR_INFORMATION_FILTER_SOLVER_H_
 
-#include "basic_type.h"
 #include "inverse_filter.h"
+
+#include "basic_type.h"
 
 namespace slam_solver {
 

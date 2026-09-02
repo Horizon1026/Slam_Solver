@@ -1,8 +1,9 @@
 #ifndef _KALMAN_FILTER_SOLVER_H_
 #define _KALMAN_FILTER_SOLVER_H_
 
-#include "basic_type.h"
 #include "filter.h"
+
+#include "basic_type.h"
 
 namespace slam_solver {
 

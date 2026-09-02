@@ -27,9 +27,11 @@
 #include "error_kalman_filter.h"
 #include "information_filter.h"
 #include "kalman_filter.h"
-#include "slam_log_reporter.h"
 #include "square_root_information_filter.h"
 #include "square_root_kalman_filter.h"
+
+#include "slam_log_reporter.h"
+
 #include "string"
 
 using Scalar = double;

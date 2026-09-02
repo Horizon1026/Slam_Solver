@@ -1,9 +1,10 @@
 #ifndef _GENERAL_GRAPH_OPTIMIZOR_GRAPH_H_
 #define _GENERAL_GRAPH_OPTIMIZOR_GRAPH_H_
 
-#include "basic_type.h"
 #include "edge.h"
 #include "vertex.h"
+
+#include "basic_type.h"
 
 #include "memory"
 #include "vector"

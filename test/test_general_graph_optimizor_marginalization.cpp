@@ -1,9 +1,9 @@
+#include "general_graph_optimizor.h"
+
 #include "basic_type.h"
 #include "image_painter.h"
 #include "slam_log_reporter.h"
 #include "visualizor_2d.h"
-
-#include "general_graph_optimizor.h"
 
 using Scalar = float;
 using namespace slam_solver;

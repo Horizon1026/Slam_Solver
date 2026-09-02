@@ -1,4 +1,5 @@
 #include "solver_gd.h"
+
 #include "slam_log_reporter.h"
 
 namespace slam_solver {

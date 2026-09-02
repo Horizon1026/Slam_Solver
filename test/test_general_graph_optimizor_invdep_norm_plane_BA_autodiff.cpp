@@ -1,10 +1,10 @@
+#include "general_graph_optimizor.h"
+
 #include "basic_type.h"
 #include "slam_basic_math.h"
 #include "slam_log_reporter.h"
 #include "tick_tock.h"
-
 #include "enable_stack_backward.h"
-#include "general_graph_optimizor.h"
 #include "edge/edge_auto_diff.h"
 #include "visualizor_3d.h"
 
@@ -13,7 +13,6 @@ using namespace slam_solver;
 using namespace slam_visualizor;
 
 #include "embeded_generate_sim_data.h"
-
 template <typename Scalar>
 struct ReprojectCostFunction : public CostFunction<Scalar, 2, 1, 3, 4, 3, 4> {
     ReprojectCostFunction(const TVec4<Scalar>& observation) : observation_(observation) {}
@@ -57,7 +56,6 @@ int main(int argc, char **argv) {
     GenerateSimulationData(cameras, points);
 
 #include "embeded_add_invdep_vertices_of_BA.h"
-
     // Generate edges between cameras and points.
     std::vector<std::unique_ptr<EdgeAutoDiff<ReprojectCostFunction<Scalar>, Scalar, 2, 1, 3, 4, 3, 4>>> reprojection_edges;
     for (int32_t i = 0; i < kPointsNumber; ++i) {
@@ -110,6 +108,5 @@ int main(int argc, char **argv) {
     ReportInfo("[Ticktock] Solve cost time " << tick_tock.TockTickInMillisecond() << " ms");
 
 #include "embeded_show_optimize_result.h"
-
     return 0;
 }

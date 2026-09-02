@@ -1,8 +1,8 @@
+#include "marginalizor.h"
+
 #include "basic_type.h"
 #include "slam_log_reporter.h"
 #include "visualizor_2d.h"
-
-#include "marginalizor.h"
 
 using Scalar = float;
 using namespace slam_utility;

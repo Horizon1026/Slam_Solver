@@ -2,6 +2,7 @@
 #define _GENERAL_GRAPH_OPTIMIZOR_JET_H_
 
 #include "basic_type.h"
+
 #include "cmath"
 #include "iostream"
 

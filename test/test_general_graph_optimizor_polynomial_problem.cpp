@@ -1,7 +1,7 @@
+#include "general_graph_optimizor.h"
+
 #include "basic_type.h"
 #include "slam_log_reporter.h"
-
-#include "general_graph_optimizor.h"
 
 using Scalar = double;
 using namespace slam_solver;

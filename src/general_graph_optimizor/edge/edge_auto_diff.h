@@ -3,6 +3,7 @@
 
 #include "edge.h"
 #include "jet.h"
+
 #include "utility"
 
 namespace slam_solver {

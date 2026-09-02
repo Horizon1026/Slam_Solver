@@ -1,10 +1,10 @@
+#include "general_graph_optimizor.h"
+
 #include "basic_type.h"
 #include "slam_basic_math.h"
 #include "slam_log_reporter.h"
 #include "tick_tock.h"
-
 #include "enable_stack_backward.h"
-#include "general_graph_optimizor.h"
 #include "visualizor_3d.h"
 
 using Scalar = float;
@@ -12,7 +12,6 @@ using namespace slam_solver;
 using namespace slam_visualizor;
 
 #include "embeded_generate_sim_data.h"
-
 /* Class Edge reprojection. */
 template <typename Scalar>
 class EdgeReproject: public Edge<Scalar> {
@@ -104,7 +103,6 @@ int main(int argc, char **argv) {
 
 // Use include here is interesting.
 #include "embeded_add_invdep_vertices_of_BA.h"
-
     // Generate edges between cameras and points.
     std::array<std::unique_ptr<EdgeReproject<Scalar>>, (kCameraFrameNumber - 1) * kPointsNumber> reprojection_edges = {};
     int32_t idx = 0;
@@ -156,8 +154,7 @@ int main(int argc, char **argv) {
     ReportInfo("[Ticktock] Solve cost time " << tick_tock.TockTickInMillisecond() << " ms");
 
 // Show optimization result.
-#include "embeded_show_optimize_result.h"
-    problem.VerticesInformation();
+#include "embeded_show_optimize_result.h"    problem.VerticesInformation();
     // problem.EdgesInformation();
 
     return 0;

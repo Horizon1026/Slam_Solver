@@ -2,6 +2,7 @@
 #define _GENERAL_POSE_GRAPH_OPTIMIZOR_H_
 
 #include "basic_type.h"
+
 #include "vector"
 
 namespace slam_solver {

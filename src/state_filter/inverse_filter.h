@@ -2,6 +2,7 @@
 #define _SLAM_INVERSE_FILTER_H_
 
 #include "basic_type.h"
+
 #include "memory"
 
 namespace slam_solver {

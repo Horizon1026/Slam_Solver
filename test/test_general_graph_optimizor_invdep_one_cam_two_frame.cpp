@@ -1,10 +1,10 @@
+#include "general_graph_optimizor.h"
+
 #include "basic_type.h"
 #include "slam_basic_math.h"
 #include "slam_log_reporter.h"
 #include "tick_tock.h"
-
 #include "enable_stack_backward.h"
-#include "general_graph_optimizor.h"
 #include "visualizor_3d.h"
 
 using Scalar = float;
@@ -12,7 +12,6 @@ using namespace slam_solver;
 using namespace slam_visualizor;
 
 #include "embeded_generate_sim_data.h"
-
 /* Class Edge reprojection. Project feature 1-dof invdep on visual norm plane via imu pose. */
 template <typename Scalar>
 class EdgeFeatureInvdepToNormPlaneViaImuWithinTwoFramesOneCamera: public Edge<Scalar> {
@@ -185,7 +184,6 @@ int main(int argc, char **argv) {
 
 // Use include here is interesting.
 #include "embeded_add_invdep_vertices_of_BA.h"
-
     // Generate vertex of camera extrinsics.
     TQuat<Scalar> q_ic = TQuat<Scalar>::Identity();
     TVec3<Scalar> p_ic = TVec3<Scalar>::Zero();
@@ -274,6 +272,5 @@ int main(int argc, char **argv) {
 
 // Show optimization result.
 #include "embeded_show_optimize_result.h"
-
     return 0;
 }

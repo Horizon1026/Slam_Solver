@@ -1,8 +1,9 @@
 #ifndef _GENERAL_GRAPH_OPTIMIZOR_VERTEX_QUATERNION_H_
 #define _GENERAL_GRAPH_OPTIMIZOR_VERTEX_QUATERNION_H_
 
-#include "basic_type.h"
 #include "vertex.h"
+
+#include "basic_type.h"
 
 namespace slam_solver {
 

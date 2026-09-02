@@ -1,10 +1,11 @@
 #ifndef _GENERAL_GRAPH_OPTIMIZOR_EDGE_H_
 #define _GENERAL_GRAPH_OPTIMIZOR_EDGE_H_
 
-#include "basic_type.h"
 #include "kernel.h"
-#include "slam_log_reporter.h"
 #include "vertex.h"
+
+#include "basic_type.h"
+#include "slam_log_reporter.h"
 
 #include "memory"
 #include "vector"

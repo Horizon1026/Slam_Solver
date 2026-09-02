@@ -1,8 +1,9 @@
 #ifndef _GENERAL_GRAPH_OPTIMIZOR_SOLVER_H_
 #define _GENERAL_GRAPH_OPTIMIZOR_SOLVER_H_
 
-#include "basic_type.h"
 #include "graph.h"
+
+#include "basic_type.h"
 
 namespace slam_solver {
 
