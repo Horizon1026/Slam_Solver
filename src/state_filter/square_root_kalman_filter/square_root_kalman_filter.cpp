@@ -11,17 +11,21 @@ template class SquareRootKalmanFilterDynamic<double>;
 /* Class Square Root Error State Kalman Filter Definition. */
 template <typename Scalar>
 bool SquareRootKalmanFilterDynamic<Scalar>::PropagateCovarianceImpl() {
-    dx_.setZero();
     const int32_t state_size = S_t_.cols();
-    const int32_t extend_size = S_t_.rows() + state_size;
-    if (extend_predict_S_t_.rows() != extend_size) {
+    if (state_size <= 0 || S_t_.rows() < state_size || F_.rows() != state_size || F_.cols() != state_size || sqrt_Q_t_.cols() != state_size) {
+        return false;
+    }
+    dx_.setZero(state_size);
+    const int32_t noise_size = sqrt_Q_t_.rows();
+    const int32_t extend_size = S_t_.rows() + noise_size;
+    if (extend_predict_S_t_.rows() != extend_size || extend_predict_S_t_.cols() != state_size) {
         extend_predict_S_t_.setZero(extend_size, state_size);
     }
 
     /*  extend_predict_S_t_ = [ S.t * F.t ]
                               [   Q.t/2   ] */
     extend_predict_S_t_.template block(0, 0, S_t_.rows(), state_size) = S_t_ * F_.transpose();
-    extend_predict_S_t_.template block(S_t_.rows(), 0, state_size, state_size) = sqrt_Q_t_;
+    extend_predict_S_t_.template block(S_t_.rows(), 0, noise_size, state_size) = sqrt_Q_t_;
 
     // After QR decomposing of extend_predict_S_t_, the top matrix of the upper triangular matrix becomes predict_S_t_.
     Eigen::HouseholderQR<TMat<Scalar>> qr_solver(extend_predict_S_t_);
@@ -33,23 +37,24 @@ template <typename Scalar>
 bool SquareRootKalmanFilterDynamic<Scalar>::UpdateStateAndCovarianceImpl(const TMat<Scalar> &residual) {
     const int32_t state_size = predict_S_t_.cols();
     const int32_t obv_size = H_.rows();
-    if (residual.rows() != obv_size || H_.cols() != state_size) {
+    if (state_size <= 0 || obv_size <= 0 || predict_S_t_.rows() != state_size || residual.rows() != obv_size || residual.cols() != 1 ||
+        H_.cols() != state_size || sqrt_R_t_.cols() != obv_size) {
         return false;
     }
 
     const int32_t full_size = state_size + obv_size;
-    if (M_.rows() != full_size || M_.cols() != full_size) {
-        M_.setZero(full_size, full_size);
-    }
+    const int32_t noise_size = sqrt_R_t_.rows();
+    // Pad short noise factors with zero rows so QR has enough rows for the full upper factor.
+    const int32_t noise_rows = noise_size > obv_size ? noise_size : obv_size;
+    M_.setZero(state_size + noise_rows, full_size);
 
     // Construct matrix M, do QR decompose on it.
     /*  M = [ R.t/2             0    ] = T * [ (H * pre_P * H.t + R).t/2  hat_K.t ]
             [ pre_S.t * H.t  pre_S.t ]       [             0                S.t   ]
         T is a exist unit orthogonal matrix. */
-    M_.template block(0, 0, obv_size, obv_size) = sqrt_R_t_;
-    M_.template block(0, obv_size, obv_size, state_size).setZero();
-    M_.template block(obv_size, 0, state_size, obv_size).noalias() = predict_S_t_ * H_.transpose();
-    M_.template block(obv_size, obv_size, state_size, state_size) = predict_S_t_;
+    M_.template block(0, 0, noise_size, obv_size) = sqrt_R_t_;
+    M_.template block(noise_rows, 0, state_size, obv_size).noalias() = predict_S_t_ * H_.transpose();
+    M_.template block(noise_rows, obv_size, state_size, state_size) = predict_S_t_;
 
     Eigen::HouseholderQR<Eigen::Ref<TMat<Scalar>>> qr_solver(M_);
     TMat<Scalar> R_upper = qr_solver.matrixQR().template triangularView<Eigen::Upper>();
@@ -79,10 +84,10 @@ bool SquareRootKalmanFilterDynamic<Scalar>::UpdateStateAndCovarianceImpl(const T
         // B_t = [ S_up * (I - H_t*K_t) ]
         //       [    sqrt_R * K_t      ]  ((state+obsv) × state)
         // where S_up = predict_S_t_ is the stored S_t (upper tri).
-        TMat<Scalar> B_t(full_size, state_size);
+        TMat<Scalar> B_t(state_size + noise_size, state_size);
         const TMat<Scalar> I_HtKt = TMat<Scalar>::Identity(state_size, state_size) - H_.transpose() * K_t;
         B_t.topRows(state_size) = predict_S_t_ * I_HtKt;
-        B_t.bottomRows(obv_size) = sqrt_R_t_ * K_t;
+        B_t.bottomRows(noise_size) = sqrt_R_t_ * K_t;
         Eigen::HouseholderQR<Eigen::Ref<TMat<Scalar>>> qr(B_t);
         S_t_ = qr.matrixQR().topRows(state_size).template triangularView<Eigen::Upper>();
     } else {

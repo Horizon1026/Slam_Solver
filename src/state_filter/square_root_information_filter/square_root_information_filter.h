@@ -43,10 +43,13 @@ namespace slam_solver {
  * - dx: Error state vector
  * - W: Upper-triangular square root of information matrix (I = W^T * W)
  * - b: Transformed information vector (b = W * dx)
- * - inv_sqrt_Q_t: Q^{-T/2}, satisfies inv_sqrt_Q_t * inv_sqrt_Q_t^T = Q^{-1}.
+ * - inv_sqrt_Q_t: n x r_q factor, satisfies inv_sqrt_Q_t * inv_sqrt_Q_t^T = Q^{-1}.
+ *                 Must have full row rank (r_q >= n); Q must be positive definite.
  *                 Internally the code uses inv_sqrt_Q_t^T (= L_Q^{-1}) in the
  *                 augmented matrix so that (L_Q^{-1})^T * L_Q^{-1} = Q^{-1}.
- * - inv_sqrt_R_t: R^{-T/2}, satisfies inv_sqrt_R_t * inv_sqrt_R_t^T = R^{-1}.
+ * - inv_sqrt_R_t: m x r_r factor, satisfies inv_sqrt_R_t * inv_sqrt_R_t^T = R^{-1}.
+ *                 Rectangular factors encode measurement information directly;
+ *                 the null-space covariance reconstruction requires full row rank.
  *                 Similarly transposed internally so that (L_R^{-1})^T * L_R^{-1} = R^{-1}.
  */
 template <typename Scalar>
@@ -116,6 +119,7 @@ private:
  * @tparam StateSize Dimension of the error state vector
  * @tparam ObserveSize Dimension of the measurement vector
  *
+ * State/observation dimensions are fixed; noise-factor column counts are dynamic.
  * Algorithm and variables same as SquareRootInformationFilterDynamic.
  */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
@@ -136,8 +140,8 @@ public:
     TVec<Scalar, StateSize> &b() { return b_; }
     TMat<Scalar, StateSize, StateSize> &F() { return F_; }
     TMat<Scalar, ObserveSize, StateSize> &H() { return H_; }
-    TMat<Scalar, StateSize, StateSize> &inv_sqrt_Q_t() { return inv_sqrt_Q_t_; }
-    TMat<Scalar, ObserveSize, ObserveSize> &inv_sqrt_R_t() { return inv_sqrt_R_t_; }
+    TMat<Scalar, StateSize, Eigen::Dynamic> &inv_sqrt_Q_t() { return inv_sqrt_Q_t_; }
+    TMat<Scalar, ObserveSize, Eigen::Dynamic> &inv_sqrt_R_t() { return inv_sqrt_R_t_; }
     TMat<Scalar, StateSize, StateSize> &predict_W() { return predict_W_; }
     TVec<Scalar, StateSize> &predict_b() { return predict_b_; }
     TMat<Scalar, StateSize, Eigen::Dynamic> &null_space() { return null_space_; }
@@ -148,8 +152,8 @@ public:
     const TVec<Scalar, StateSize> &b() const { return b_; }
     const TMat<Scalar, StateSize, StateSize> &F() const { return F_; }
     const TMat<Scalar, ObserveSize, StateSize> &H() const { return H_; }
-    const TMat<Scalar, StateSize, StateSize> &inv_sqrt_Q_t() const { return inv_sqrt_Q_t_; }
-    const TMat<Scalar, ObserveSize, ObserveSize> &inv_sqrt_R_t() const { return inv_sqrt_R_t_; }
+    const TMat<Scalar, StateSize, Eigen::Dynamic> &inv_sqrt_Q_t() const { return inv_sqrt_Q_t_; }
+    const TMat<Scalar, ObserveSize, Eigen::Dynamic> &inv_sqrt_R_t() const { return inv_sqrt_R_t_; }
     const TMat<Scalar, StateSize, StateSize> &predict_W() const { return predict_W_; }
     const TVec<Scalar, StateSize> &predict_b() const { return predict_b_; }
     const TMat<Scalar, StateSize, Eigen::Dynamic> &null_space() const { return null_space_; }
@@ -167,11 +171,12 @@ private:
 
     // Process noise Q and measurement noise R.
     // Define Q^(-T/2) and R^(-T/2) here.
-    TMat<Scalar, StateSize, StateSize> inv_sqrt_Q_t_ = TMat<Scalar, StateSize, StateSize>::Zero();
-    TMat<Scalar, ObserveSize, ObserveSize> inv_sqrt_R_t_ = TMat<Scalar, ObserveSize, ObserveSize>::Zero();
+    TMat<Scalar, StateSize, Eigen::Dynamic> inv_sqrt_Q_t_ = TMat<Scalar, StateSize, Eigen::Dynamic>::Zero(StateSize, StateSize);
+    TMat<Scalar, ObserveSize, Eigen::Dynamic> inv_sqrt_R_t_ = TMat<Scalar, ObserveSize, Eigen::Dynamic>::Zero(ObserveSize, ObserveSize);
 
-    TMat<Scalar, StateSize + StateSize, StateSize + StateSize + 1> A_ = TMat<Scalar, StateSize + StateSize, StateSize + StateSize + 1>::Zero();
-    TMat<Scalar, StateSize + ObserveSize, StateSize + 1> B_ = TMat<Scalar, StateSize + ObserveSize, StateSize + 1>::Zero();
+    TMat<Scalar, Eigen::Dynamic, StateSize + StateSize + 1> A_ =
+        TMat<Scalar, Eigen::Dynamic, StateSize + StateSize + 1>::Zero(2 * StateSize, 2 * StateSize + 1);
+    TMat<Scalar, Eigen::Dynamic, StateSize + 1> B_ = TMat<Scalar, Eigen::Dynamic, StateSize + 1>::Zero(StateSize + ObserveSize, StateSize + 1);
     TMat<Scalar, StateSize, StateSize> predict_W_ = TMat<Scalar, StateSize, StateSize>::Zero();
     TVec<Scalar, StateSize> predict_b_ = TVec<Scalar, StateSize>::Zero();
 
@@ -185,9 +190,14 @@ private:
 /* Class Square Root Error State Information Filter Definition. */
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 bool SquareRootInformationFilterStatic<Scalar, StateSize, ObserveSize>::PropagateInformationImpl() {
+    const int32_t noise_size = inv_sqrt_Q_t_.cols();
+    if (noise_size < StateSize) {
+        return false;
+    }
     dx_.setZero();
     b_.setZero();
     const int32_t state_size = W_.rows();
+    A_.resize(StateSize + noise_size, 2 * StateSize + 1);
 
     /* A = [      W_             0      | b ]
            [ -inv_sqrt_Q_t^{T} * F  inv_sqrt_Q_t^{T} | 0 ]
@@ -199,13 +209,13 @@ bool SquareRootInformationFilterStatic<Scalar, StateSize, ObserveSize>::Propagat
     A_.setZero();
     A_.template block<StateSize, StateSize>(0, 0) = W_;
     A_.template block<StateSize, 1>(0, state_size << 1) = b_;
-    A_.template block<StateSize, StateSize>(StateSize, 0) = -inv_sqrt_Q_t_.transpose() * F_;
-    A_.template block<StateSize, StateSize>(StateSize, StateSize) = inv_sqrt_Q_t_.transpose();
+    A_.block(StateSize, 0, noise_size, StateSize) = -inv_sqrt_Q_t_.transpose() * F_;
+    A_.block(StateSize, StateSize, noise_size, StateSize) = inv_sqrt_Q_t_.transpose();
 
     // After QR decomposing of A_, the bottom right N x N block is predict_W_,
     // and the bottom right N x 1 block of the last column is predict_b_.
-    Eigen::HouseholderQR<TMat<Scalar, StateSize + StateSize, StateSize + StateSize + 1>> qr_solver(A_);
-    TMat<Scalar, StateSize + StateSize, StateSize + StateSize + 1> R_upper = qr_solver.matrixQR().template triangularView<Eigen::Upper>();
+    Eigen::HouseholderQR<TMat<Scalar, Eigen::Dynamic, StateSize + StateSize + 1>> qr_solver(A_);
+    TMat<Scalar, Eigen::Dynamic, StateSize + StateSize + 1> R_upper = qr_solver.matrixQR().template triangularView<Eigen::Upper>();
 
     predict_W_ = R_upper.template block<StateSize, StateSize>(StateSize, StateSize);
     predict_b_ = R_upper.template block<StateSize, 1>(StateSize, state_size << 1);
@@ -216,7 +226,11 @@ bool SquareRootInformationFilterStatic<Scalar, StateSize, ObserveSize>::Propagat
 template <typename Scalar, int32_t StateSize, int32_t ObserveSize>
 bool SquareRootInformationFilterStatic<Scalar, StateSize, ObserveSize>::UpdateStateAndInformationImpl(const TMat<Scalar> &residual) {
     const int32_t state_size = W_.rows();
-    const int32_t measure_size = inv_sqrt_R_t_.rows();
+    const int32_t noise_size = inv_sqrt_R_t_.cols();
+    if (residual.rows() != ObserveSize || residual.cols() != 1) {
+        return false;
+    }
+    B_.resize(StateSize + noise_size, StateSize + 1);
 
     /* B = [ predict_W        | predict_b ]
            [ inv_sqrt_R_t^{T} * H | inv_sqrt_R_t^{T} * residual ]
@@ -228,12 +242,12 @@ bool SquareRootInformationFilterStatic<Scalar, StateSize, ObserveSize>::UpdateSt
     B_.setZero();
     B_.template block(0, 0, state_size, state_size) = predict_W_;
     B_.template block(0, state_size, state_size, 1) = predict_b_;
-    B_.template block(state_size, 0, measure_size, state_size) = inv_sqrt_R_t_.transpose() * H_;
-    B_.template block(state_size, state_size, measure_size, 1) = inv_sqrt_R_t_.transpose() * residual;
+    B_.template block(state_size, 0, noise_size, state_size) = inv_sqrt_R_t_.transpose() * H_;
+    B_.template block(state_size, state_size, noise_size, 1) = inv_sqrt_R_t_.transpose() * residual;
 
     // After QR decomposing of B_, the top left block is new W_.
-    Eigen::HouseholderQR<TMat<Scalar, StateSize + ObserveSize, StateSize + 1>> qr_solver(B_);
-    TMat<Scalar, StateSize + ObserveSize, StateSize + 1> R_upper = qr_solver.matrixQR().template triangularView<Eigen::Upper>();
+    Eigen::HouseholderQR<TMat<Scalar, Eigen::Dynamic, StateSize + 1>> qr_solver(B_);
+    TMat<Scalar, Eigen::Dynamic, StateSize + 1> R_upper = qr_solver.matrixQR().template triangularView<Eigen::Upper>();
 
     W_ = R_upper.template block(0, 0, state_size, state_size);
     b_ = R_upper.template block(0, state_size, state_size, 1);
