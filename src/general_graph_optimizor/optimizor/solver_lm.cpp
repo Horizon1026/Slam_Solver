@@ -71,9 +71,13 @@ void SolverLm<Scalar>::SolveIncrementalFunction() {
 template <typename Scalar>
 bool SolverLm<Scalar>::IsUpdateValid(Scalar min_allowed_gain_rate) {
     // Reference: The Levenberg-Marquardt method for nonlinear least squares curve-fitting problems.pdf
-    TVec<Scalar> temp_vec = lambda_ * this->dx() + this->problem()->bias();
-    const Scalar scale = temp_vec.dot(this->dx()) + static_cast<Scalar>(1e-6);
-    const Scalar rho = static_cast<Scalar>(0.5) * (this->cost_at_linearized_point() - this->cost_at_latest_step()) / scale;
+    // Cost is the full squared residual norm, and bias is -J.transpose() * W * r.
+    // Use the undamped Hessian restored in SolveIncrementalFunction to predict the cost decrease.
+    const auto &hessian = this->problem()->hessian();
+    const auto &bias = this->problem()->bias();
+    const Scalar scale = static_cast<Scalar>(2) * bias.dot(this->dx()) - this->dx().dot(hessian * this->dx());
+    const bool valid_scale = scale > static_cast<Scalar>(0) && std::isfinite(scale);
+    const Scalar rho = valid_scale ? (this->cost_at_linearized_point() - this->cost_at_latest_step()) / scale : static_cast<Scalar>(0);
 
     // Report information of this iteration if enabled.
     if (this->options().kEnableReportEachIteration) {
@@ -82,7 +86,7 @@ bool SolverLm<Scalar>::IsUpdateValid(Scalar min_allowed_gain_rate) {
     }
 
     bool result = true;
-    if (rho > min_allowed_gain_rate && std::isfinite(this->cost_at_latest_step())) {
+    if (valid_scale && std::isfinite(rho) && rho > min_allowed_gain_rate && std::isfinite(this->cost_at_latest_step())) {
         lambda_ *= std::max(static_cast<Scalar>(0.33333), static_cast<Scalar>((1.0 - std::pow(2.0 * rho - 1.0, 3))));
         v_ = static_cast<Scalar>(2);
         result = true;
