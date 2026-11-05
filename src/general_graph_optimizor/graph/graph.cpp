@@ -60,7 +60,7 @@ void Graph<Scalar>::VerticesInformation(bool show_sparse_vertices_info) {
 // Report all edges in this graph.
 template <typename Scalar>
 void Graph<Scalar>::EdgesInformation() {
-    ReportInfo("[Graph] All vertices in this graph:");
+    ReportInfo("[Graph] All edges in this graph:");
     for (const auto &edge: edges_) {
         ReportInfo(" - [name] " << edge->name() << ", [id] " << edge->GetId() << ", relative vertices:");
         for (const auto &vertex: edge->GetVertices()) {
