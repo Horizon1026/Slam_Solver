@@ -35,9 +35,7 @@ public:
     virtual void UpdateParam(const TVec<Scalar> &delta_param) { param_ += delta_param; }
 
     // Compute manifold jacobian dx/d_delta.
-    virtual void ComputeManifoldJacobian(TMat<Scalar> &jacobian) const {
-        jacobian.setIdentity(param_dim_, delta_dim_);
-    }
+    virtual void ComputeManifoldJacobian(TMat<Scalar> &jacobian) const { jacobian.setIdentity(param_dim_, delta_dim_); }
 
     // Param operation, backing up and rolling back.
     void BackupParam() { param_backup_ = param_; }

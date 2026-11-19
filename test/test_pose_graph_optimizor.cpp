@@ -1,11 +1,11 @@
 #include "pose_graph_optimizor.h"
 
 #include "basic_type.h"
+#include "enable_stack_backward.h"
 #include "slam_basic_math.h"
 #include "slam_log_reporter.h"
 #include "tick_tock.h"
 #include "visualizor_3d.h"
-#include "enable_stack_backward.h"
 
 using Scalar = float;
 using namespace slam_solver;

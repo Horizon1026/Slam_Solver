@@ -1,10 +1,10 @@
 #include "general_graph_optimizor.h"
 
 #include "basic_type.h"
+#include "enable_stack_backward.h"
 #include "slam_basic_math.h"
 #include "slam_log_reporter.h"
 #include "tick_tock.h"
-#include "enable_stack_backward.h"
 #include "visualizor_3d.h"
 
 using Scalar = float;

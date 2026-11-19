@@ -57,7 +57,7 @@ struct CostFunction {
      * @return True if evaluation is successful.
      */
     template <typename T>
-    bool operator()(const T* const* parameters, T* residuals) const {
+    bool operator()(const T *const *parameters, T *residuals) const {
         return Evaluate(parameters, residuals);
     }
 
@@ -69,7 +69,7 @@ struct CostFunction {
      * @return True if evaluation is successful.
      */
     template <typename T>
-    bool Evaluate(const T* const* parameters, T* residuals) const {
+    bool Evaluate(const T *const *parameters, T *residuals) const {
         return false;
     }
 };
@@ -83,14 +83,13 @@ struct CostFunction {
  * @tparam VertexDims Parameter pack of parameter dimensions for each connected vertex.
  */
 template <typename Functor, typename Scalar, int ResidualDim, int... VertexDims>
-class EdgeAutoDiff : public Edge<Scalar> {
+class EdgeAutoDiff: public Edge<Scalar> {
 public:
     /**
      * @brief Constructor, initializes the base Edge and the cost functor.
      * @param functor Instance of the user-defined cost function.
      */
-    EdgeAutoDiff(Functor* functor)
-        : Edge<Scalar>(ResidualDim, sizeof...(VertexDims)), functor_(functor) {}
+    EdgeAutoDiff(Functor *functor): Edge<Scalar>(ResidualDim, sizeof...(VertexDims)), functor_(functor) {}
 
     virtual ~EdgeAutoDiff() = default;
 
@@ -100,7 +99,7 @@ public:
      */
     virtual void ComputeResidual() override {
         const int num_vertices = sizeof...(VertexDims);
-        const Scalar* parameters[num_vertices];
+        const Scalar *parameters[num_vertices];
         // Collect parameter pointers from all connected vertices
         for (int i = 0; i < num_vertices; ++i) {
             parameters[i] = this->GetVertex(i)->param().data();
@@ -115,7 +114,7 @@ public:
      */
     virtual void ComputeJacobians() override {
         // Compute Jacobian for each vertex using compile-time index sequence
-        ComputeAllJacobians(std::make_index_sequence<sizeof...(VertexDims)>{});
+        ComputeAllJacobians(std::make_index_sequence<sizeof...(VertexDims)> {});
     }
 
 private:
@@ -139,13 +138,13 @@ private:
         // Define Jet type with derivative dimension matching the target vertex
         using JetT = Jet<Scalar, current_vertex_param_dim>;
 
-        const JetT* jet_parameters[sizeof...(VertexDims)];
+        const JetT *jet_parameters[sizeof...(VertexDims)];
         // Storage to manage lifetime of Jet parameter arrays
         std::vector<std::unique_ptr<JetT[]>> jet_params_storage;
 
         // 1. Prepare Jet-type parameters for all vertices
         for (size_t v = 0; v < sizeof...(VertexDims); ++v) {
-            const auto& v_param = this->GetVertex(v)->param();
+            const auto &v_param = this->GetVertex(v)->param();
             const int v_dim = v_param.rows();
 
             auto v_jet_ptr = std::make_unique<JetT[]>(v_dim);
@@ -208,9 +207,9 @@ private:
     };
 
 private:
-    std::unique_ptr<Functor> functor_; // User-defined cost function functor
+    std::unique_ptr<Functor> functor_;  // User-defined cost function functor
 };
 
-} // namespace slam_solver
+}  // namespace slam_solver
 
-#endif // _GENERAL_GRAPH_OPTIMIZOR_AUTO_DIFF_EDGE_H_
+#endif  // _GENERAL_GRAPH_OPTIMIZOR_AUTO_DIFF_EDGE_H_

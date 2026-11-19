@@ -1,11 +1,11 @@
 #include "general_graph_optimizor.h"
 
 #include "basic_type.h"
+#include "edge/edge_auto_diff.h"
+#include "enable_stack_backward.h"
 #include "slam_basic_math.h"
 #include "slam_log_reporter.h"
 #include "tick_tock.h"
-#include "enable_stack_backward.h"
-#include "edge/edge_auto_diff.h"
 #include "visualizor_3d.h"
 
 using Scalar = float;
@@ -14,16 +14,16 @@ using namespace slam_visualizor;
 
 #include "embeded_generate_sim_data.h"
 template <typename Scalar>
-struct ReprojectCostFunction : public CostFunction<Scalar, 2, 1, 3, 4, 3, 4> {
-    ReprojectCostFunction(const TVec4<Scalar>& observation) : observation_(observation) {}
+struct ReprojectCostFunction: public CostFunction<Scalar, 2, 1, 3, 4, 3, 4> {
+    ReprojectCostFunction(const TVec4<Scalar> &observation): observation_(observation) {}
 
     template <typename T>
-    bool Evaluate(const T* const* parameters, T* residuals) const {
-        const T& inv_depth0 = parameters[0][0];
-        const T* p_wc0_ptr = parameters[1];
-        const T* q_wc0_ptr = parameters[2];
-        const T* p_wc_ptr = parameters[3];
-        const T* q_wc_ptr = parameters[4];
+    bool Evaluate(const T *const *parameters, T *residuals) const {
+        const T &inv_depth0 = parameters[0][0];
+        const T *p_wc0_ptr = parameters[1];
+        const T *q_wc0_ptr = parameters[2];
+        const T *p_wc_ptr = parameters[3];
+        const T *q_wc_ptr = parameters[4];
 
         Eigen::Map<const TVec3<T>> p_wc0(p_wc0_ptr);
         Eigen::Map<const TQuat<T>> q_wc0(q_wc0_ptr);

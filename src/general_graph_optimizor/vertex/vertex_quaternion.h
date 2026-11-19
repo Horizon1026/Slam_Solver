@@ -39,10 +39,7 @@ public:
         const Scalar x = this->param()(1);
         const Scalar y = this->param()(2);
         const Scalar z = this->param()(3);
-        jacobian << -x, -y, -z,
-                     w, -z,  y,
-                     z,  w, -x,
-                    -y,  x,  w;
+        jacobian << -x, -y, -z, w, -z, y, z, w, -x, -y, x, w;
         jacobian *= static_cast<Scalar>(0.5);
     }
 };

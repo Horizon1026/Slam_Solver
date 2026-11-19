@@ -3,9 +3,9 @@
 #include "square_root_information_filter.h"
 #include "square_root_kalman_filter.h"
 
+#include "imu_measurement.h"
 #include "slam_basic_math.h"
 #include "slam_log_reporter.h"
-#include "imu_measurement.h"
 
 #include "fstream"
 
@@ -58,8 +58,7 @@ bool LoadImuMeasurements(const std::string &imu_file, std::vector<ImuMeasurement
     return true;
 }
 
-void TestErrorKalmanFilter(const std::vector<ImuMeasurement> &meas, std::vector<Quat> &est_q, std::vector<Vec3> &est_bw,
-                           bool enable_null_space = false) {
+void TestErrorKalmanFilter(const std::vector<ImuMeasurement> &meas, std::vector<Quat> &est_q, std::vector<Vec3> &est_bw, bool enable_null_space = false) {
     if (enable_null_space) {
         ReportInfo(YELLOW ">> Test error state kalman filter (with null space on bias z)." RESET_COLOR);
     } else {
@@ -116,8 +115,7 @@ void TestErrorKalmanFilter(const std::vector<ImuMeasurement> &meas, std::vector<
     }
 }
 
-void TestSquareRootKalmanFilter(const std::vector<ImuMeasurement> &meas, std::vector<Quat> &est_q, std::vector<Vec3> &est_bw,
-                                bool enable_null_space = false) {
+void TestSquareRootKalmanFilter(const std::vector<ImuMeasurement> &meas, std::vector<Quat> &est_q, std::vector<Vec3> &est_bw, bool enable_null_space = false) {
     if (enable_null_space) {
         ReportInfo(YELLOW ">> Test error state square root kalman filter (with null space on bias z)." RESET_COLOR);
     } else {
@@ -174,8 +172,7 @@ void TestSquareRootKalmanFilter(const std::vector<ImuMeasurement> &meas, std::ve
     }
 }
 
-void TestErrorInformationFilter(const std::vector<ImuMeasurement> &meas, std::vector<Quat> &est_q, std::vector<Vec3> &est_bw,
-                                bool enable_null_space = false) {
+void TestErrorInformationFilter(const std::vector<ImuMeasurement> &meas, std::vector<Quat> &est_q, std::vector<Vec3> &est_bw, bool enable_null_space = false) {
     if (enable_null_space) {
         ReportInfo(YELLOW ">> Test error state information filter (with null space on bias z)." RESET_COLOR);
     } else {

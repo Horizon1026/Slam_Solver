@@ -1,10 +1,10 @@
 #include "general_graph_optimizor.h"
 
 #include "basic_type.h"
+#include "enable_stack_backward.h"
 #include "slam_basic_math.h"
 #include "slam_log_reporter.h"
 #include "tick_tock.h"
-#include "enable_stack_backward.h"
 #include "visualizor_3d.h"
 
 using Scalar = float;
@@ -154,7 +154,7 @@ int main(int argc, char **argv) {
     ReportInfo("[Ticktock] Solve cost time " << tick_tock.TockTickInMillisecond() << " ms");
 
 // Show optimization result.
-#include "embeded_show_optimize_result.h"    problem.VerticesInformation();
+#include "embeded_show_optimize_result.h" problem.VerticesInformation();
     // problem.EdgesInformation();
 
     return 0;

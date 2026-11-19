@@ -1,16 +1,16 @@
 #include "general_graph_optimizor.h"
 
 #include "basic_type.h"
+#include "enable_stack_backward.h"
+#include "image_painter.h"
+#include "line_segment.h"
+#include "plane.h"
 #include "slam_basic_math.h"
 #include "slam_log_reporter.h"
 #include "slam_operations.h"
 #include "tick_tock.h"
-#include "line_segment.h"
-#include "plane.h"
-#include "image_painter.h"
 #include "visualizor_2d.h"
 #include "visualizor_3d.h"
-#include "enable_stack_backward.h"
 
 #include "string"
 
