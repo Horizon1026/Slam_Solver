@@ -184,7 +184,8 @@ template <typename Scalar>
 void Marginalizor<Scalar>::DecomposeHessianAndBias(TMat<Scalar> &hessian, TVec<Scalar> &bias, TMat<Scalar> &jacobian, TVec<Scalar> &residual,
                                                    TMat<Scalar> &jacobian_t_inv) {
     // Decompose prior hessian matrix.
-    Eigen::SelfAdjointEigenSolver<TMat<Scalar>> saes(hessian);
+    const TMat<Scalar> symmetric_hessian = static_cast<Scalar>(0.5) * (hessian + hessian.transpose());
+    Eigen::SelfAdjointEigenSolver<TMat<Scalar>> saes(symmetric_hessian);
     const TVec<Scalar> S = TVec<Scalar>((saes.eigenvalues().array() > kZeroFloat).select(saes.eigenvalues().array(), 0));
     const TVec<Scalar> S_inv = TVec<Scalar>((saes.eigenvalues().array() > kZeroFloat).select(saes.eigenvalues().array().inverse(), 0));
     const TVec<Scalar> S_sqrt = S.cwiseSqrt();
@@ -196,8 +197,8 @@ void Marginalizor<Scalar>::DecomposeHessianAndBias(TMat<Scalar> &hessian, TVec<S
     residual = -jacobian_t_inv * bias;
     jacobian = S_sqrt.asDiagonal() * eigen_vectors;
     hessian = jacobian.transpose() * jacobian;
-    const TMat<Scalar> tmp_h = TMat<Scalar>((hessian.array().abs() > kZeroFloat).select(hessian.array(), 0));
-    hessian = tmp_h;
+    // Project bias onto the same retained eigenspace as the Hessian and residual.
+    bias = -jacobian.transpose() * residual;
 }
 
 // Discard specified cols and rows of hessian and bias.
